@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText doSearch="false" color="red" bgColor="darkYellow">reboot</SearchText>
+    <SearchText doSearch="false" select="text" bgColor="orange">shutdown</SearchText>
+    <SearchText doSearch="false" bgColor="yellow">Stack backtrace</SearchText>
+    <SearchText doSearch="false" bgColor="yellow">fault</SearchText>
+    <SearchText doSearch="false" select="text" bgColor="yellow">denied </SearchText>
+    <SearchText doSearch="false" select="text" bgColor="offWhite">F DEBUG  </SearchText>
+    <SearchText doSearch="false" select="text" bgColor="darkYellow">backtrace:</SearchText>
+    <SearchText bgColor="darkYellow">anr</SearchText>
+    <SearchText doSearch="false" bgColor="darkYellow">RemoteException</SearchText>
+    <SearchText doSearch="false" bgColor="liteBeige">AptivGnssHal</SearchText>
+    <SearchText bgColor="orange">AptivTBoxHal service</SearchText>
+    <SearchText select="text" bgColor="yellow">onServiceStatusCheck</SearchText>
+    <SearchText doSearch="false" bgColor="offWhite">TBoxGps</SearchText>
+    <SearchText bgColor="veryLitePurple">registerOnTBox</SearchText>
+    <SearchText bgColor="darkYellow">signalHandler</SearchText>
+    <SearchText bgColor="veryLiteBlue">TBoxSomeipManager</SearchText>
+    <SearchText bgColor="offWhite">TBoxMsgQueue</SearchText>
+    <SearchText bgColor="offWhite">TBoxMsgMgr</SearchText>
+    <SearchText select="text" bgColor="liteGrey">TBoxModuleTSPCom</SearchText>
+    <SearchText select="text" bgColor="liteGrey">tboxStatusChangedCb</SearchText>
+    <SearchText>TBoxModuleSystemFunctions</SearchText>
+    <SearchText select="text" bgColor="#f768f7">TBoxModuleTelephony</SearchText>
+    <SearchText bgColor="offWhite">TBoxConnection_aa</SearchText>
+    <SearchText bgColor="litePink">onTServiceRequest</SearchText>
+    <SearchText select="text" bgColor="liteBeige">TBoxServiceManager</SearchText>
+    <SearchText select="text" bgColor="#adebb1">onTServiceResponse</SearchText>
+    <SearchText doSearch="false" select="text" bgColor="#8ae688">TBoxServiceCallbackHandler</SearchText>
+    <SearchText select="text" bgColor="liteGrey">gwmv3.engineermode.screen</SearchText>
+</AnalyseDoc>

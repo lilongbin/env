@@ -1,0 +1,24 @@
+// protoc -I=. --python_out=python protobuf.proto 
+// protoc -I=. --cpp_out=. protobuf.proto 
+
+// [START declaration]
+syntax = "proto2";
+package MyProto;
+// [END declaration]
+
+// [START messages]
+message list {
+	repeated string str = 1;
+}
+
+message pair {
+	required string key = 1;
+	required list alist = 2;
+}
+
+message map {
+	repeated pair apair = 1;
+}
+
+// [END messages]
+

@@ -1,0 +1,5316 @@
+longbin <longbin@163.com>
+2015-03-13
+
+01  Shell入门基础
+
+Linux终端常用快捷键
+在命令行中使用这些 linux 快捷键将大大提升效率；
+<tab> 自动补全;
+<ctrl-c> 可以在终端中断命令或进程;
+<ctrl-z> 该快捷键将正在运行的程序送到后台; 通常可以使用 & 选项使程序在后台运行,但如果忘记使用该选项可以使用这对组合键;
+<ctrl-d> 退出当前终端;如果直接使用一个终端,该应用将会立刻关闭;
+<ctrl-l> 清空终端屏幕,与等效 clear 命令;
+<ctrl-a> 将光标移动到命令行行首;
+<ctrl-e> 与 ctrl+a 相反,将光标移动到行尾;
+<ctrl-u> 代替用退格键来删除当前命令,该快捷键会擦除从当前光标位置到行首的全部内容;
+<ctrl-k> 这对和 ctrl+u 快捷键有点像; 它擦除的是从当前光标位置到行尾的全部内容;
+<ctrl-w> 使用 ctrl+w 快捷键,可以擦除光标位置前的单词;如果光标在一个单词本身上,它将擦除从光标位置到词首的全部字母;
+<ctrl-y> 将粘贴使用 ctrl+w,ctrl+u 或 ctrl+k 快捷键擦除的文本;
+<ctrl-p> 可以使用该快捷键来查看上一个命令;可以反复按该键来返回到历史命令；在很多终端里,使用 pg-up 键来实现相同的功能;
+<ctrl-n> 可以结合 ctrl+p 使用该快捷键;ctrl+n 显示下一个命令;有些终端会把此快捷键映射到 pg-dn 键;
+<ctrl-r> 你可以使用该快捷键来搜索历史命令;
+
+1.1  什么是Shell
+1973年,使用C语言重写编写了Unix. 通过这次编写,使得Unix得以移植到其他的小型机上面. 
+1979年,第一个重要的标准UNIX Shell在Unix的第7版中推出,并以作者史蒂夫•伯恩(Stephen Bourne)的名字命名,叫做Bourne Shell,简称为sh. 
+
+20世纪70年代末,C Shell作为2BSD UNIX的一部分发布,简称csh. 
+之后又出现了许多其他的Shell程序,主要包括Tenex C Shell(tcsh), Korn Shell(ksh)以及GNU Bourne-Again shell(bash). 
+Shell又称命令解释器,它能识别用户输入的各种命令,并传递给操作系统. 它的作用类似于Windows操作系统中的命令行,但是,Shell的功能远比命令行强大的多. 在UNIX或者Linux中,Shell既是用户交互的界面,也是控制系统的脚本语言
+
+ourne Shell:标识为sh,该Shell由Steve Bourne在贝尔实验室时编写. 在许多Unix系统中,该Shell是root用户的默认的Shell. 
+Bourne-Again Shell:标识为bash,该Shell由Brian Fox在1987年编写,是绝大多数Linux发行版的默认的Shell. 
+Korn Shell:标识为ksh,该Shell由贝尔实验室的David Korn在二十世纪八十年代早期编写. 它完全向上兼容 Bourne Shell 并包含了C Shell 的很多特性. 
+C Shell:标识为csh,该Shell由Bill Joy在BSD系统上开发. 由于其语法类似于C语言,因此称为C Shell. 
+
+1.2  作为程序设计语言的Shell
+
+通常情况下,Shell脚本程序有两种执行方式:交互式执行和作为程序文件执行. 
+
+[root@linux ~]# for filename in `ls .`
+ > do
+ > if echo "$filename" | grep "xml"
+ > then 
+ > echo "$filename" 
+ > fi
+ > done
+对于一组需要经常重复执行的Shell语句来说,将它们保存在一个文件中来执行是一个非常明智的做法. 我们通常称这种包含多个Shell语句的文件为Shell脚本,或者Shell脚本文件. 脚本文件都是普通的文本文件,可以使用任何的文本编辑器查看或者修改Shell脚本文件
+
+#! /bin/sh
+
+#for循环开始
+for filename in `ls .`
+do
+      #如果文件名包含xml
+      if echo "$filename" | grep "xml"
+      then
+            #输出文件名
+            echo "$filename"
+      fi
+done
+
+当将脚本编辑完成之后,这个脚本还不能马上可以执行. 在Linux中,当用户执行某个程序时,必须拥有该文件的执行权限. 
+用户可以通过chmod命令修改文件的权限属性. 
+chmod [options] filename
+例如,下面的操作授予文件ex1-2.sh的所有者执行权限:
+[root@linux chapter1]# chmod u+x ex1-2.sh 
+[root@linux chapter1]# ll
+total 4
+-rwxr--r--	1	root	root	116	Dec 18 23:11	ex1-2.sh
+当授予用户执行权限之后,就可以执行该脚本了,如下:
+[root@linux ~]# chapter1/ex1-1.sh 
+
+1.3  向脚本传递参数
+许多情况下,Shell脚本都需要接收用户的输入,根据用户输入的参数来执行不同的操作. 本节将介绍Shell脚本的参数以及如何在脚本中接收参数. 
+从命令行传递给Shell脚本的参数又称为位置参数,这主要是因为Shell脚本会根据参数的位置来接收它们的值. 
+$#   命令行参数的个数
+$0   当前脚本的名称
+$*   以"参数1 参数2 参数3 ..."的形式返回所有参数的值
+$@   以"参数1""参数2""参数3"...的形式返回所有参数的值
+$_   保存之前执行的命令的最后一个参数
+$n   表示传递给脚本的第n个参数,例如$1表示第一个参数,$2表示第二个参数
+$$   返回本进程的PID
+
+#! /bin/bash
+echo "\"$# parameters\""
+echo "$@"
+
+[root@linux chapter1]# ./ex1-3.sh a "b c"
+"2 parameters"
+a b c
+
+1.4  参数扩展
+参数扩展是通过选项名称来获取选项的值,而不是依靠参数的位置. 用户可以通过getopts命令来获取选项的值. 
+#!/bin/bash
+
+#输出参数索引
+echo "OPTIND starts at $OPTIND"
+## 声明OPTIND为局部变量
+local OPTIND
+#接收参数
+while getopts ":pq:" optname
+   do
+   case "$optname" in
+      "p")
+         echo "Option $optname is specified"
+         ;;
+      "q")
+         echo "Option $optname has value $OPTARG"
+         ;;
+      "?")
+         echo "Unknown option $OPTARG"
+         ;;
+      ":")
+         echo "No argument value for option $OPTARG"
+         ;;
+      *)
+         # Should not occur
+         echo "Unknown error while processing options"
+         ;;
+   esac
+   echo "OPTIND is now $OPTIND"
+done
+
+
+[root@linux chapter1]# ./ex1-4.sh -p 
+OPTIND starts at 1
+Option p is specified
+OPTIND is now 2
+[root@linux chapter1]# ./ex1-4.sh -q
+OPTIND starts at 1
+No argument value for option q
+OPTIND is now 2
+[root@linux chapter1]# ./ex1-4.sh -f
+OPTIND starts at 1
+Unknown option f
+OPTIND is now 2
+
+1.5  第一个Shell程序
+Hello,Bash Shell!
+
+1.5.1  Shell脚本的基本元素
+对于一个基本的Shell程序来说,应该拥有以下基本元素:
+	第1行的"#! /bin/bash". 
+	注释:说明某些代码的功能. 
+	可执行语句:实现程序的功能. 
+#! /bin/bash
+
+#输出字符串
+echo "Hello Bash Shell!"
+
+1.5.2  指定命令解释器
+命令解释器用来解释并执行当前脚本文件中的语句,语法:
+#! path
+例如:#! /bin/bash
+
+在PHP脚本文件中指定PHP语言的解释器,然后执行文件中的PHP代码. 
+#! /usr/local/php5/bin/php
+
+<?php
+   //输出Hello world!字符串
+   print "Hello world!";
+?>
+
+1.5.3  Shell脚本中的注释和风格
+通过在代码中增加注释可以提高程序的可读性. 传统的Shell只支持单行注释,其表示方法是一个井号"#",从该符号开始一直到行尾都属于注释的内容. 
+例如:
+#注释1
+#注释2
+#注释3
+...
+
+用户还可以通过其他的一些变通的方法来实现多行注释,其中,最简单的方法就是使用冒号":"配合here document,其语法如下:
+:<<BLOCK 
+
+....注释内容 
+
+BLOCK
+
+#! /bin/sh
+
+:<<BLOCK
+本脚本的作用是输出一行字符串
+作者:chunxiao
+BLOCK
+echo "Hello world!"
+
+1.5.4  如何执行Shell程序
+在Linux中,如果要执行某个Shell程序,用户可以通过3种方式来实现. 这3种方式分别为:
+	授予用户执行该脚本文件的权限,使得该程序能够直接执行. 
+	通过调用Shell脚本解释器来执行. 
+	通过source命令来执行. 
+source命令是一个Shell内部命令,其功能是读取指定的Shell程序文件,并且依次执行其中的所有的语句. 该命令与前面2种方式的区别在于只是简单地读取脚本里面的语句,并且依次在当前的Shell里面执行,并没有创建新的子Shell进程. 脚本里面所创建的变量都会保存到当前的Shell里面. 
+
+1.5.5  Shell程序的退出状态
+在UNIX或者Linux中,每个命令都会返回一个退出状态码. 退出状态码是一个整数,其有效范围为0~255. 通常情况下,成功的命令返回0,而不成功的命令返回非0值. 非0值通常都被解释成一个错误码. 行为良好的UNIX命令,程序和工具都会返回0作为退出码来表示成功. 
+Shell脚本中的函数和脚本本身也会返回退出状态码. 在脚本或者是脚本函数中执行的最后的命令会决定退出状态码. 另外,用户也可以在脚本中使用exit语句将指定的退出状态码传递给Shell. 
+#!/bin/sh
+
+echo "hello world"
+#退出状态为0, 因为命令执行成功.  
+echo $?    
+#无效命令.
+abc
+#非零的退出状态, 因为命令执行失败.
+echo $?    
+echo
+#返回120退出状态给shell.  
+exit 120
+
+[root@linux chapter1]# ./ex1-9.sh 
+hello world
+0
+./ex1-9.sh: line 8: abc: command not found
+127
+  
+[root@linux chapter1]# echo $?
+120
+
+
+02  Shell编程环境的搭建
+
+2.1  在不同的操作系统上搭建Shell编程环境
+尽管Shell程序一般都是在UNIX或者Linux等操作系统上面运行的,但是,作为开发着来说,他所使用的操作系统却不一定是UNIX或者Linux,完全有可能是Windows等其他的操作系统. 本节将介绍在不同的操作系统上面,如何搭建Shell编程环境. 
+2.1.1  在Windows上搭建Shell编程环境
+如果想要在Windows上面进行Shell编程,则必须安装一个UNIX模拟器. 通过UNIX模拟器,在Windows上面模拟出一个类似于UNIX或者Linux的Shell环境. 
+Cygwin是一个非常优秀的UNIX模拟器,最初由Cygnus Solutions公司开发,目前由Red Hat公司维护. Cygwin是许多自由软件的集合,用于在各种版本的Microsoft Windows上,创建出一个UNIX或者Linux的运行环境. 对于学习Shell程序设计的人来说,Cygwin无疑是一个非常强大的工具. 
+用户可以从以下网站下载Cygwin,目前最新版本是1.7.17-1:
+http://www.cygwin.com/
+2.1.2  在Linux上搭建Shell编程环境
+由于Linux本身都会默认安装Shell的脚本的运行环境,所以通常情况下,并不需要用户额外的安装什么软件. 但是,前面已经介绍过,在同一台Linux上面会同时安装多个Shell,并且,这些Shell的语法会有所不同,所以,用户在编写和执行Shell脚本的时候一定要弄清楚当前使用的是哪种Shell. 用户可以使用系统变量$SHELL来获取当前系统默认的Shell,如下:
+[root@linux ~]# echo $SHELL
+/bin/bash
+2.1.3  在FreeBSD上搭建Shell编程环境
+FreeBSD是UNIX两大流派中BSD流派的比较典型的一个代表,也是目前应用比较广泛的一个UNIX系统. 默认情况下,FreeBSD使用的Shell为csh,这一点,可以通过系统变量$SHELL来获得.
+
+2.2  编辑器的选择
+好的编辑器会拥有许多辅助功能,例如语法的提示和自动完成等,从而可以提高开发的效率. 尽管与其他的程序设计语言相比,Shell并没有专门的编辑器,但是仍然存在一些相对较好的辅助工具. 本节将介绍Shell编程中经常使用的一些编辑器. 
+在windows系统可以使用notepad++等
+vi编辑器是Linux上面最常用的编辑器,很多Linux发行版都默认安装了vi. 其中,vi这个名称是visual interface的缩写. vi拥有非常多的命令,但是正因为有非常多的命令,才使得vi的功能非常灵活和强大. vim是vi编辑器的增加版. 
+通常认为,vi有3种使用模式,分别为一般模式, 编辑模式和命令模式. 在每种模式下面,用户都可以分别执行不同的操作. 
+当用户执行了插入(如按下i)或者追加(如按下a)等操作之后,都会使得vi从一般模式切换到编辑模式. vi的编辑模式与其他编辑器的编辑模式没有什么太多的区别. 在编辑模式下,用户可以使用上, 下, 左和右4个方向键移动光标,使用backspace键和del来删除光标前面的字符,还可以在光标所在的位置插入字符. 
+
+2.3  系统环境的搭建
+在运行Shell程序的时候,除了脚本本身之外,还有许多因素会影响到Shell的执行结果. 这里面主要有Shell本身的环境以及命令的别名等.
+
+2.3.1  Shell配置文件
+Bourne Shell (sh)的配置文件主要有2个,分别为每个用户主目录中的.profile文件以及/etc/profile文件. 在前面的2个文件中,后者是所有的用户共同使用的文件. 每个用户在登录Shell之后,会首先读取和执行/etc/profile文件中的脚本,然后再读取和执行各自主目录中的.profile文件. 因此,用户可以将所有用户都需要执行的脚本放在/etc/profile文件中. 
+Bourne-Again Shell(bash)的配置文件主要有5个,其中有4个位于用户主目录中,分别为.bash_profile, .bashrc, .bash_logout和.bash_history,有1个位于/etc/目录中,名称为bashrc. 
+.bash_profile位于每个用户的主目录中,在该文件中用来保存每个用户自己使用的Shell信息. 当用户登录时,该文件将被读取并执行,并且该文件仅被执行一次. 默认情况下,.bash_profile文件常常用来设置环境变量,执行用户的.bashrc文件. 
+.bashrc文件包含专属于某个用户的bash的相关信息,当用户登录以及每次打开新的bash时,该文件将被读取并执行. 
+.bash_logout文件在当前用户每次退出Shell时执行. 如果没有特别的要求,该文件的内容通常为空. 
+etc/bashrc与sh中的/etc/profile文件非常相似,它是所有的使用bash的用户的共同使用的文件. 当任何用户在登录bash后,都会执行该文件中的代码. 
+
+2.3.2  命令别名
+命令别名是命令的另外一个名称. 在Linux中,设置命令别名的作用主要是为了简化命令的输入. 对于一个包含许多选项和参数的命令,用户可以为其设置一个别名,这样的话,在调用该命令的时候只要使用别名就可以了. 命令别名需要使用alias命令完成,其语法如下:
+alias command_alias=command
+其中,参数command_alias表示命令的别名,command表示某个Shell命令. 当设置了命令别名之后,用户就可以与使用普通的命令一样,使用别名. 
+
+
+03  变量和引用
+
+3.1  深入认识变量
+在程序设计语言中,变量是一个非常重要的概念. 也是初学者在进行Shell程序设计之前必须掌握的一个非常基础的概念. 只有理解变量的使用方法,才能设计出良好的程序. 
+3.1.1  什么是变量
+顾名思义,变量就是程序设计语言中的一个可以变化的量,当然,可以变化的是变量的值. 变量几乎所有的程序设计语言中都有定义,并且其涵义也大同小异. 从本质上讲,变量就是在程序中保存用户数据的一块内存空间,而变量名就是这块内存空间的地址. 
+在程序的执行过程中,保存数据的内存空间的内容可能会不断地发生变化,但是,代表内存地址的变量名却保持不变. 
+3.1.2  变量的命名
+在Shell中,变量名可以由字母, 数字或者下划线组成,并且只能以字母或者下划线开头. 对于变量名的长度,Shell并没有做出明确的规定. 因此,用户可以使用任意长度的字符串来作为变量名. 但是,为了提高程序的可读性,建议用户使用相对较短的字符串作为变量名. 
+在一个设计良好的程序中,变量的命名有着非常大的学问. 通常情况下,用户应该尽可能选择有明确意义的英文单词作为变量名,尽量避免使用拼音或者毫无意义的字符串作为变量名. 这样的话,用户通过变量名就可以了解该变量的作用. 
+例如,下面的变量名都是非常好的选择:
+PATH=/sbin
+UID=100
+JAVA_HOME="/usr/lib/jvm/jre-1.6.0-openjdk.x86_64/bin/../.."
+SSHD=/usr/sbin/sshd
+
+3.1.3  变量的类型
+Shell是一种动态类型语言和弱类型语言,即在Shell中,变量的数据类型毋需显示地声明,变量的数据类型会根据不同的操作有所变化. 准确地讲,Shell中的变量是不分数据类型的,统一地按照字符串存储. 但是根据变量的上下文环境,允许程序执行一些不同的操作,例如字符串的比较和整数的加减等等. 
+#! /bin/bash
+
+#定义变量x,并且赋值为123
+x=123
+#变量x加1
+let "x += 1"
+#输出变量x的值
+echo "x = $x"
+#显示空行
+Echo
+#替换x中的1为abc,并且将值赋给变量y
+y=${x/1/abc}
+#输出变量y的值
+echo "y = $y"
+#声明变量y
+declare -i y
+#输出变量y的值
+echo "y = $y"
+#变量y的值加1
+let "y += 1"
+#输出变量y的值
+echo "y = $y"
+#显示空行
+echo
+#将字符串赋给变量z
+z=abc22
+#输出变量z的值
+echo "z = $z"
+#替换变量z中的abc为数字11,并且将值赋给变量m
+m=${z/abc/11}
+#输出变量m的值
+echo "m = $m"
+#变量m加1
+let "m += 1"
+#输出变量m的值
+echo "m = $m"
+echo
+#将空串赋给变量n
+n=""
+#输出变量n的值
+echo "n = $n"
+#变量n加1
+let "n += 1"
+echo "n = $n"
+echo
+#输出空变量p的值
+echo "p = $p"
+# 变量p加1
+let "p += 1"
+echo "p = $p"
+
+[root@linux chapter3]# ./ex3-1.sh 
+x = 124
+
+y = abc24
+y = abc24
+y = 1
+
+z = abc22
+m = 1122
+m = 1123
+
+n = 
+n = 1
+
+p = 
+p = 1
+
+3.1.4  变量的定义
+在Shell中,通常情况下用户可以直接使用变量,而毋需先进行定义,当用户第一次使用某个变量名时,实际上就同时定义了这个变量,在变量的作用域内,用户都可以使用该变量. 
+
+#! /bin/bash   
+               
+#定义变量a     
+a=1            
+#定义变量b     
+b="hello"      
+#定义变量c     
+c="hello world"
+
+通过declare命令声明变量
+declare attribute variable
+
+-p:显示所有变量的值. 
+-i:将变量定义为整数. 在之后就可以直接对表达式求值,结果只能是整数. 如果求值失败或者不是整数,就设置为0. 
+-r:将变量声明为只读变量. 只读变量不允许修改,也不允许删除. 
+-a:变量声明为数组变量. 但这没有必要. 所有变量都不必显式定义就可以用作数组. 事实上,在某种意义上,似乎所有变量都是数组,而且赋值给没有下标的变量与赋值给下标为0的数组元素相同.
+-f:显示所有自定义函数,包括名称和函数体. 
+-x:将变量设置成环境变量,这样在随后的脚本和程序中可以使用. 
+#! /bin/bash
+
+定义变量x,并将一个算术式赋给它
+x=6/3
+echo "$x"
+#定义变量x为整数
+declare -i x
+echo "$x"
+#将算术式赋给变量x
+x=6/3
+echo "$x"
+#将字符串赋给变量x
+x=hello
+echo "$x"
+#将浮点数赋给变量x
+x=3.14
+echo "$x"
+#取消变量x的整数属性
+declare +i x
+#重新将算术式赋给变量x
+x=6/3
+echo "$x"
+#求表达式的值
+x=$[6/3]
+echo "$x"
+#求表达式的值
+x=$((6/3))
+echo "$x"
+#声明只读变量x
+declare -r x
+echo "$x"
+#尝试为只读变量赋值
+x=5
+echo "$x"
+
+[root@linux chapter3]# ./ex3-3.sh 
+6/3
+6/3
+2
+0
+./ex3-3.sh: line 15: 3.14: syntax error: invalid arithmetic operator (error token is ".14")
+0
+6/3
+2
+2
+2
+./ex3-3.sh: line 32: x: readonly variable
+2
+
+3.1.5  变量和引号
+Shell语言中一共有3种引号,分别为单引号(' '), 双引号(" ")和反引号(` `). 
+这3种引号的作用是不同的,其中
+	单引号   所有字符都将保留字面意义;
+	双引号   除$\'和"之外的其余字符都将保留字面意义;
+	反引号   反引号中的字符串被解释为shell命令;
+
+	反斜线   转义字符,屏蔽后面字符的特殊意义;
+
+#! /bin/bash
+
+#输出当前目录
+echo "current directory is `pwd`"
+[root@linux chapter3]# ./ex3-4.sh 
+current directory is /root/chapter3
+
+3.1.6  变量的作用域
+Shell中的变量也分为全局变量和局部变量2种
+全局变量可以在脚本中定义,也可以在某个函数中定义. 在脚本中定义的变量都是全局变量,其作用域为从被定义的地方开始,一直到Shell脚本结束或者被显式地删除
+#! /bin/bash
+
+#定义函数
+func()
+{
+   #输出变量x的值
+   echo "$v1"
+   #修改变量x的值
+   v1=200
+
+}
+#在脚本中定义变量x
+v1=100
+#调用函数
+func
+#输出变量x的值
+echo "$v1"
+[root@linux chapter3]# ./ex3-5.sh 
+100
+200
+#! /bin/bash
+
+#定义函数
+func()
+{
+   #在函数内部定义变量
+   v2=200
+
+}
+#调用函数
+func
+#输出变量的值
+echo "$v2"[root@linux chapter3]# ./ex3-6.sh 
+200
+
+与全局变量相比,局部变量的使用范围较小,通常仅限于某个程序段访问,例如函数内部. 在Shell语言中,可以在函数内部通过local关键字定义局部变量,另外,函数的参数也是局部变量. 
+#! /bin/bash
+
+#定义函数
+func()
+{
+   #使用local关键字定义局部变量
+   local v2=200
+
+}
+#调用函数
+func
+#输出变量的值
+echo "$v2"
+[root@linux chapter3]# ./ex3-7.sh 
+ 
+#! /bin/bash
+
+#定义函数
+func()
+{
+   #输出全局变量v1的值
+   echo "global variable v1 is $v1"
+   #定义局部变量v1
+   local v1=2
+   #输出局部变量v1的值
+   echo "local variable v1 is $v1"
+
+}
+#定义全局变量v1
+v1=1
+#调用函数
+func
+#输出全局变量v1的值
+echo "global variable v1 is $v1"
+[root@linux chapter3]# ./ex3-8.sh 
+global variable v1 is 1
+local variable is 2
+global variable is 1
+3.1.7  系统变量
+Shell语言的系统变量主要在对参数判断和命令返回值判断时使用,包括脚本和函数的参数以及脚本和函数的返回值
+
+$#   命令行参数的个数
+$0   当前脚本的名称
+$*   以"参数1 参数2 参数3 ..."的形式返回所有参数的值
+$@   以"参数1""参数2""参数3"...的形式返回所有参数的值
+$n   表示传递给脚本的第n个参数,例如$1表示第一个参数,$2表示第二个参数
+$$   返回本进程的PID
+$?   前一个命令或函数的返回状态码
+
+#! /bin/bash
+
+#输出脚本的参数个数
+echo "the number of parameters is $#"
+#输出上一个命令的退出状态码
+echo "the return code of last command is $?"
+#输出当前脚本名称
+echo "the script name is $0"
+#输出所有的参数
+echo "the parameters are $*"
+#输出其中的几个参数
+echo "\$1=$1;\$2=$2;\$11=$11"
+
+[root@linux chapter3]# ./ex3-9.sh a b c d e f g h i j k l m n
+the number of parameters is 14
+the return code of last command is 0
+the script name is ./ex3-9.sh
+the parameters are a b c d e f g h i j k l m n
+$1=a;$2=b;$11=a1
+
+3.1.8  环境变量
+Shell的环境变量是所有的Shell程序都可以使用的变量. Shell程序在运行时,都会接收一组变量,这组变量就是环境变量. 环境变量会影响到所有的脚本的执行结果. 
+PATH          命令搜索路径,以冒号为分割符
+HOME          用户宿主目录的路径名,cd的默认参数
+COLUMNS       定义了命令编辑模式下可使用命令的长度
+HISTFILE      命令历史文件
+HISTSIZE      命令历史文件最多可包含的命令条数
+HISTFILESIZE  命令历史文件中包含的最大行数
+IFS           定义SHELL使用的分割符
+LOGNAME       当前登录名
+SHELL         shell的全路径
+TERM          终端类型
+TMOUT         shell自动退出的时间(秒)若为0则禁止自动退出
+PWD           当前工作目录
+除了上表列出的环境变量之外,用户还可以使用set命令列出当前系统的环境变量. 
+
+[root@linux chapter3]# set | more
+BASH=/bin/bash
+BASH_ALIASES=()
+BASH_ARGC=()
+BASH_ARGV=()
+BASH_CMDS=()
+BASH_EXECUTION_STRING='(set|more) >/tmp/vRTvQkj/1 2>&1'
+BASH_LINENO=()
+BASH_SOURCE=()
+BASH_VERSINFO=([0]="4" [1]="2" [2]="25" [3]="1" [4]="release" [5]="x86_64-pc-linux-gnu")
+BASH_VERSION='4.2.25(1)-release'
+IFS=$' \t\n'
+LANG=en_US.UTF-8
+LANGUAGE=en_US:en
+MACHTYPE=x86_64-pc-linux-gnu
+OPTIND=1
+OSTYPE=linux-gnu
+SHELL=/bin/bash
+TERM=xterm
+UID=1000
+VIM=/usr/share/vim
+VIMRUNTIME=/usr/share/vim/vim73
+
+
+#! /bin/bash
+
+#输出命令搜索路径
+echo "commands path is $PATH"
+#输出当前的登录名
+echo "current login name is $LOGNAME"
+#输出当前用户的主目录
+echo "current user's home is $HOME"
+#输出当前的Shell
+echo "current shell is $SHELL"
+#输出当前工作目录
+echo "current path is $PWD"
+
+[root@linux chapter3]# ./ex3-10.sh 
+commands path is /usr/lib64/qt-3.3/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/pgsql-9.2/bin
+current login name is root
+current user's home is /root
+current shell is /bin/bash
+current path is /root/chapter3
+
+3.2  变量赋值和和清空
+3.2.1  变量赋值
+在Shell中,变量的赋值使用以下语法:
+variable_name=value
+其中,varibale_name表示变量名,value表示变量的值. 
+例如,下面都是一些正确的赋值语句:
+v1=Linux
+v2='RedHat Linux'
+v3="RedHat Linux $HOSTTYPE"
+v4=12345
+3.2.2  引用变量的值
+在Shell中,用户可以通过在变量名前面加上"$",来获取该变量的值. 
+#!/bin/bash
+
+v1=Linux
+v2='RedHat Linux'
+v3="RedHat Linux $HOSTTYPE"
+v4=12345
+#输出变量v1的值
+echo "$v1"
+#输出变量
+echo "$v2"
+#输出变量v3的值
+echo "$v3"
+#输出变量v4的值
+echo "$v4"
+[root@linux chapter3]# ./ex3-11.sh 
+Linux
+RedHat Linux
+RedHat Linux x86_64
+12345
+
+3.2.3  清除变量
+当某个Shell变量不再需要时,可以将其清除. 当变量被清除后,其所代表的值也会消失. 清除变量使用unset语句,其基本语法如下:
+unset variable_name
+其中,参数varibale_name表示要清除的变量的名称. 
+
+#! /bin/bash
+
+#定义变量v1
+v1="Hello world"
+#输出v1的值
+echo "$v1"
+#清除变量
+unset v1
+echo "the value of v1 has been reset"
+#再次输出变量的值
+echo "$v1"
+
+[root@linux chapter3]# ./ex3-12.sh
+Hello world
+the value of v1 has been reset
+
+3.3  引用和替换
+变量的引用和替换是Shell对于变量功能的扩展. 
+3.3.1  引用
+所谓引用,是指将字符串用引用符号包括起来,以防止其中的特殊字符被Shell解释为其他涵义. 特殊字符是指除了字面意思之外还可以解释为其他意思的字符. 例如在Shell中,"$"符号的本身涵义是美元符号,其ASCII码值为十进制36. 除了这个涵义之外,前面已经讲过,"$"符号还可以用了获取某个变量的值,即变量替换. 星号"*"也是一个特殊的字符,星号可以用来作为通配符使用. 
+
+	单引号   所有字符都将保留字面意义;
+	双引号   除$\'和"之外的其余字符都将保留字面意义;
+	反引号   反引号中的字符串被解释为shell命令;
+	反斜线   转义字符,屏蔽后面字符的特殊意义;
+
+3.3.2  全引用
+在Shell语句中,当一个字符串被单引号引用起来之后,其中所有的字符,除单引号本身之外,都将被解释为字面意义,即字符本身的涵义. 这意味着被单引号引用起来的所有的字符都将被解释为普通的字符,因此,这种引用方式称为全引用. 
+#! /bin/bash
+
+#定义变量v1
+v1="chunxiao"
+#输出含有变量名的字符串
+echo 'Hello, $v1'
+
+[root@linux chapter3]# ./ex3-14.sh 
+Hello, $v1
+
+3.3.3  部分引用
+对于单引号来说, 被其引用起来的所有的字符都将被解释为字面意义. 
+而对于双引号来说,情况会有所不同. 
+如果用户使用双引号将字符串引用起来,则其中所包含的字符除美元符号($), 反引号(`)以及反斜线(\)之外的所有的其他的字符,都将被解释为字面意义,这称为部分引用. 
+也就是说,在部分引用中,"$", "`"和"\"仍然拥有特殊的涵义. 
+#! /bin/bash
+
+#定义变量
+v1="chunxiao"
+#输出变量的值
+echo "Hello, $v1"
+
+[root@linux chapter3]# ./ex3-15.sh
+Hello, chunxiao
+
+3.3.4  命令替换
+所谓命令替换,是指在Shell程序中,将某个Shell命令的执行结果赋给某个变量. 在bash中,有2种语法可以进行命令替换,分别使用反引号和圆括号,如下:
+`shell_command`
+$(shell_command)
+以上2种语法时等价的,推荐使用后一种,用户可以根据自己的习惯来选择使用. 
+使用eval命令可以让后面的字符串作为命令重复解析一次;
+#! /bin/bash
+
+#变量替换
+v1=`pwd`
+#输出变量的值
+echo "current working directory is $v1"
+
+[root@linux chapter3]# ./ex3-16.sh 
+current working directory is /root/chapter3
+
+3.3.5  转义
+顾名思义,转义的作用是转换某些特殊字符的意义. 转义使用反斜线表示,当反斜线后面的一个字符具有特殊的意义时,反斜线将屏蔽该字符的特殊意义,使得Shell按照该字符的字面意义来解释. 
+
+[root@linux chapter3]# echo $SHELL
+/bin/bash
+[root@linux chapter3]# echo \$SHELL
+$SHELL
+
+
+04  条件测试和判断语句
+
+4.1  条件测试
+为了能够正确处理Shell程序运行过程中遇到的各种情况,Linux Shell提供了一组测试运算符. 通过这些运算符,Shell程序能够判断某种或者几个条件是否成立. 条件测试在各种流程控制语句,例如判断语句和循环语句中发挥了重要的作用,所以,了解和掌握这些条件测试是非常重要的. 
+4.1.1  条件测试的基本语法
+在Shell程序中,用户可以使用测试语句来测试指定的条件表达式的条件的真或者假. 当指定的条件为真时,整个条件测试的返回值为0;反之,如果指定的条件为假,则条件测试语句的返回值为非0值. 
+条件测试的语法有2种,分别是test命令和[命令,test命令的语法如下:
+test expression
+其中,参数expression表示需要进行测试的条件表达式,可以由字符串, 整数, 文件名以及各种运算符组成. 例如,下面的表达式都是有效的条件表达式:
+		1 -eq 2
+		‘string’
+		-z ‘string’
+		-e file
+
+[命令的语法如下:
+[ expression  ]
+在上面的语法中,[是条件测试命令,参数expression是一个条件表达式. 其中expression的语法与上面的test命令中的语法完全相同. 条件表达式和左右方括号之间都必须有一个空格. 
+
+4.1.2  字符串测试
+通常情况下,对于字符串的操作主要包括判断字符串变量是否为空以及两个字符串是否相等. 在Shell中,用户可以通过5种运算符来对字符串进行操作. 
+
+运算符              说明
+string              判断指定的字符串是否为空
+string1 = string2   判断2个字符串string1和string2是否相等
+string1 != string2  判断2个字符串string1和string2是否不相等
+-n string           判断string是否为非空串
+-z string           判断string是否为空串
+
+#定义字符串变量
+[root@linux chapter4]# a="abc"
+#使用test命令测试变量$a是否为空串
+[root@linux chapter4]# test $a
+#通过echo命令和$?环境变量输出测试结果
+[root@linux chapter4]# echo $?
+#输出结果为0,表示变量$a的值不为空
+0
+#使用-n运算符测试变量$a是否不为空
+[root@linux chapter4]# test -n "$a"
+#输出测试结果
+[root@linux chapter4]# echo $?
+#测试结果为0表示变量为非空字符串
+0
+#使用-z运算符测试变量$a是否为空串
+[root@linux chapter4]# test -z "$a"
+#测试结果为1,表示变量$a不是空串
+[root@linux chapter4]# echo $?
+1
+
+shell中比较2个字符串值的方法
+#定义变量$a
+[root@linux chapter4]# a="hello"
+#定义变量$b
+[root@linux chapter4]# b="world"
+#比较2个字符串是否相等
+[root@linux chapter4]# [ "$a" = "$b"  ]
+#输出测试结果为1,表示$a和$b不相等
+[root@linux chapter4]# echo $?
+1
+#测试$a和$b是否不相等
+[root@linux chapter4]# test "$a" != "$b"
+#输出测试结果为0,表示$a和$b不相等
+[root@linux chapter4]# echo $?
+0
+
+空格对字符串比较的结果有一定的影响
+#定义字符串变量$a
+[root@linux chapter4]# a="Hello world. "
+#定义字符串变量$b
+[root@linux chapter4]# b="Hello world."
+#测试$a和$b是否相等
+[root@linux chapter4]# [ "$a" = "$b"  ]
+[root@linux chapter4]# echo $?
+1
+
+字符大小写对字符串比较结果的影响
+#变量$a的第1个字母为大写的H
+[root@linux chapter4]# a="Hello world."
+#变量$b的第1个字母为小写的h
+[root@linux chapter4]# b="hello world."
+[root@linux chapter4]# [ "$a" = "$b"  ]
+#变量$a和$b的值不相等
+[root@linux chapter4]# echo $?
+1
+
+4.1.3 整数测试
+与字符串测试类似,整数测试也有2种形式的语法:
+test number1 op number2
+或者
+[ number1 op number2 ]
+其中,number1和number2分别表示参与比较的2个整数,可以是常量或者变量. op表示运算符. 
+
+运算符                说明
+number1 -eq number2   比较number1是否等于number2;如果相等,测试结果为真
+number1 -ne number2   比较number1和number2是否不相等;如果不等,测试结果为真
+number1 -gt number2   比较number1是否大于number2;
+number1 -lt number2   比较number1是否小于number2;
+number1 -ge number2   比较number1是否大于等于number2;
+number1 -le number2   比较number1是否小于等于number2;
+
+比较两个数是否相等
+[root@linux chapter4]# [ 12 -eq 14  ]
+[root@linux chapter4]# echo $?
+1
+
+比较变量和常数
+[root@linux chapter4]# x=365
+[root@linux chapter4]# test "$x" -eq 365
+[root@linux chapter4]# echo $?
+0
+[root@linux chapter4]# test "$x" -gt 364
+[root@linux chapter4]# echo $?
+0
+
+比较两个变量的值
+[root@linux chapter4]# x=123
+[root@linux chapter4]# y=36
+[root@linux chapter4]# [ "$x" -le "$y" ]
+[root@linux chapter4]# echo $?
+1
+
+4.1.4 文件测试
+文件测试的语法如下:
+test op file
+或者
+[ op file ]
+在上面的语法中,op表示操作符,常用的操作符参见表4.3,其中file表示要测试的文件名. 
+
+操作符    说明
+-a file   文件是否存在
+-b file   文件是否存在,且为块文件
+-c file   文件是否存在,且为字符文件
+-d file   文件是否存在,且为目录文件
+-e file   同-a操作符
+-s file   文件是否为非空文件
+-f file   文件是否存在,且为普通文件
+-r file   文件是否存在,且可读
+-w file   文件是否存在,且可写
+-x file   文件是否存在,且可执行
+-L file   文件是否存在,且为符号链接
+-u file   文件是否设置suid位
+
+通过操作符判断各种文件类型
+[root@linux chapter4]# test -d dir1
+[root@linux chapter4]# echo $?
+0
+[root@linux chapter4]# test -f file1
+[root@linux chapter4]# echo $?
+0
+[root@linux chapter4]# test -s file2
+[root@linux chapter4]# echo $?
+1
+[root@linux chapter4]# test -b file1
+[root@linux chapter4]# echo $?
+1
+[root@linux chapter4]# test -b /dev/sda
+[root@linux chapter4]# echo $?
+0
+[root@linux chapter4]# test -c /dev/tty
+[root@linux chapter4]# echo $?
+0 
+
+通过文件测试判断用户对文件的访问权限
+[root@linux chapter4]# test -w file1
+[root@linux chapter4]# echo $?
+0
+[root@linux chapter4]# test -r file1
+[root@linux chapter4]# echo $?
+0
+[root@linux chapter4]# test -x file1
+[root@linux chapter4]# echo $?
+1
+[root@linux chapter4]# test -x hello.sh
+[root@linux chapter4]# echo $?
+0
+
+4.1.5 逻辑操作符
+Shell中的逻辑操作符可以将多个不同的条件组合起来,从而构成一个复杂的条件表达式. 
+
+操作符           说明
+!expression      逻辑非
+exp1 -a exp2     逻辑与
+exp1 -o exp2     逻辑或
+
+4.2 条件判断语句
+条件判断语句是一种最简单的流程控制语句. 该语句使得程序根据不同的条件来执行不同的程序分支. 本节将介绍Shell程序设计中的简单的条件判断语句. 
+4.2.1  使用简单的if语句进行条件判断
+条件判断语句使用if语句来实现. 最简单的if语句的语法如下:
+if expression
+then
+		statement1
+		statement2
+		...
+fi
+在上面的语法中,expression通常代表一个条件表达式,但是也可以是Shell命令.
+
+为了使得代码更加紧凑,在某些情况下,我们可以将if子句和then子句写在同一行中. 此时,需要在expression表达式后面加上一个分号,如下:
+if expression; then
+		statement1
+		statement2
+fi
+分号的作用是表示if子句已经结束,后面的代码是then子句. 
+
+#! /bin/sh
+#使用条件测试判断/bin/bash是否是一个常规文件
+if [ -f /bin/bash ]
+   then echo "/bin/bash is a file"
+fi
+
+#! /bin/sh
+#使用空命令作为条件
+if :; then echo "always true"; fi
+
+#! /bin/sh
+#使用&&操作符代替if语句
+test "$(whoami)" != "root" && (echo you are using a non-privileged account; exit 1)
+
+
+4.2.2 if else语句
+基本语法如下:
+if expression
+then
+	statement1
+	statement2
+	…
+else
+	statement3
+	statement4
+	…
+fi
+在上面的语法中,expression表示if语句的执行条件,可以是条件表达式或者一个Shell命令. 如果expression的值为真,则执行then子句中的语句statement1, statement2…. 如果expression的值为假,则执行else子句中的语句,包括statement3, statement4, …,最后通过fi关键字结束整个if代码块. 
+
+#! /bin/sh
+#输出提示信息
+echo "Please enter a number:"
+#从键盘读取用户输入的数字
+read num
+#如果用户输入的数字大于10
+if [ "$num" -gt 10 ]; then
+	#输出大于10的提示信息
+	echo "The number is greater than 10."
+#否则
+else
+	#输出小于或者等于10的提示信息
+	echo "The number is equal to or less than 10."
+fi
+
+
+4.2.3  使用if elif语句进行多条件判断
+if elif语句的基本语法如下:
+if expression1
+then
+   statement1
+   statement2
+   …
+elif expression2
+then
+   statement3
+   statement4
+   …
+elif expression3
+then
+   statement5
+   statement6
+   …
+else
+   statementn
+   ..
+fi
+
+在上面的语法中,expression1表示整个if elfi语句结构中的第1个条件表达式,如果该条件表达式的值为真,则执行第1个then子句中的语句statement1以及statement2等等;否则,继续下面的判断. 如果表达式expression2的值为真,则执行第2个then子句中的语句,以此类推. 如果所有的条件表达式的值都为假,则执行最后的else子句中的语句. 最后是if elif结构的结束标志fi. 
+
+4.2.4  使用exit语句退出程序
+exit语句的基本作用是终止Shell程序的执行. 除此之外,exit语句还可以带一个可选的参数,用来指定程序退出时的状态码. exit语句的基本语法如下:
+exit status
+其中,status参数表示退出状态,该参数是一个整数值,其取值范围为0~255. 与其他的Shell命令的一样,Shell程序的退出状态也储存在系统变量$?中,因此,用户可以通过该变量取得Shell程序返回给父进程的退出状态码.  
+
+#! /bin/sh
+
+#使用echo语句输出字符串
+echo hello world!
+#使用$?变量获取echo语句的执行状态
+echo $?
+#执行一个无效的命令
+aaa
+#输出执行状态
+echo $?
+#退出
+exit 120
+
+使用if和exit语句,使得程序在适当的时候退出
+#! /bin/sh
+
+#如果文件已经存在,则直接退出
+if [ -e "$1" ]
+then
+   echo "file $1 exists."
+   exit 1
+#如果文件不存在,则创建文件
+else
+   touch "$1"
+   echo "file $1 has been created."
+   exit 0
+fi
+
+
+4.3  多条件判断语句case
+case语句的基本语法如下:
+case variable in
+value1)
+   statement1
+   statement2
+   ...
+   statementn;;
+value2)
+   statement1
+   statement2
+   ...
+   statementn;;
+value3)
+   statement1
+   statement2
+   ...
+   statementn;;
+...
+valuen)
+   statement1
+   statement2
+   ...
+   statementn;;
+*)
+   statement1
+   statement2
+   ...
+   statementn;;
+esac
+在上面的语法中,variable是一个变量,case语句会将该变量的值与每value1~valuen中的每个值相比较,如果与某个value的值相等,则执行该value所对应的一组语句. 当遇到";;"符号时,就跳出case语句,执行esac语句后面的语句. 如果没有任何一个值与variable的值相匹配,则执行*后面的一组语句. 
+
+4.3.2  利用case语句处理选项参数
+使用case语句来处理选项参数在Shell中非常普遍,尤其是/etc/init.d目录中服务脚本,几乎都含有一个或者多个case语句. 
+
+#! /bin/sh
+
+#输出提示信息
+echo "Hit a key, then hit return."
+#读取用户按下的键
+read keypress
+#case语句开始
+case "$keypress" in
+   #小写字母
+   [[:lower:]])
+      echo "Lowercase letter.";;
+   #大写字母
+   [[:upper:]])
+      echo "Uppercase letter.";;
+   #单个数字
+   [0-9])
+      echo "Digit.";;
+   #其他字符
+   *)
+      echo "other letter.";;
+esac
+
+
+4.4  运算符
+4.4.1  算术运算符
+与其他的程序设计语言一样,Shell中的算术运算符也主要包括加(+), 减(-), 乘(*), 除(/), 求余(%)以及幂运算(**)等. 表4-4列出了常用的算术运算符以及使用方法. 
+运算符  说明
++       求2个数的和
+-       求2个数的差
+*       求2个数的乘积
+/       求2个数的商
+%       求模
+**      幂运算,如2**3即8
+
+在Linux Shell中,用户可以通过4种方式来执行算术运算,这4种方式分别如下. 
+4.4.1.1 使用expr外部程序
+expr是一个Shell命令,可以计算某个表达式的值,其基本语法如下:
+expr expression
+其中,express是要计算的表达式,运算符两边要又空格. 
+#! /bin/bash
+
+#计算2和100的差,即-98
+result=`expr 2 - 100`
+echo "$result"
+#计算2和100的和,即102
+result=`expr 2 + 100`
+echo "$result"
+#计算2和5的乘积,即10
+result=`expr 2 \* 5`
+echo "$result"
+#计算24和8的商,即3
+result=`expr 24 / 8`
+echo "$result"
+#先计算2和6的差,然后再乘以12,即-48
+result=`expr \( 2 - 6 \) \* 12`
+echo "$result"
+
+#错误的语法
+result=`expr 2+5`
+echo "$result"
+#错误的语法
+result=`expr 2-4*9`
+echo "$result"
+#错误的语法
+result=`expr 1-(4-7)`
+echo "$result"
+
+4.4.1.2 使用$((… ))
+使用这种形式来进行算术运算写法比较自由,毋需对运算符和括号做转义处理,可以采用松散或者紧凑的格式来书写表达式. 
+
+#! /bin/sh
+
+#紧凑格式,计算3和6的和
+result=$((3+6))
+echo "$result"
+#松散格式,计算3和9的和
+result=$(( 3 + 9 ))
+echo "$result"
+#计算3和6的乘积
+reuslt=$(( 3 * 6 ))
+echo "$result"
+#计算7和5的商
+result=$(( 7 / 5 ))
+echo "$result"
+#计算8和3的余数
+result=$(( 8 % 3 ))
+echo "$result"
+#复合运算
+result=$(( ( 1-4 ) * 5 ))
+echo "$result"
+
+4.4.1.3 使用$[…]
+#! /bin/sh
+
+#加法运算
+result=$[4+5]
+echo "$result"
+#复合运算
+result=$[(1+2)*3]
+echo "$result"
+#幂运算
+result=$[ 2 ** 4 ]
+echo "$result"
+
+4.4.1.4 使用let命令
+
+使用let命令可以执行一个或者多个算术表达式,其中的变量名毋需使用$符号. 如果表达式中含有空格或者其他特殊字符,则必须将其引用起来. 
+#! /bin/sh
+
+#定义变量
+n=10
+#加法运算
+let n=n+1
+echo "$n"
+#乘法运算
+let n=n*10
+echo "$n"
+#幂运算
+let n=n**2
+echo "$n"
+
+复合算术运算符
++= -= *= /= %=
+
+4.4.2  位运算符
+位运算通常出现在整数间,它针对的不是整个整数,而是其二进制表示形式中的某个或者某些位(bit). 例如,2>>1是将二进制形式的2,即10,左移1位,从而变成100,即4. 下表列出了常用的位运算符. 
+
+运算符    说明
+<<        左移
+>>        右移
+&         按位与
+|         按位或
+~         按位取反
+^         按位异或
+
+#! /bin/sh
+
+#左移运算
+result=$[ 2 << 3  ]
+echo "$result"
+#右移运算
+result=$[ 8 >> 2  ]
+echo "$result"
+#按位与运算
+result=$[ 8 & 4  ]
+echo "$result"
+#按位非运算
+result=$[ ~8  ]
+echo "$result"
+#按位异或运算
+result=$[ 10 ^ 6  ]
+echo "$result"
+
+复合位运算
+<<= >>= &= |= ^=
+
+#! /bin/sh
+
+#定义变量x
+x=5
+#执行左移赋值复合运算
+let "x<<=4"
+echo "$x"
+#执行右移赋值复合运算
+let "x>>=2"
+echo "$x"
+#执行按位或赋值运算
+let "x|=2"
+echo "$x"
+
+4.4.3  自增/自减运算符
+在Shell中,还有一类称为自增或者自减的运算符,这类运算符的作用是将某个变量自动加1或者减1. 这类运算符一共有4种,分别是前置自增, 前置自减, 后置自增和后置自减. 
+
+++var    先将变量的值+1,然后再赋值给var
+--var    先将变量的值-1,然后再赋值给var
+var++    先使用var的值,然后将该变量的值+1
+var--    先使用var的值,然后将该变量的值-1
+
+#! /bin/sh
+
+#定义变量x
+x=5
+#将变量x先自增,然后再计算表达式的值
+x=$[ x + (++x) ]
+echo "$x"
+#将变量先自减,然后再计算表达式的值
+x=$[ --x ]
+echo "$x"
+#先计算表达式的值,然后再自增
+x=$((x++))
+echo "$x"
+#先计算表达式的值,然后再自减
+x=$(( x-- ))
+echo "$x"
+
+4.4.4  数字常量的进制
+在Shell中,用户可以使用2种语法来表示不同的进制,首先是增加前缀,例如以0开头的数字表示八进制,以0x开头的数字表示十六进制. 第2种语法是使用井号"#",例如2#1000表示二进制,8#42表示八进制. 
+#! /bin/sh
+
+#十进制20
+((x=20))
+echo "$x"
+#八进制20
+((x=020))
+echo "$x"
+#十六进制20
+((x=0x20))
+echo "$x"
+
+#! /bin/sh
+
+#二进制
+((x="2#100000"))
+echo "$x"
+#八进制
+((x=8#123))
+echo "$x"
+#十六进制
+((x=16#32))
+echo "$x"
+
+
+05  循环结构
+
+5.1  步进循环语句for
+for循环是最简单,也是最常用的循环语句. 与其他的程序设计语言一样,for循环都是初学者在学习循环结构时的入门课程. for循环通常用于遍历整个对象或者数字列表. 按照循环条件的不同,for循环语句可以分为带列表的for循环, 不带列表的for循环以及类C风格的for循环. 本节将介绍这3种不同的for循环结构. 
+5.1.1  带列表的for循环语句
+
+带列表的for循环通常用于将一组语句执行已知的次数,其基本语法如下:
+for variable in {list}
+do
+   statement1
+   statement2
+   ...
+done
+
+在上面的语法中,variable称为循环变量,list是一个列表,可以是一系列的数字或者字符串,元素之间使用空格隔开. 
+do和done之间的所有的语句称为循环体,即循环结构中重复执行的语句. for循环体的执行次数与list中元素的个数有关. 在带列表的for语句的执行时,Shell会将in关键字后面的list列表的第1个元素的值赋给变量variable,然后执行循环体;
+当循环体中的语句执行完毕之后,Shell会将列表中的第1个元素的值赋给变量variable,然后再次执行循环体. 
+当list列表中的所有的元素都被访问后,for循环结构终止,程序将继续执行done语句后面的其他的语句. 
+
+
+#! /bin/bash
+
+#for循环开始
+for var in 1 2 3 4 5 6 7 8
+do
+   #依次输出列表中的数字
+   echo "the number is $var"
+done
+
+#! /bin/bash
+
+#使用省略的写法表示某个范围
+for var in {1..8}
+do
+   echo "the number is $var"
+done
+
+Shell允许用户指定for语句的步长. 当用户需要另外指定步长时,其基本语法如下:
+for varibale in {start..end..step}
+do
+   statement1
+   statement2
+   ...
+done
+
+
+#! /bin/bash
+
+#定义变量,并赋初值为0
+sum=0;
+#for循环开始,设置起始数值为1,结束数值为100,步长为2
+for i in {1..100..2}
+do
+   #将数累加
+   let "sum+=i"
+done
+echo "the sum is $sum"
+
+#! /bin/bash
+
+#for循环开始
+for day in {Mon Tue Wed Thu Fri Sat Sun}
+do
+   #输出循环变量的值
+   echo "$day"
+done
+
+#! /bin/bash
+
+#使用ls命令的执行结果作为列表
+for file in $(ls)
+do
+   #输出每个文件名
+   echo "$file"
+done
+
+#! /bin/bash
+
+#使用通配符作为列表条件
+for file in *
+do
+   echo "$file"
+done
+
+
+#! /bin/bash
+
+#输出所有的参数
+echo "$*"
+#将参数列表作为条件
+for arg in $*
+do
+   #依次输出各个参数值
+   echo "${arg}"
+done
+
+5.1.2  不带列表的for循环语句
+在某些特殊情况下,for循环的条件列表可以完全省略,称为不带列表的for循环语句. 如果没有为for循环提供条件列表,Shell将从命令行获取条件列表. 不带列表的for循环语句的一般语法如下:
+for variable
+do
+   statement1
+   statement2
+   ...
+done
+
+
+由于系统变量$@同样可以获取所有的参数,所以以上的语法等价于以下语法:
+for variable in $@
+do
+   statement1
+   statement2
+   ...
+done
+
+
+也同样等价于以下语法:
+for variable in $*
+do
+   statement1
+   statement2
+   ...
+done
+
+
+#! /bin/bash
+
+#不带条件列表
+for arg
+do
+   #输出每个参数
+   echo "$arg"
+done
+
+5.1.3  类C风格的for循环语句
+类C风格的for循环语句的基本语法如下:
+for ((expression1; expression2; expression3))
+do
+   statement1;
+   statement2;
+   ...
+done
+在上面的语法中,for循环语句的执行条件被2个圆括号包括起来. 
+执行条件分为3个部分,由2个分号隔开,第1部分expression1通常时条件变量初始化的语句;
+第2部分expression2是决定是否执行for循环的条件. 当expression2的值为0时,执行整个循环体;当expression2的值为非0时,退出for循环体. 
+第3部分,即表达式expression3通常用来改变条件变量的值,例如递增或者递减等. 
+
+#! /bin/bash
+
+#for循环开始
+for (( i=1;i<5;i++ ))
+do
+   #输出循环变量i的值
+   echo "$i"
+done
+
+5.1.4  使用for循环语句处理数组
+使用for循环遍历数组非常方便. 针对数组,Shell专门提供了一种特殊语法的for循环语句,其基本语法如下:
+for variable in ${array[*]}
+do
+   statement1
+   statement2
+   ...
+done
+其中,变量variable是循环变量,in关键字后面的部分表示要遍历的数组,其中array表示数组的名称. 在遍历数组的过程中,for循环语句会将每个数组元素的值赋给循环变量variable. 因此,用户可以在循环体中对每个数组元素进行相应的操作. 
+
+
+#! /bin/bash
+
+#定义数组
+array=(Monday Tuesday Wednesday Thursday Friday Saturday Sunday)
+#通过for循环遍历数组元素
+for day in ${array[*]}
+do
+   #输出每个数组元素的值
+   echo $day
+done
+
+5.2  until循环语句
+until循环语句同样也存在于多种程序设计语言中. 顾名思义,until语句的作用时将循环体重复执行,直到某个条件成立为止. 恰当地使用until语句,可以收到事半功倍地效果. 本节将详细介绍until语句的使用方法. 
+
+5.2.1  until语句的基本语法
+until循环语句的功能是不断地重复执行循环体中的语句,直至某个条件成立. until语句的基本语法如下:
+until expression
+do
+   statement1
+   statement2
+   ...
+done
+在上面的语法中,expression是一个条件表达式. 当该表达式的值不为0时,将执行do和done之间的语句;当expression的值为0时,将退出until循环结构,继续执行done语句后面的其它的语句. 
+
+
+#! /bin/bash
+
+#定义循环变量i
+i=1
+#当i的值小于9时执行循环
+until [[ "$i" -gt 9  ]]
+do
+   #计算i的平方
+   let "square=i*i"
+   #输出i的平方
+   echo "$i*$i=$square"
+   #循环变量加1
+   let "i=i+1"
+done
+
+5.2.2  利用until语句批量增加用户
+
+#! /bin/bash
+
+#定义变量i
+i=1
+#一直循环到变量i的值为21
+until [ "$i" -eq 21  ]
+do
+   #执行useradd命令添加用户
+   useradd user$i
+   #修改用户密码
+   echo "password" | passwd --stdin user$i > /dev/null
+   #循环变量自增
+   let "i++"
+done
+
+
+#! /bin/bash
+
+i=1
+until [ "$i" -eq 21  ]
+do
+   #依次删除用户
+   userdel -r user$i
+   let "i++"
+done
+
+5.3  while循环语句
+while循环是另外一种常见的循环结构. 使用while循环结构,可以使得用户重复执行一系列的操作,直到某个条件的发生. 这听起来好像跟until循环非常相似,但是与until语句相比,while语句有着较大的区别. 本节将详细介绍while语句的使用方法. 
+
+5.3.1  while语句的基本语法
+
+while循环语句的基本语法如下:
+while expression
+do
+	statement1
+	statement2
+	...
+done
+在上面的语法中,expression表示while循环体执行时需要满足的条件. 虽然可以使用任意合法的Shell命令,但是,通常情况下,expression代表一个测试表达式. 与其他的循环结构一样,do和done这2个关键字之间的语句构成了循环体. 
+
+5.3.2  通过计数器控制while循环结构
+
+所谓计数器,实际上就是指一个循环变量,当该变量的值在某个范围内时,执行循环体;当超过该范围时,终止循环. 
+
+#! /bin/bash
+
+#定义循环变量
+i=1
+#while循环开始
+while [[ "$i" -lt 10  ]]
+do
+   #计算平方
+   let "square=i*i"
+   #输出平方
+   echo "$i*$i=$square"
+   #循环 变量自增
+   let "i=i+1"
+done
+
+5.3.3  通过结束标记控制while循环结构
+在某些情况下,用户可能不知道while循环会执行多少次. 此时,用户就无法使用计数器来控制while循环. 为了处理这种情况,用户可以在程序中设置一个特殊的标记值,当该标记值出现时,终止while循环. 这种特殊的标识值称为结束标记. 
+
+#! /bin/bash
+
+#提示用户输入数字
+echo "Please enter a number between 1 and 10.Enter 0 to exit."
+#读取用户输入的数字
+read var
+#while循环开始
+while [[ "$var" != 0  ]]
+do
+   #提示用户输入数字太小
+   if [ "$var" -lt 5  ]
+   then
+      echo "Too small. Try again."
+      read var
+   #提示用户输入数字太大
+   elif [ "$var" -gt 5  ]
+   then
+      echo "Too big. Try again."
+      read var;
+    else
+       echo "Congratulation! You are right."
+       exit 0;
+    fi
+done
+
+5.3.4  理解while语句与until语句的区别
+语法结构非常相似,都是将循环条件放在了语句的后面:
+while expression
+do
+...
+done
+
+until语句的语法结构如下:
+unitl expression
+do
+...
+done
+但是,在while语句中,当expression的值为0时才执行循环体中的语句,当expression的值为非0值时,将退出循环体;在until语句中,当expression的值为非0时,执行循环体中的语句,当expression的值为0时,将退出循环结构. 因此,用户在使用这2种语句时,一定要注意区分这个关键的地方. 
+
+
+在执行机制方面,这2个语句是相同的,即首先会判断expression的值,当该表达式的值符合要求时,才执行循环体中的语句;否则,都不会执行循环体. 
+
+5.4  嵌套循环
+在程序设计语言中,嵌套的循环也是一种非常常见的结构. Shell同样也支持嵌套循环. 通过嵌套循环,可以完成更复杂的功能. 本节将介绍Shell中嵌套循环的使用方法. 
+
+
+#! /bin/bash
+
+#外层循环
+for ((i=1;i<=9;i++))
+do
+	#内层循环
+	for ((j=1;j<=i;j++))
+	do
+			#计算2个数的乘积
+			let "product=i*j"
+			#输出乘积
+			printf "$i*$j=$product"
+			#输出空格分隔符
+			if [[ "$product" -gt 9  ]]
+			then
+				printf "   "
+			else
+				printf "    "
+			fi
+	done
+	echo
+done
+
+5.5  利用break和continue语句控制循环
+在Shell中的循环结构中,还有2个语句非常有用,即break和continue语句. 前者用于立即从循环中退出;而后者则用来跳过循环体中的某些语句,继续执行下一次循环. 本节将详细介绍这2个语句的使用方法. 
+
+5.5.1  利用break语句控制循环
+break语句的作用是立即跳出某个循环结构. break语句可以用在for, while或者until等循环语句的循环体中. 
+
+
+#! /bin/bash
+
+for ((i=1;i<=9;i++))
+do
+   for ((j=1;j<=i;j++))
+   do
+      let "product=i*j"
+      printf "$i*$j=$product"
+      if [[ "$product" -gt 9  ]]
+      then
+         printf "   "
+      else
+         printf "    "
+      fi
+   done
+   echo
+   #当变量i的值为5时,退出循环
+   if [[ "$i" -eq 5  ]]
+   then
+      break;
+   fi
+done
+
+#! /bin/bash
+
+for ((i=1;i<=9;i++))
+do
+   for ((j=1;j<=i;j++))
+   do
+      let "product=i*j"
+      printf "$i*$j=$product"
+      if [[ "$product" -gt 9  ]]
+      then
+         printf "   "
+      else
+         printf "    "
+      fi
+      #退出循环
+      if [[ "$j" -eq 5  ]]
+      then
+         break
+      fi
+   done
+   echo
+done
+
+#! /bin/bash
+
+for ((i=1;i<=9;i++))
+do
+   for ((j=1;j<=i;j++))
+   do
+      let "product=i*j"
+      printf "$i*$j=$product"
+      if [[ "$product" -gt 9  ]]
+      then
+         printf "   "
+      else
+         printf "    "
+      fi
+      if [[ "$j" -eq 5  ]]
+      then
+         #增加参数2
+         break 2
+      fi
+   done
+   echo
+done
+
+5.5.2  利用continue语句控制循环
+前面介绍的break语句是退出循环体. 而continue语句则比较有趣,它的作用不是退出循环体. 而是跳过当前循环体中该语句后面的语句,重新从循环语句开始的位置执行. 
+
+#! /bin/bash
+
+for var in {1..10}
+do
+   #如果当前数字为奇数
+   if [[ "$var%2" -eq 1  ]]
+   then
+      #跳过后面的语句
+      continue
+   fi
+   echo "$var"
+done
+
+5.5.3  分析break语句和continue语句的区别
+正如前面所讲,break语句和continue语句都可以位于各种循环体内,用于控制当前的循环流程. 
+但是,break语句是直接退出当前的循环结构,转向执行循环体后面的语句;而continue语句则只是跳过当前循环体中continue语句后面的语句,转向当前循环体的起始位置,重新执行下一次循环,并没有退出当前的循环结构. 这是这两者的最本质的区别. 
+另外, 没有参数的break语句和continue语句都只是影响到本层的循环流程,如果想要影响多层循环,则可以附加数字参数. 
+
+#!/bin/sh
+
+#外层循环
+for i in a b c d
+do
+   echo -n "$i "
+   #内层循环
+   for j in `seq 10`
+   do
+      if [ $j -eq 5  ];then
+         break
+      fi
+      echo -n "$j "
+   done
+   echo
+done
+
+#!/bin/sh
+
+for i in a b c d
+do
+   echo -n "$i "
+   for j in `seq 10`
+   do
+      if [ $j -eq 5  ];then
+         #指定跳出层数2
+         break 2
+      fi
+      echo -n "$j "
+   done
+   echo
+done
+
+#!/bin/sh
+
+for i in a b c d
+do
+   echo -n "$i "
+   for j in `seq 10`
+   do
+      if [ $j -eq 5  ];then
+         #跳过后面的语句
+         continue
+      fi
+      echo -n "$j "
+   done
+   echo
+done
+
+#!/bin/sh
+
+for i in a b c d
+do
+   echo -n "$i "
+   for j in `seq 10`
+   do
+      if [ $j -eq 5  ];then
+         #使用含有数字参数的continue语句
+         continue 2
+      fi
+      echo -n "$j "
+   done
+   echo
+done
+
+
+06  函数
+
+6.1  函数
+函数几乎是学习所有的程序设计语言时都必须过的一关. 对于学习过其他的程序语言的用户来说,函数可能并不陌生. 但是Shell中的函数与其他的程序设计语言的函数有许多不同之处. 为了使用户了解Shell中的函数,本节将介绍函数的相关基础知识. 
+6.1.1  什么是函数
+通俗地将,所谓函数就是将一组功能相对独立的代码集中起来,形成一个代码块,这个代码可以完成某个具体的功能. 从上面的定义可以看出,Shell中的函数的概念与其他的语言的函数的概念并没有太大的区别. 从本质上讲,函数是一个函数名到某个代码块的映射. 也就是说,用户在定义了函数之后,就可以通过函数名来调用其所对应的一组代码. 
+6.1.2  函数的定义方法
+在Shell语言中,用户可以通过2种语法来定义函数,分别如下:
+function_name ()
+{
+   statement1
+   statement2
+   ...
+   statementn
+
+}
+或者
+function function_name ()
+{
+   statement1
+   statement2
+   ...
+   statementn
+
+}
+
+#! /bin/bash
+
+#定义函数
+function sayhello()
+{
+   echo "Hello, World!"
+
+}
+#调用函数
+sayhello
+
+6.1.3  函数的调用
+在Shell中,函数调用的基本语法如下:
+function_name param1 param2 …
+在上面的语法中,function_name表示函数名称,其后面跟的param1, param2…表示函数的参数. 
+
+#! /bin/bash
+
+#定义函数
+getCurrentTime()
+{
+   current_time=`date`
+   echo "$current_time"
+
+}
+
+#调用函数
+getCurrentTime
+
+6.1.4  函数链接
+所谓函数链接,是指在某个Shell函数中调用另外一个函数的过程. 与其他的程序设计语言一样,Shell允许用户函数的嵌套调用. 
+
+#! /bin/bash
+
+#定义函数john()
+john()
+{
+   echo "Hello, this is John."
+
+}
+#定义函数alice
+alice()
+{
+   #调用函数john
+   john
+   echo "Hello, this is Alice."
+
+}
+#调用函数alice
+alice
+
+#! /bin/bash
+#定义函数john()
+john()
+{
+   echo "Hello, this is John."
+
+}
+#定义函数alice()
+alice()
+{
+   echo "Hello, this is Alice."
+
+}
+#定义函数sayhello()
+sayhello()
+{
+   john
+   alice
+
+}
+#调用函数sayhello()
+sayhello
+
+6.1.5  函数的返回值
+首先,用户可以使用return语句来返回某个数值,这与绝大部分的程序设计语言是相同的. 但是,在Shell中,return语句只能返回某个0~255之间的整数值. 
+
+#! /bin/bash
+
+#定义求和函数
+sum()
+{
+   let "z = $1 + $2"
+   #将和作为退出状态码返回
+   return "$z"
+
+}
+#调用求和函数
+sum 22 4
+#输出和
+echo "$?"
+
+在Shell中,还有一种更加优雅的方法可以帮助用户获得函数执行后的某个结果,那就是使用echo语句. 
+在函数中,用户将需要返回的数据写入到标准输出(stdout),通常这个操作是使用echo语句来完成的. 然后在调用程序中将函数的执行结果赋给一个变量. 这种做法实际上就是命令替换的一个变种. 
+
+#! /bin/bash
+
+#定义函数
+length()
+{
+   #接收参数
+   str=$1
+   result=0
+   if [ "$str" != ""  ]; then
+      #计算字符串长度
+      result=${#str}
+   fi
+   #将长度值写入标准输出
+   echo "$result"
+
+}
+#调用函数
+len=$(length "abc123")
+#输出执行结果
+echo "the string's length is $len"
+
+6.1.6  函数和别名
+一个别名是一个Shell命令的缩写或者其他容易记忆的名称. 用户可以使用alias命令来设置别名,其基本语法如下:
+alias name="command"
+其中,name是要指定的别名,command则是原有的Shell命令,也就是真正要执行的命令. 
+[root@linux chapter6]# alias ls="ls -l"
+
+当用户不再需要某个别名时,可以使用unalias命令将其删除,如下:
+[root@linux chapter6]# unalias ls
+
+6.1.7  再议全局变量和局部变量
+默认情况下,除了与函数参数关联的特殊变量之外,其他所有的变量都有全局的有效范围. 另外,在函数内部,如果没有使用local关键字进行修饰,那么函数中的变量也是全局变量. 
+
+演示如何通过echo语句来传递函数返回值
+#! /bin/bash
+
+#在函数外定义全局变量
+var="Hello world"
+func()
+{
+	#在函数内改变变量的值
+	var="Orange Apple Banana"
+	echo "$var"
+	#在函数内定义全局变量
+	var2="Hello John"
+}
+#输出变量值
+echo "$var"
+#调用函数
+func
+#重新输出变量的值
+echo "$var"
+#输出函数内定义的变量的值
+echo "$var2"
+
+#! /bin/bash
+
+#全局变量
+var="Hello world"
+func()
+{
+   #局部变量
+   local var="Orange Apple Banana"
+   echo "$var"
+   #局部变量
+   local var2="Hello John"
+
+}
+echo "$var"
+func
+echo "$var"
+echo "$var2"
+
+6.2  函数参数
+对于函数来说,参数非常重要. 通过参数,用户可以将想要函数处理的数据传递给函数. Shell语言中,同样支持含有参数的函数. 本节将介绍函数参数的使用方法. 
+
+6.2.1  含有参数的函数的调用方法
+Shell的函数参数的语法比较特殊. 实际上,Shell将脚本参数和函数参数做了统一地处理. 也就是说,Shell采用了相同的方法来处理脚本的参数和函数参数. 因此,对于含有参数的函数,用户可以使用以下语法来调用. 
+function_name arg1 arg2 ...
+其中,function_name表示函数名称,arg1, arg2以及arg3等则表示函数参数,这些参数之间通过空格隔开. 用户可以发现,实际上这种语法与执行Shell脚本的语法完全相同. 
+
+6.2.2  获取函数参数的个数
+在Shell中,不仅含有参数的函数的调用方法和执行脚本的语法相同,而且,在函数内部,用户也是通过位置变量来接受参数的值. 这一点,与Shell脚本也是完全相同的. 前面已经介绍过,用户可以通过系统变量$#来获取脚本的参数的个数. 
+
+#! /bin/bash
+
+#定义函数
+func()
+{
+   #输出参数个数
+   echo "the function has $# parameters."
+}
+#调用函数
+func a b c d e f g hello
+func 12 3 "hello world"
+func
+
+6.2.3  通过位置变量接收参数值
+与Shell脚本一样,用户可以在Shell函数中使用位置变量来获取参数值. 例如,$0表示脚本名称,$1表示第1个参数,$2表示第2个参数等,以此类推. 另外,用户还可以通过系统变量$@和$*获取所有参数的值
+
+#! /bin/bash
+
+#定义函数
+func()
+{
+   #输出所有的参数
+   echo "all parameters are $*"
+   #输出所有的参数
+   echo "all parameters are $@"
+   #输出脚本名称
+   echo "the script's name is $0"
+   #输出第1个参数
+   echo "the first parameter is $1"
+   #输出第2个参数
+   echo "the second paramter is $2"
+}
+#调用函数
+func hello world
+
+6.2.4  移动位置参数
+在Shell脚本中,用户可以使用shift命令来使得脚本的所有的位置参数向左移动一个位置,从而使得用户可以通过9以内的位置变量来获取超过9个的参数. 在函数中,这种方法仍然适用. 
+
+#! /bin/bash
+
+#定义函数
+func()
+{
+   #通过while循环和shift命令依次获取参数值
+   while (($# > 0))
+   do
+      echo "$1"
+      shift
+   done
+}
+
+6.2.5  通过getopts接收函数参数
+getopts是bash内置的一个命令,通过该命令,用户可以获取函数的选项以及参数值,或者是脚本的命令行选项以及参数值. getopts命令的基本语法如下:
+getopts optstring [args]
+在上面的语法中,参数optstring包含一个可以为getopts命令识别的选项名称列表. 如果某个选项名称的后面跟随着一个冒号,则表示用户可以为该选项提供参数值. 同时,参数值将被保存到一个名称为$OPTARG的系统变量中. getopts命令会依次遍历每个选项,选项名称将被保存到args变量中. 
+
+#! /bin/bash
+
+#定义函数
+func()
+{
+   #逐个接收选项及其参数
+   while getopts "a:b:c" arg
+   do
+      #当指定了-a选项时
+      case "$arg" in
+         a)
+            #输出-a选项的参数值
+            echo "a's argument is $OPTARG"
+            ;;
+         b)
+            echo "b's argument is $OPTARG."
+            ;;
+         c)
+            echo "c"
+            ;;
+         ?)
+            #未知选项
+            echo "unkown argument."
+            exit 1
+            ;;
+      esac
+   done
+}
+#调用函数
+func -a hello -b world
+
+6.2.6  间接参数传递
+在Shell中,函数还支持间接参数传递. 所谓间接参数传递,是指通过间接变量引用来实现函数参数的传递. 而间接变量是指某个变量的值又是另外一个变量的变量名的变量. 
+例如,在某个脚本中,存在以下2个变量:
+var=name
+name=John
+可以发现,在上面的代码中,变量var的值恰好是后面一个变量的变量名. 此时,对于第2个变量,用户可以通过以下2种方式来引用:
+${name}
+${!var}
+
+#! /bin/bash
+
+#定义函数
+func()
+{
+   echo "$1"
+}
+
+#定义变量
+var=name
+name=John
+#调用函数
+func "$var"
+func ${!var}
+#修改变量的值
+name=Alice
+#再次调用函数
+func "$var"
+func ${!var}
+
+6.2.7  通过全局变量传递数据
+用户除了可以使用参数传递数据之外,还可以通过全局变量来传递. 前面已经介绍过,全局变量的作用域是整个程序,包括函数内部. 尽管这种方式是有效的,但是在许多程序设计语言中,这种做法却饱受诟病,其原因在于会导致程序结构非常不清晰,代码的可读性较差. 
+
+#! /bin/bash
+
+#定义全局变量
+file="/bin/ls"
+#定义函数
+func()
+{
+   if [ -e "$file"  ]
+   then
+      echo "the file exists."
+   else
+      echo "the file does not exist."
+   fi
+}
+#调用函数
+func
+#修改全局变量的值
+file="/bin/a"
+#调用函数
+func
+
+6.2.8  传递数组参数
+严格地讲,Shell并不支持将数组作为参数传递给函数,但是用户仍然可以通过一些变通的方法实现数组参数的传递. 
+首先,用户可以将数组的元素展开,然后作为多个由空格隔开的多个参数传递给函数. 下面举例说明这种传递参数的方法. 
+
+#! /bin/bash
+
+#定义函数
+func()
+{
+   echo "number of elements is $#."
+   while [ $# -gt 0  ]
+   do
+		echo "$1"
+		shift
+    done
+
+}
+#定义数组
+a=(a b "c d" e)
+#调用函数
+func "${a[@]}"
+
+6.3  函数库文件
+为了方便地重用这些功能,可以创建一些可重用的函数. 这些函数可以单独地放在函数库文件中. 本节将介绍如何在Shell程序中创建和调用函数库文件. 
+
+6.3.1  函数库文件的定义
+创建一个函数库文件的过程非常类似于编写一个Shell脚本. 
+脚本与库文件之间的唯一区别在于函数库文件通常只包括函数,而脚本中则可以既包括函数和变量的定义,又包括可执行的代码. 
+此处所说的可执行代码,是指位于函数外部的代码,当脚本被载入后,这些代码会立即被执行,毋需另外调用. 
+
+#! /bin/bash
+
+#定义函数
+error()
+{
+   echo "ERROR:" $@ 1>&2
+}
+warning()
+{
+   echo "WARNING:" $@ 1>&2
+}
+
+6.3.2  函数库文件的调用
+当库文件定义好之后,用户就可以在程序中载入库文件,并且调用其中的函数. 在Shell中,载入库文件的命令为.,即一个圆点,其语法如下:
+. filename
+其中,参数filename表示库文件的名称,必须是一个合法的文件名. 库文件可以使用相对路径,也可以使用绝对路径. 另外,圆点命令和库文件名之间有一个空格. 
+
+#! /bin/bash
+
+#载入函数库
+. ex6-22.sh
+
+#定义变量
+msg="the file is not found."
+#调用函数库中的函数
+error $msg
+
+6.4  递归函数
+Linux的Shell也支持函数的递归调用. 也就是说,函数可以直接或者间接地调用自身. 在函数的递归调用中,函数既是调用者,又是被调用者. 作为一个Shell函数介绍的补充内容,本节将介绍如何在Shell中实现递归函数. 
+递归函数的调用过程就是反复地调用其自身,每调用一次就进入新的一层
+
+#! /bin/bash
+
+#定义递归函数
+func()
+{
+   read y
+   #递归调用
+   func "$y"
+   echo "$y"
+}  
+#调用函数
+func
+
+#! /bin/bash
+
+#定义递归函数
+fact()
+{
+   #定义局部变量
+   local n="$1"
+   #当n等于0时终止递归调用
+   if [ "$n" -eq 0  ]
+   then
+      result=1
+   else
+      #当n大于0时,递归计算n-1的阶乘
+      let "m=n-1"
+      fact "$m"
+      let "result=$n * $?"
+   fi
+   #将计算结果以退出状态码的形式返回
+   return $result
+}
+
+#调用递归函数
+fact "$1"
+
+echo "Factorial of $1 is $?"
+
+
+07  数组
+
+7.1  定义数组
+所谓数组,是指将具有相同类型的若干变量按照一定的顺序组织起来的一种数据类型. Shell语言对于数组的支持非常强大. 在Shell中,用户可以通过多种方式来创建一个数组. 为了能够使读者充分了解数组的创建方法,本节将介绍其中最常用的几种数组定义方法. 
+
+7.1.1  通过指定元素值来定义数组
+在Shell中,用户可以通过直接指定数组中的元素值来定义一个新的数组变量,其基本语法如下:
+array[key]=value
+在上面的语法中,array 表示数组变量的名称,key参数表示数组元素的索引,通常是一个整数值,value表示key所对应的数组元素的值. 通过以上语句,用户可以定义了名称为array的新数组变量. 
+
+7.1.2  通过declare语句定义数组
+
+#! /bin/bash
+
+#定义数组
+declare -a array
+#为元素赋值
+array[0]=1
+array[1]=2
+#输出元素值
+echo "${array[@]}"
+
+7.1.3  通过元素值集合定义数组
+
+#! /bin/bash
+
+#定义数组
+array=(1 2 3 4 5 6 7 8)
+#输出第1个数组元素的值
+echo "the first element is ${#array[0]}"
+#输出所有元素的值
+echo "the elements of this array are ${array[@]}"
+#输出数组长度
+echo "the size of the array is ${#array[@]}"
+
+7.1.4  通过键值对定义数组
+当用户需要定义索引不连续的数组时,需要显示指定要赋值的数组元素,也就是要为哪个数组元素指定值. 此时,用户可以使用键值对的方式来定义数组,其基本语法如下:
+array=([0]=value0 [1]=vlaue1 [2]=value2 ... [n]=valuen)
+在上面的语法中,等号左边的array表示数组名,等号右边的圆括号表示数组元素及其值. 其中方括号里面的数字表示数组元素的索引(下标),value0, value1, value2 … valuen表示所对应的元素的值. 每个索引和值组成一个键值对,键和值之间用等号隔开. 
+当通过键值对定义数组时,用户所提供的键值对中的元素索引不一定是连续的,可以任意指定要赋值的元素的索引. 之所以可以这样操作,是因为用户已经显式指定了索引,Shell就可以知道值和索引的对应关系. 
+
+#! /bin/bash
+
+#定义数组
+array=([1]=one [4]=four)
+#输出数组长度
+echo "the size of the array is  ${#array[@]}"
+#输出索引为4的元素的值
+echo "the fourth element is ${array[4]}"
+
+#! /bin/bash
+
+#声明数组
+declare -A array
+
+#为数组赋值
+array=([flower]=rose [fruit]=apple)
+#输出第1个元素的值
+echo "the flower is ${array[flower]}"
+#输出第2个元素的值
+echo "the fruit is ${array[fruit]}"
+#输出数组长度
+echo "the size of the array is ${#array[@]}"
+
+7.1.5  数组和普通变量
+在Shell中,所有的普通变量实际上都可以当作是数组变量来使用. 对普通变量操作与对相同名称的下标为0的元素的操作是等效的. 
+
+#! /bin/bash
+
+#定义字符串变量
+array="hello, world."
+#输出下标为0的元素的值
+echo "${array[0]}"
+#输出所有元素的值
+echo "${array[@]}"
+#输出所有元素的值
+echo "${array[*]}"
+
+7.2  数组的赋值
+当用户定义好数组之后,就可以用它来存储数据了. 这就需要为数组赋值. 数组的赋值与普通变量的赋值有许多不同之处,本节将介绍如何在Shell中为数组赋值. 
+
+7.2.1  按索引为元素赋值
+在Shell中,为数组元素赋值有2种基本的方法,分别是按索引赋值和以集合的形式赋值. 其中,按索引赋值是最基本的赋值方法,其基本语法如下:
+array[n]=valuen
+其中,array是数组名称,方括号里面的n表示元素的索引,等号右边的valuen表示元素n的值. 以上语法表示将索引为n的元素的值赋为valuen. 
+
+7.2.2  通过集合为数组赋值
+
+通过集合为数组赋值与通过集合定义数组的语法完全相同. 当为某个数组提供一组值时,Shell会从第1个元素开始,依次将这些值赋给每个元素. 当新的值的个数超过原来的数组长度时,Shell会在数组末尾追加新的元素;当新的值的个数少于原来的数组长度时,Shell会将新的值从第1个元素开始赋值,然后删除超出的元素. 
+
+#! /bin/bash
+
+#定义数组
+a=(a b c def)
+#输出所有元素的值
+echo "${a[@]}"
+#为数组元素重新赋值
+a=(h i j k l)
+#输出所有元素的值
+echo "${a[@]}"
+#为数组元素重新赋值
+a=(m n)
+echo "${a[@]}"
+
+7.2.3  在数组末尾追加新元素
+
+在Shell中,向已有的数组末尾追加新的元素非常方便. 在通过索引为数组元素赋值时,如果指定的索引不存在,则Shell会自动添加一个新的元素,并且将指定的值赋给该元素. 
+
+#! /bin/bash
+
+#定义数组
+array=(1 2)
+#输出数组
+echo "${array[@]}"
+#向数组末尾追加元素
+array[2]=3
+array[3]=4
+echo "${array[@]}"
+
+7.2.4  通过循环为数组元素赋值
+在实践中,最常用的数组赋值方法是通过一个循环语句来逐个为每个元素提供值. 这个循环语句可以是前面介绍的任意一种循环语句,例如for, while或者until等. 
+
+#! /bin/bash
+
+#通过循环为数组赋值
+for i in {1..10}
+do
+   array[$i]=$i
+done
+#输出元素的值
+echo "${array[@]}"
+
+7.3  访问数组
+当用户将数据存储到数组之后,下一步就是如何读取这些数组元素的值. 对于数组的读取操作,Shell也提供了许多非常灵活的手段. 本节将介绍如何访问数组元素. 
+
+7.3.1  访问第1个数组元素
+此处所指的第1个数组元素,是指下标为0的元素. 前面已经介绍过,所有的普通变量都可以当作是数组变量来处理. 当用户对普通变量进行赋值操作时,与对同名数组中下标为0的第1个数组元素的操作效果是相同的. 在Shell中,当直接使用数组名来访问数组时,得到的是下标为0的元素的值. 
+
+7.3.2  通过下标访问数组元素
+与其他的程序设计语言一样,通常情况下,访问数组中某个具体的元素都是通过下标来指定的,其基本语法如下:
+array[n]
+其中array表示数组名称,n表示下标. 在Shell中,下标从0开始,因此,第1个数组元素是array[0]. 如果数组的长度为n,则最后一个元素的下标为n-1. 
+
+#! /bin/bash
+
+#定义数组
+array=(Mon Tue Wed Thu Fri Sat Sun)
+#输出下标为0的元素
+echo "the first element is ${array[0]}"
+#输出下标为3的元素
+echo "the fourth element is ${array[3]}"
+
+7.3.3  计算数组的长度
+在Shell中,用户可以通过特殊操作符$#来获得数组长度. 该操作符的基本语法如下:
+${#array[@]}
+或者
+${#array[*]}
+在上面的语法中,array表示数组名称,方括号中的@或者*是通配符,表示匹配所有的元素. 
+#! /bin/bash
+
+#定义数组
+array=(Mon Tue Wed Thu Fri Sat Sun)
+#输出数组长度
+echo "the length of the array is ${#array[@]}"
+
+#! /bin/bash
+
+#定义数组
+linux[0]="Debian"
+linux[1]="RedHat"
+linux[2]="Ubuntu"
+linux[3]="Suse"
+
+#输出第4个元素
+echo "the fourth element is ${linux[3]}"
+#输出第4个元素的值
+echo "the length of the fourth element is ${#linux[3]}"
+#输出第1个元素的值
+echo "the first element is ${linux}"
+#输出第1个元素的长度
+echo "the length of the first element is ${#linux}"
+
+7.3.4  通过循环遍历数组元素
+在程序设计时,数组的遍历是一个极其常见的操作. 通常情况下,用户需要使用循环结构来实现数组元素的遍历. 
+#! /bin/bash                       
+                                   
+#定义数组                          
+array=(Mon Tue Wed Thu Fri Sat Sun)
+#通过下标访问数组                  
+for i in {0..6}                    
+do                                 
+   echo "${array[$i]}"             
+done 
+
+#! /bin/bash
+
+array=(Mon Tue Wed Thu Fri Sat Sun)
+#获取数组长度
+len="${#array[@]}"
+#通过循环结构遍历数组
+for ((i=0;i<$len;i++))
+do
+   echo "${array[$i]}"
+done
+
+7.3.5  引用所有的数组元素
+在Shell脚本中,用户可以通过多种不同的方法来输出整个数组. 前面介绍过,用户可以通过下标来访问某个具体的数组元素. 但是,如果用户指定下标为@或者*,则表示引用当前数组中的所有的元素. 其中,符号@或者*称为通配符,表示匹配所有的元素. 
+#! /bin/bash
+
+array=(Mon Tue Wed Thu Fri Sat Sun)
+#通过循环输出所有的数组元素
+for e in "${array[@]}"
+do
+   echo "$e"
+done
+
+7.3.6  以切片方式获取部分数组元素
+所谓切片,是指截取数组的部分元素或者某个元素的部分内容. 例如,指定一个具体的数组,截取从第2个元素开始的5个元素. 或者,截取某个数组中指定元素的前几个字符. 
+用户可以像获取数组元素的值一样来获取数组的某个切片. 获取切片的基本语法如下:
+${array [@|*]:start:length}
+在上面的语法中,array表示数组名称,方括号中的符号@和*的涵义与前面介绍的完全相同,都是通配符,表示匹配所有的数组元素,两者只能选择一个. start参数表示起始元素的下标,下标永远从0开始. length表示要截取的数组元素的个数. 通过以上切片,用户得到的是一个空格隔开的多个元素值组成的字符串. 
+#! /bin/bash
+
+linux=("Debian" "RedHat" "Ubuntu" "Suse" "Fedora" "UTS" "CentOS")
+#数组切片
+echo ${linux[@]:2:4}
+
+#! /bin/bash
+
+linux=("Debian" "RedHat" "Ubuntu" "Suse" "Fedora" "UTS" "CentOS")
+#将切片结果赋给一个变量
+var=${linux[@]:2:4}
+
+echo "$var"
+
+#! /bin/bash
+
+#定义数组
+linux=("Debian" "RedHat" "Ubuntu" "Suse" "Fedora" "UTS" "CentOS")
+#切片
+array=(${linux[@]:2:4})
+#获取新的数组的长度
+length="${#array[@]}"
+#输出数组长度
+echo "the length of new array is $length"
+#通过循环输出各个元素
+for ((i=0;i<$length;i++))
+do
+   echo "${array[$i]}"
+done
+
+7.3.7  数组元素的替换
+在Shell中,用户还可以对数组进行另外一种特殊的操作,称为数组元素的替换. 所谓替换,是指将某个数组元素的部分内容用其他的字符串来代替,但是并不影响原来的数组的值. 
+数组元素替换的基本语法如下:
+${array[@|*]/pattern/replacement}
+在上面的语法中,array表示要操作的数组名称,pattern参数表示要搜索的字符串,replacement参数表示用来替换的字符串. 
+#! /bin/bash
+
+#定义数组
+a=(1 2 3 4 5)
+#输出替换结果
+echo "the result is ${a[@]/3/100}"
+#输出原始数组
+echo "the old array is ${a[@]}"
+#将替换结果赋给一个数组变量
+a=(${a[@]/3/100})
+#输出新的数组变量的值
+echo "the new array is ${a[@]}"
+
+7.4  删除数组
+当某个数组变量不再需要时,用户可以将其删除,从而释放相应的内存. 用户可以删除整个数组,也可以删除其中的数组元素. 本节将介绍如何对数组或者元素进行删除. 
+
+7.4.1  删除指定数组元素
+与删除其他的Shell变量一样,用户可以使用unset命令来删除某个数组元素,其基本语法如下:
+unset array[n]
+在上面的语法中,array表示数组名称,n表示要删除的数组元素的下标,从0开始计算. 
+#! /bin/bash
+
+linux=("Debian" "RedHat" "Ubuntu" "Suse" "Fedora" "UTS" "CentOS")
+输出原始数组长度
+echo "the length of original array is ${#linux[@]}"
+#输出数组的原始值
+echo "the old array is ${linux[@]}"
+#删除下标为3的元素
+unset linux[3]
+输出新的数组的长度
+echo "the length of new array is ${#linux[@]}"
+#输出新的数组的值
+echo "the new array is ${linux[@]}"
+
+7.4.2  删除整个数组
+如果某个数组不再需要了,用户同样可以使用unset命令来将其删除,基本语法如下:
+unset array
+其中,array表示要删除的数组的名称. 
+#! /bin/bash
+   
+linux=("Debian" "RedHat" "Ubuntu" "Suse" "Fedora" "UTS" "CentOS")
+#删除整个数组
+unset linux 
+echo "${linux[@]}"
+
+7.5  数组的其他操作
+Shell的数组还提供了许多其他的操作,例如数组的复制, 数组的连接以及从文本文件中加载数据到数组,对于用户来说,这些操作也非常重要,本节将详细介绍这操作的实现方法. 
+
+7.5.1  复制数组
+所谓复制数组,是指创建一个已经存在的数组的副本. 也就是将一个数组的内容全部存储到另外一个新的数组中. 
+在Shell中,用户可以通过以下语法来实现数组的复制:
+newarray=("${array[@]}")
+其中,newarray表示新的数组,array表示已有的数组. 同样,其中的@表示匹配所有的数组元素. 右边最外层是一对圆括号. 
+
+#! /bin/bash
+
+linux=("Debian" "RedHat" "Ubuntu" "Suse" "Fedora" "UTS" "CentOS")
+#复制数组
+linux2=("${linux[@]}")
+echo "${linux2[@]}"
+
+7.5.2  连接数组
+连接数组是指将2个数组的数组元素连接在一起,变成一个大的数组. 新的数组依次包含2个数组的所有的元素. 数组连接的语法如下:
+("$array1[@]}" "${array2[@]}")
+其中,array1表示第1个数组,array2表示第2个数组. 这2个数组按照先后顺序用空格隔开,最外边用一对圆括号包围起来. 
+
+#! /bin/bash
+
+#定义2个数组
+linux=("Debian" "RedHat" "Ubuntu" "Suse" "Fedora" "UTS" "CentOS")
+shell=("bash" "csh" "ksh" "rsh" "sh" "rc" "tcsh")
+
+#连接数组
+linuxshell=("${linux[@]}" "${shell[@]}")
+
+#输出合并后的数组
+echo "the new array is ${linuxshell[@]}"
+#输出新的数组的长度
+echo "the length of new array is ${#linuxshell[@]}"
+
+7.5.3  加载文件内容到数组
+在Shell中,用户可以将普通的文本文件的内容直接加载到数组中,文件的每1行构成数组1个元素的内容. 这在处理一些日志文件的时候非常有用. 
+
+#! /bin/bash
+
+#加载文件内容
+content=(`cat "demo.txt"`)
+#通过循环输出数组内容
+for s in "${content[@]}"
+do
+   echo "$s"
+done
+
+
+08  正则表达式
+
+8.1  什么是正则表达式
+所谓正则表达式,实际上就是用来描述某些字符串匹配规则的工具. 由于正则表达式语法简练,功能强大,得到了许多程序设计语言的支持,包括Java, C++, Perl以及Shell等. 对于初学者来说,首次接触正则表达式非常难以接受,本节将介绍正则表达式的入门知识,以利于后面几节的学习. 
+8.1.1  为什么使用正则表达式
+在进行程序设计的过程中,用户会不可避免地遇到处理某些文本的情况. 有的时候,用户还需要查找符合某些比较复杂规则的字符串. 对于这些情况,如果单纯依靠程序设计语言本身,则往往会使得用户通过复杂的代码来来实现. 但是,如果使用正则表达式,则会以非常简短的代码来完成. 
+8.1.2  如何学习正则表达式
+1.重点在于理解元字符
+2.掌握好正则表达式的语法
+3.开拓思路,寻找最佳的表达方法
+8.1.3  如何实践正则表达式
+当一个正则表达式完成之后,并能够保证这个表达式一定是准确的,需要不断地测试才可以确定其正确与否. 在不同的环境下,用户需要不同的工具来帮助他完成测试的过程. 如果是在Shell命令行中,用户可以使用grep命令来测试. 
+
+8.2  正则表达式基础
+通过前面的一节的学习,用户对于正则表达式应该有个初步的了解. 本节将在前面一节的基础上,逐步介绍正则表达式的基础知识,主要是各种元字符及其使用方法. 
+
+8.2.1  正则表达式的原理
+输入文本 -> 正则表达式 -> 符合规则的文本
+              |
+             不符合规则的文本 
+
+8.2.2  基本正则表达式
+基本正则表达式(Basic Regular Expression,BRE),又称为标准正则表达式,是最早制订的正则表达式规范,仅支持最基本的元字符集. 基本正则表达式是POSIX规范制订的两种正则表达式语法标准之一,另外一种语法标准称为扩展正则表达式,将在随后介绍. 
+基本正则表达式所定义的元字符主要有以下几种. 
+1.行首定位符"^"
+是正则表达式中的定位符之一,用来匹配行首的字符,表示行首的字符是"^"后面的那个字符. 正则表达式中的定位符的作用与其他的元字符不同,它们不是用来匹配具体的文本,而是匹配某个具体的位置,例如行首定位符"^"就是用来匹配文本行的开头的字符的. 
+
+#! /bin/bash
+
+#列出/etc目录中的以字母po开头的文件
+str=`ls /etc | grep "^po"`
+echo "$str"
+
+2.行尾定位符"$"
+与行首定位符的作用恰恰相反,行尾定位符的作用是用来定位文本行的末尾的. 从语法上讲,行尾定位符的位置也与行首定位符相反,行首定位符位于所作用的字符之前,而行尾定位符位于所作用的字符之后. 
+
+#! /bin/bash
+
+#列出/etc目录中以conf结尾的文件名
+str=`ls /etc | grep "conf$"`
+
+echo "$str"
+
+3.单个字符匹配"."
+圆点"."用来匹配任意单个字符,包括空格,但是不包括换行符"\n". 当用户使用"."符号后,意味着该位置一定有一个字符,无论它是什么字符. 
+#! /bin/bash
+
+#列出所有的包含字符串"samba"的文件名
+str=`ls /etc | grep "samba"`
+echo "$str"
+echo "==============================="
+#列出包含字符串samba以及另外一个字符的文件名
+str=`ls /etc | grep "samba."`
+
+echo "$str"
+
+4.限定符"*"
+星号"*"是正则表达式中的限定符之一. 限定符本身不代表任何字符,它是用来指定其前面的一个字符必须要重复出现多少次才能满足匹配. 星号"*"表示匹配其前导字符的任意次数,包括0次. 
+#! /bin/bash
+
+#筛选出以字符s开头,紧跟着1个字符s,任意个字符s的文件名
+str=`ls /etc | grep "^sss*"`
+
+echo "$str"
+
+5.字符集匹配"[]"
+方括号"[]"的功能比较特殊,它是用来指定一个字符集合的,其基本语法为:
+[abc]
+其中a, b和c表示任意的单个字符. 如果某个字符串在方括号所在的位置上出现了方括号中的任意一个字符,都是满足匹配规则. 另外,对于连续的数字或者字母,可以使用连字符"-"来表示一个范围,例如"[a-f]"表示匹配字母表中a到f中的任意一个字母. 而"[0-9]"表示匹配任意单个数字. 
+
+#! /bin/bash
+
+#筛选所有以字符r开头,并且紧跟着1个字符c的文本行
+str=`ls /etc |grep "^rc"`
+echo "$str"
+echo "=============================="
+#筛选所有以字符r开头,紧跟着1个字符为c,下面1个字符为单个数字的文本行
+str=`ls /etc | grep "^rc[0-9]"`
+echo "$str"
+
+6.字符集不匹配"[^]"
+前面已经介绍过行首定位符"^"和字符集匹配符"[]". 但是如果将这2个符号结合起来,则其意义会发生变化. 符号"[^]"表示不匹配其中列出的任意字符,其语法如下:
+[^abc]
+其中a, b和c表示任意的单个字符. "[^]"符号的用法与符号"[]"的用法相同,不再举例说明. 
+除了前面介绍的6个元字符之外,在基本正则表达式中还定义了其他的一些元字符. 这些元字符使用较少,语法较繁琐,且在扩展正则表达式和PERL正则表达式中都有替代的元字符,所以不再详细说明. 表8-1列出了基本正则表达式的其他的元字符. 
+
+8.2.3  扩展正则表达式
+扩展正则表达式(Extended Regular Expression,ERE)支持比基本正则表达式更多的元字符,但是扩展正则表达式对有些基本正则表达式所支持的元字符并不支持. 8.2.2中介绍的元字符"^", "$", ".", "*", "[]"以及"[^]"这6个元字符在扩展正则表达式都得到了支持,并且其意义和用法都完全相同,不再重复介绍. 接下来重点介绍一下在扩展正则表达式中新增加的一些元字符. 
+
+1.限定符"+"
+前面已经介绍过行首定位符"^"和字符集匹配符"[]". 但是如果将这2个符号结合起来,则其意义会发生变化. 符号"[^]"表示不匹配其中列出的任意字符,其语法如下:
+[^abc]
+其中a, b和c表示任意的单个字符. "[^]"符号的用法与符号"[]"的用法相同,不再举例说明. 
+除了前面介绍的6个元字符之外,在基本正则表达式中还定义了其他的一些元字符. 这些元字符使用较少,语法较繁琐,且在扩展正则表达式和PERL正则表达式中都有替代的元字符,所以不再详细说明. 表8-1列出了基本正则表达式的其他的元字符. 
+
+#! /bin/bash
+
+#筛选以字符串"ss"开头,后面至少紧跟着1个字符"s"的文本行
+str=`ls /etc | egrep "^sss+"`
+
+echo "$str"
+
+2.限定符"?"
+问号"?"是另外一个限定符,它用来限定前面的字符最多只出现1次,即前面的字符可以重复0次或者1次. 
+#! /bin/bash
+
+#筛选以字符串"ss"开头,后面跟着0或者1个s的文本行
+str=`ls /etc | egrep "^sss?"`
+
+echo "$str"
+
+3.竖线"|"和圆括号"()"
+竖线"|" 表示多个正则表达式之间"或"的关系,其语法为:
+expression1|expression2|expression3|…|expressionn
+圆括号"()"用来表示一组可选值的集合. 竖线和圆括号经常在一起使用,表示一组可选值. 
+#! /bin/bash
+
+#筛选含有字符串"ssh", "ssl"或者以字符串"yum"开头的文本行
+str=`ls /etc | egrep "(ssh|ssl|^yum)"`
+
+echo "$str"
+
+8.2.4  Perl正则表达式
+正则表达式是Perl语言的一大特色. Shell中的grep和egrep命令都支持Perl正则表达式. Perl正则表达式的元字符与扩展正则表达式的元字符大致相同,扩展正则表达式中的元字符在Perl正则表达式中都得到了了支持. 另外,Perl正则表达式还增加了一些元字符. 下面对常用的增加的元字符进行介绍. 
+
+1.数字匹配\d
+符号"\d"匹配从0到9中的任意一个数字字符,等价于表达式"[0-9]". 
+#! /bin/bash
+
+#筛选以字符串rc开头,紧跟着一个数字的问本行
+str=`ls /etc | grep -P "^rc\d"`
+
+echo "$str"
+
+2.非数字匹配\D
+符号"\D"和符号"\d"的作用恰好相反,后者是匹配一个0~9之间的单个数字字符,而前者则匹配一个非数字字符. "\D"等价于表达式"[^0-9]". 
+3.空白字符匹配\s
+符号"\s"匹配任何空白字符,包括空格, 制表符以及换页符等,等价于表达式"[\f\n\r\t\v]". 
+4.非空白字符匹配\S
+符号"\S"匹配任何非空白字符,等价于表达式"[^\f\n\r\t\v]". 
+
+8.2.5  正则表达式字符集
+一个正则表达式就是由一系列字符组成的字符串. 其中,包括元字符和普通字符. 由于元字符和普通字符都有许多个,所以形成了元字符集和普通字符集这两个集合. 
+在正则表达式中,普通字符集中的字符只表示它们的字面涵义,不对其他的字符产生影响. 正则表达式的最简单的形式就是只由普通字符集中的字符组成,不包含元字符. 
+正则表达式的字符集通常使用方括号表达式表示,例如:
+[cC]hina
+[^hello]
+[a-zA-Z]
+[0123456789]
+[0-9]
+
+8.3  正则表达式应用
+本书在前面的2节中,详细介绍了正则表达式的基础知识. 为了使得读者更加清楚如何使用正则表达式,本节将详细介绍正则表达式的相关应用. 
+
+8.3.1  匹配单个字符
+在正则表达式中,可以用来匹配单个字符的表达式大致有4种,分别是单个一般字符, 转义后的元字符, 圆点"."表达式以及方括号表达式. 下面分别进行介绍. 
+
+1.单个一般字符
+所谓一般字符,是指除了正则表达式中已经定义的元字符之外的所有字符,例如英文字符, 数字, 空白字符以及标点符号等. 这些一般字符组正则表达式中都只是表达它们自身的字面意义,没有其他额外的意义. 当需要匹配某个一般字符时,可以直接将该字符作为表达式或者是表达式的一部分. 
+
+2.转义后的元字符
+在前面介绍基本正则表达式, 扩展正则表达式以及Perl正则表达式的时候,都介绍了一些元字符. 如果想要匹配这些元字符本身,则需要在这些字符的前面加上转义字符"\". 通过这样操作,可以关闭这些元字符的特殊意义,而只保留其字面意义. 
+例如,如果想要匹配圆点"."就可以使用表达式"\.". 经过转义之后,这个表达式就表示一个圆点符号,而不是任意单个字符. 如果想要匹配其他的元字符,例如问号"?",同样可以使用表达式"\?". 
+
+#! /bin/bash
+str=`grep "." demo3.txt`
+echo "$str"
+
+3.圆点表达式
+圆点"."表示匹配任意单个字符,除了换行符之外. 关于圆点表达式的使用方法,请参见例8-4,不再重复介绍. 
+
+4.方括号表达式
+前面已经介绍过,方括号表达式用来表示一个可选字符的集合. 尽管通常情况下,在方括号中含有多个字符,但是一次只能从这些字符中选择一个,因此,方括号表达式仍然表示的是匹配单个字符. 例如,表达式"[abc]"就表示匹配字符"a", "b"或者"c"中的任意一个. 同时,这种表示方法也是最简单的一种形式,也就是直接将所要匹配的字符都在方括号中罗列出来. 
+如果在方括号中的字符列表前面加上符号"^",则表示取反的意思. 也就是说,不匹配方括号中列出来的任何一个字符. 例如,表达式"[^abc]"表示不匹配"a", "b"和"c"这3个字符中的任何一个. 
+
+8.3.2  匹配多个字符
+接下来再介绍如何匹配多个字符. 正则表达式可以使用多种方法来匹配多个字符,其中最简单的一种就是将多个字符按照指定的顺序拼接起来. 
+
+#! /bin/bash
+
+#搜索字符串"matter"
+str=`grep "matter" demo3.txt`
+
+echo "$str"
+
+#! /bin/bash
+
+#匹配含有字符"o",后面紧跟着字符"r"或者"u"的文本行
+str=`grep "o[ru]" demo3.txt`
+
+echo "$str"
+
+#! /bin/bash
+
+#匹配任意多个字符"o"
+str=`grep "lo*king" demo3.txt`
+
+echo "$str"
+
+#! /bin/bash
+
+#筛选符合格式的电话号码
+str=`egrep "800-[[:digit:]]{3}-[[:digit:]]{4}$" demo4.txt`
+
+echo "$str"
+
+8.3.3  匹配字符串的开头或者结尾
+
+在正则表达式中,用户可以通过定位符来对字符串开头或者结尾进行匹配,定位符又称为锚点. 一共有2个定位符,分别为行首定位符"^"和行尾定位符"$". 前者用来匹配文本行的开头字符,后者用来匹配文本行的结尾字符. 
+如果行首定位符和行尾定位符一起使用,则这2个符号之间的表达式就匹配整个字符串或者文本行. 如果"^"符号后面紧跟着"$"符号,即"^$"则表示一个空行. 因为行首后面紧跟着行尾,行中没有任何字符. 
+
+#! /bin/bash
+
+#筛选以3个数字开头的文本行
+str=`egrep "^[[:digit:]]{3}" demo5.txt`
+
+echo "$str"
+
+8.3.5  子表达式
+所谓子表达式,是指由多个普通字符或者元字符组成的一个小的正则表达式. 与正则表达式一样,子表达式本身也是一个完整的表达式,但是在使用时,子表达式是作为一个大的正则表达式的一部分来使用的,而不是单独使用. 在正则表达式中,子表达式作为一个整体来看待. 子表达式使用圆括号()括起来. 
+
+#! /bin/bash
+
+str=`egrep "&nbsp;{2}" html.txt`
+echo "$str"
+
+#! /bin/bash
+
+#匹配IP地址
+str=`egrep "^([[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}$" ip.txt`
+
+echo "$str"
+
+#! /bin/bash
+
+#匹配IP地址
+str=`egrep "^([[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}$" ip.txt`
+
+echo "$str"
+
+8.3.6  通配符
+Shell使用了正则表达式中的某些元字符作为其通配符,常用的有*, ?, [], {}以及^等. 这些字符在Shell中的意义与在正则表达式中的意义有些区别,例如*表示匹配任意的字符,而非正则表达式中的限制其前导字符的0次或者多次重复. ?表示一个字符,而非其前导字符的0次或者1次重复. 
+
+8.4  grep命令
+在Shell的命令中,grep命令是一个与正则表达式关系非常密切,并且使用也非常频繁的命令. 在本章的绝大部分例子中,都使用了grep命令来讲解. 为了使读者掌握这个命令的使用方法,本节将对其进行详细介绍. 
+
+8.4.1  grep命令的基本语法
+grep命令的名称来自于全局搜索正则表达式并打印文本行(Global Search Regular Expression and Print out the line)的缩写. 它是一个非常古老的UNIX命令,也是一种强大的文本搜索工具. grep命令使用正则表达式来搜索文本,并且把匹配的文本行打印出来. 
+grep命令的基本语法如下:
+grep [options] pattern [file…]
+在上面的语法中,options表示选项,如表8-3所示. pattern表示要匹配的模式,file表示一系列的文件名. grep命令会从一个或者多个文件中搜索满足指定模式的文本行,并且打印出来. 模式后面的所有的字符串参数都被看作是文件名. 
+
+8.4.2  grep命令族简介
+随着UNIX的发展,grep命令也在不断地完善. 
+到目前为止,grep命令族已经包括grep, egrep以及fgrep等3个命令. egrep和fgrep命令只跟grep命令有很少的区别. 
+其中,egrep命令是grep命令的扩展,它使用扩展正则表达式作为默认的正则表达式引擎,因此,egrep命令支持更多的元字符. 
+fgrep命令是fixed grep或者fast grep的缩写. 在fgrep命令中,所有的字母都看作是单词,也就是说,在fgrep命令中,所有的正则表达式中的元字符都将作为一般字符,仅仅拥有其字面意义,不再拥有特殊意义. 
+
+
+09  基本文本处理
+
+9.1  使用echo命令输出文本
+在进行Shell程序设计的过程中,文本的输出非常重要. 例如程序为用户提供的提示信息以及程序的执行结果等,这些信息都是作为文本输出的. 本节将介绍最简单的文本输出命令echo. 
+9.1.1  显示普通字符串
+在本书前面几章的例子中,我们已经接触过echo命令了. echo命令的功能就是输出一行文本. 在Shell程序中,多用于显示提示信息或者程序产生的数据. 
+echo命令的基本语法如下:
+echo [options] string…
+在上面的语法中,options表示命令选项. echo命令常用选项比较少,只有一个-n,该选项表示不输出行尾的换行符. 在默认情况下,每执行一次echo命令,都会在输出信息的行尾加上一个换行符. 参数string表示要输出的文本,用户可以同时指定多个文本,这些文本之间用空格隔开. 
+
+9.1.2  显示转义字符
+除了支持普通文本的输出之外,echo命令还支持简单的转义字符的输出. 通过转义字符,echo命令可以控制输出的格式,或者是输出某些特殊的字符,例如退格符, 换页符以及制表符等. 下表列出了echo命令支持的转义字符. 如果要使得echo命令支持转义字符,还必须使用-e选项. 
+
+字符   说明
+\a     报警符
+\b     退格符
+\c     续航符
+\f     换页符
+\n     换行符
+\r     回车符
+\t     水平製表符
+\v     垂直制表符
+\\     反斜线
+
+#! /bin/bash
+
+#退格符
+echo -e "this is a\b string."
+#禁止继续输出后面的文本
+echo -e "hello \c"
+echo -e "world."
+#换行符
+echo -e "hello \n world."
+#使用制表符输出表格
+echo -e "Alice\t99"
+echo -e "John\t82"
+echo -e "Tom\t91"
+
+9.1.3  显示变量
+用户可以使用echo语句将程序中的变量的值打印出来,在前面的许多例子中,都使用echo语句来输出某些信息. 
+
+
+9.1.4  换行和不换行
+默认情况下,echo命令在输出文本的末尾会自动追加一个换行符. 
+使用-e选项才能使用格式控制字符
+
+
+9.1.5  显示命令执行结果
+除了显示文本之外,echo命令还可以将Shell命令执行结果显示出来. 不过,在显示命令执行结果的时候,需要使用反引号将命令引用起来,其语法如下:
+echo `command`
+
+9.1.6  echo命令执行结果的重定向
+重定向的操作符为>或者>>,在目标文件已经存在的情况下,前者会覆盖目标文件原有的内容,而后者则会将数据追加到原来文件的末尾. 
+将echo命令的执行结果重定向的语法比较简单,直接将重定向操作符放在echo语句的结尾,然后再指定一个文件名即可. 
+#! /bin/bash
+
+#将要输出的信息写入文件
+echo "Hello, world." > hello.txt
+#将输出的信息追加到文件的结尾
+echo "Hello, Chunxiao." >> hello.txt
+
+9.2  文本的格式化输出
+尽管echo命令语句提供了最基本的输出功能,但是在某些场合,用户可能需要对文本的输出格式进行更加细致地控制. 在Shell程序中,文本的格式化输出主要有制表符, pr命令以及fmt命令等. 本节将介绍这几个命令的使用方法. 
+9.2.1  使用Unix制表符
+在Shell中,制表符通常使用转义字符\t表示,其中字母t表示Tab,即表格的英文单词Table的前3个字母. 前面已经讲过,echo命令支持制表符的输出. 但是为了使用转义字符,需要使用-n选项. 
+
+
+9.2.2  使用fold命令格式化行
+顾名思义,fold命令的功能是将超过指定宽度的文本行进行折叠处理,使得超过指定宽度的字符转到下一行输出. fold命令的基本语法如下:
+fold [options] [file…]
+在上面的语法中,options表示选项,fold命令常用的选项有:
+-b:按字节计算宽度. 默认情况下,fold命令按列来计算宽度. 
+-s:在空格处折断行. 
+-w:指定宽度,默认值是80列. 
+file参数用来指定要输出的文件名,可以是多个文件,文件名之间用空格隔开. 
+
+
+9.2.3  使用fmt命令格式化段落
+与fold命令相比,fmt命令提供了更多的功能. fmt命令是Shell中的一个简单的文本格式化工具,其名称来自于格式化(format)的缩写. fmt命令的基本语法如下:
+fmt [-width] [option]... [file]...
+其中,-width选项用来指定文本行的列数,默认为75列,即每行显示75个字符. option表示各种命令选项,常用的选项有:
+-c:保留每个段落的前2行的缩进,该段落剩余的行的左边距与第2行相同. 
+-t:该选的功能与-c选项基本相同,但是在使用-t选项时,每个段落的第1行和第2行的缩进必须是不相同的,否则第1行将被看作是一个单独的段落. 
+-s:只折断超出指定宽度的行,不合并少于指定宽度的行. 
+-u:统一空格的个数,单词之间保留1个空格,句子之间保留2个空格. 
+-w:指定每个行的最大宽度,默认值为75列. 
+file参数为要格式化其内容的文件名,可以同时指定多个文件,文件名之间用空格隔开. 如果指定文件名为-,则fmt命令会从标准输入,即键盘读取文本. 
+
+
+9.2.4  使用rev命令反转字符顺序
+rev命令的功能是用来反转文件中的文本行的字符顺序,其名称来自于反转(reverse)的前3个字母. rev命令的基本语法如下:
+rev [file ...]
+其中,file表示要处理的文件的文件名列表,如果是多个文件,则文件名之间用空格隔开. 
+#! /bin/bash
+
+#反转文本行
+str=`rev demo3.txt`
+echo "$str"
+
+9.2.5  使用pr命令格式化文本页
+pr命令是一个非常有用的工具,其功能主要是将文本文件的内容转换成适合打印的格式. pr命令的名称来自于打印(print)的前2个字母,其基本语法如下:
+pr [option]... [file]...
+
+#! /bin/bash
+
+#格式化文本页
+str=`pr -4 demo4.txt`
+echo "$str"
+
+#! /bin/bash
+
+#自定义页眉
+str=`pr -h "List of Countries" -a -f -4 demo4.txt`
+echo "$str"
+
+9.3  使用sort命令对文本排序
+在Linux或者UNIX中,许多数据都是以文本文件的形式存在. 因此,用户经常需要对这些文本进行排序,为此,UNIX提供了sort命令来完成这个任务. 本节将介绍sort命令的使用方法. 
+
+9.3.1  sort命令的基本用法
+Shell中的sort命令有3种执行模式,分别为排序文本, 检查文件是否已经排序以及合并文件. 在本节当中,对这3种执行模式将依次详细介绍. 在本小节中,首先介绍最基本的排序功能. 
+sort命令的基本语法如下:
+sort [option]... [file]...
+
+#! /bin/bash
+
+#使用默认选项对文件排序
+result=`sort demo5.txt`
+#将输出结果保存到文件
+echo "$result" > sorted_default.txt
+#显示排序结果
+cat sorted_default.txt
+
+9.3.2  使用单个关键字排序
+用户可以使用-k选项来定义排序关键字,其基本语法如下:
+-k pos1[,pos2]
+其中,pos1表示排序关键字的起始位置,pos2表示排序关键字的结束位置,这两者之间用逗号隔开. 通常情况下,组成排序关键字都是以列为单位的. 此时,post1和pos2就是关键字的起始列和结束列的列号. 列号从1开始,即第1列为1,第2列为2,依此类推. 
+#! /bin/bash
+#通过第2列和第3列排序
+result=`sort -k 2,3 demo5.txt`
+echo "$result"
+
+#! /bin/bash
+if [ $1 -gt 4  ] ;then
+	echo "column no. could not be greater than 4."
+	exit
+fi
+#仅指定起始列
+result=`sort -r -k $1 demo6.txt`
+echo "$result"
+
+#! /bin/bash
+#根据第4列的第14~15个字符排序,并输出到文件
+sort -t ' ' -n -k 4.14,4.15 demo7.txt > sorted_log
+cat sorted_log
+
+9.3.3  根据指定的列排序
+一般情况下,sort命令都是使用几个列组成一个关键字来排序的. 如果用户只想根据某一个列排序的话,同样也可以通过-k选项来实现. 实际上这是一种特殊的情况,即起始列的列号和终止列的列号相同. 因此,根据某个指定的列排序的语法如下:
+-k pos, pos
+其中,pos表示要排序的列的列号. 同样,列号也是从1开始编号. 如果只想根据某个列中的子串来排序,可以指定起始字符和终止字符,语法如下:
+-k pos.[start],pos[.end]
+
+#! /bin/bash
+if [ $1 -gt 4  ] ;then
+	echo "column no. could not be greater than 4."
+	exit
+fi
+#根据指定的列排序
+result=`sort -k $1,$1 demo6.txt`
+echo "$result"
+
+9.3.4  根据关键字降序排序
+sort命令还提供了-r选项和r修饰符,用来实现根据关键字降序排列. 其中-r选项是作为全局选项使用,其作用对象为sort命令中所有没有附件修饰符的列. 修饰符r可以附加在组成关键字的列号后面,其作用域为所附加的列. 
+
+#! /bin/bash
+#使用-r选项降序排序
+result=`sort -r -k 2,3 demo5.txt`
+echo "$result"
+
+#! /bin/bash
+#使用修饰符实现降序
+result=`sort -k 2,3r demo5.txt`
+echo "$result"
+
+9.3.5  数值列的排序
+默认情况下,sort命令会将所有的列看作是字符串,并且按照字符串的排序规则进行排序. 为了使得sort命令能够正确处理数值字段,用户需要使用-n选项或者修饰符n. 
+
+#! /bin/bash
+#对第3列按数值排序
+result=`sort -n -k 3,3  demo5.txt`
+echo "$result"
+
+9.3.6  自定义列分隔符
+默认情况下,sort命令会将连续的空格或者制表符作为列的分隔符. 但是,在实践当中,并不总是这样,可能会存在着其他的分隔符,例如冒号, 逗号或者分号. 用户完全有可能使用这些符号来分隔各个列. 
+
+#! /bin/bash
+#自定义分隔符
+result=`sort -t : -k3n,3 /etc/passwd`
+echo "$result"
+
+9.3.7  删除重复的行
+在处理文本数据时,去掉重复的行通常是一件非常棘手的事情,尤其是在数据量比较大的情况下. 但是,sort命令提供了一个-u选项,可以很方便地完成这个任务. 
+	$ sort -u demo5.txt
+
+9.3.8  根据多个关键字排序
+用户可以在sort命令中同时指定多个关键字,sort命令会依次根据各个关键字来排序. 也即是说,如果同时指定了3个关键字,则sort命令会首先根据第1个关键字排序,如果遇到第1个关键字相同的情况,则会根据第2个关键字排序. 同理,如果前面2个关键字都相同的情况下,再根据第3个关键字排序,依此类推. 如果用户指定的关键字的值全部相同的情况下,sort命令会对整个文本行根据当前系统语言环境的排序规则进行排序. 
+使用多个关键字排序的语法如下:
+sort [option] -k pos1,pos2 -k pos3,pos4,... [file…]
+也就是说,用户可以同时使用多个-k选项来定义多个排序关键字,这些关键字会依次作用于要排序的文本. 
+
+#! /bin/bash
+#根据第3列的数值降序,第4列的数值升序排序
+result=`sort -k 3,3nr -k 4,4n demo6.txt`
+echo "$result"
+
+9.3.9  使用sort命令合并文件
+使用sort命令可以很方便地合并多个文件,同时将文本文件的内容进行排序. 当使用sort命令合并文件时,其基本语法如下:
+sort file1 file2 …
+其中file1, file2等表示要合并的文件的文件名,这些文件名之间用空格隔开. sort命令会根据指定的顺序依次将各个文件的内容合并. 
+
+#! /bin/bash
+#合并文件并输出磁盘文件
+result=`sort demo5.txt demo6.txt > result.txt`
+cat result.txt
+
+9.4  文本的统计
+在Shell编程中,文本的统计也非常重要. 为了统计文本,Shell提供了许多有用的工具来完成文本的统计,例如wc, cat以及grep等. 本节将介绍如何使用这些工具实现文本的统计. 
+
+9.4.1  输出含有行号的文本行
+在Shell中,有许多命令都可以输出行号,其中包括cat, grep以及wc等. 下面分别介绍如何使用这些命令输出行号. 
+
+cat命令提供了一个-n选项,通过该选项,cat命令会在每一个文本行的前面添加一个行号
+与cat命令一样,grep命令也有一个名称为-n的选项,该选项使得grep命令在输出结果的时候会显示符合指定筛选条件的文本行的行号. 为了能够输出所有的文本行,用户可以使用空串作为grep命令的参数
+
+Shell还提供了一个名称为nl的命令用来为文本添加行号,其基本语法如下:
+nl [option]... [file]...
+nl命令的常用选项有:
+-b:显示风格,可以取a, t以及n等值,a表示为所有行添加行号,t表示仅仅为非空行添加行号,n表示不添加行号. 
+-i:行号的增量,默认值为1. 
+-v:行号的起始值,默认值为1. 
+参数file表示要添加行号的文件的列表. 
+
+#! /bin/bash
+#为文本添加行号,并输出到文件
+nl -b a ex9-1.sh > textwithlineno.txt
+cat textwithlineno.txt
+
+9.4.2  统计行数
+在Shell程序中,用户可以使用grep以及wc等命令来统计文本行的数量. 下面分别介绍这2种统计文本行数的方法. 
+grep命令提供了一个名称为-c的选项用来统计符合筛选条件的文本行的行数,下面的例子就演示了这个选项的使用方法. 
+
+#! /bin/bash
+echo -n "Please input a name:"
+#读取用户输入数据
+read name
+while [ $name != "e"  ]
+do
+	#统计含有用户输入数据的行数
+	quantity=`grep -c "$name" demo5.txt`
+	echo "$quantity records contains $name."
+	echo -n "Please input a name:"
+	read name
+done
+
+wc命令是Shell中用来对文本进行各种统计的命令,其基本语法如下:
+wc [option]... [file]...
+其中,wc命令常用的选项有:
+	-c:统计文本的字节数. 
+	-m:统计字符数. 
+	-l:统计行数. 
+	-L:统计最长行的长度. 
+	-w:统计单词数. 
+与其他的命令一样,wc命令可以接受多个文件名作为参数,这些文件名之间用空格隔开. 
+
+#! /bin/bash
+#统计文本行数
+lines=`cat ex9-1.sh | wc -l`
+echo "the file has $lines lines."
+
+#! /bin/bash
+#统计/etc目录下面有多少个以conf为扩展名的文件
+count=`find /etc -name "*.conf" | wc -l`
+echo "$count files have been found."
+
+9.4.3  统计单词数和字符数
+在许多语言中,例如英语,单词之间都是通过空格来隔开的. 在wc命令中,也是通过空格来区分单词的. 用户可以通过-w选项来统计文本中的单词的数量. 另外,通过-m选项可以统计文本的字符数. 
+
+#! /bin/bash
+#统计单词数,只取得数量
+words=`cat demo1.txt | wc -w`
+echo "there are $words words in file demo1.txt"
+#统计字符数
+chars=`cat demo1.txt | wc -m`
+echo "there are $chars characters in file demo1.txt"
+
+9.5  使用cut命令选取文本列
+对于关系型数据库而言,用户可以在水平方向上选择行,也可以在垂直方向上选择列. 与此相对应,针对文本文件,Shell也提供了相应的操作方法. 前面介绍的排序和筛选都是以行为单位进行的,操作的结果也都是行. 而cut命令则是从垂直方向上对文本进行操作. 本节将介绍如何使用cut命令操作文本列. 
+
+9.5.1  cut命令及其语法
+cut命令的基本语法如下:
+cut option... [file]...
+在上面的语法中,option表示选项,cut命令常用的选项有:
+-b:只选择指定的字节. 
+-c:只选择指定的字符. 
+-d:自定义列分隔符,默认值为制表符. 
+-f:只选择列表中指定的文本列,文本列用列号表示,多个列之间用逗号隔开. 
+-n:取消分割多字节字符. 
+-s:不输出不包含列分隔符的行. 
+file参数表示要处理得文件的列表,多个文件名之间用空格分隔. 
+
+9.5.2  选择指定的文本列
+选取指定的文本列需要使用cut命令的-f选项,该选项接收一个文本列的列表,cut命令会从文本文件中选择列表中列出的列. 
+
+#! /bin/bash
+#自定义分隔符为冒号,选择第1列和第6列
+result=`cut -d ":" -f 1,6 passwd`
+echo "$result"
+
+9.5.3  选择指定数量的字符
+除了从文本中选择列之外,用户还可以通过cut命令从每一行中选择指定数量的字符. 在选择字符时,cut命令的语法如下:
+cut -c list
+其中,-c选项表示选择字符(character). list参数表示要选择的范围,可以是以下语法形式:
+1-4,6
+3,5,8
+-4,8
+3-
+
+#! /bin/bash
+#选择指定的列
+result=`cut -c1-3,5 passwd`
+echo "$result"
+
+9.5.4  排除不包含列分隔符的行
+在某些情况下,用户的数据文件可能会存在着错误的数据行. 这些错误的数据行在格式上与正确的数据行存在着区别,例如不包含正确的列分隔符. cut命令的-s选项可以帮助用户排除掉这些不包含正确列分隔符的行. 
+#! /bin/bash
+#提取所有行的第1列
+cut -d ":" -f 1 passwd > allusers.txt
+echo "all users:"
+#显示所有的行
+cat allusers.txt
+#只提取正确的行
+cut -s -d ":" -f 1 passwd > validusers.txt
+echo "valid users:"
+#显示所有正确的行
+cat validusers.txt
+
+9.6  使用paste命令拼接文本列
+在上一节中,我们介绍了cut命令,这个命令非常强大,可以从文本中选择某些列. 有了这个命令之后,用户可能会反过来考虑,如果能够将多个文件的列合并起来,那岂不更好?Linux中的paste命令就是实现这个功能的,本节将介绍如何使用paste命令来处理文本文件. 
+
+9.6.1  paste命令及其语法
+前面介绍的cut命令可以将文本文件纵向分割,使得原来文件的某些列重新生成一个新的文件. paste命令的功能恰好与cut命令相反. 该命令的主要功能是将某些文件的文本行并行地联接在一起,形成一个新的文件. 新文件的列数等于参与组合的所有文件的列的总和,新文件的行数与参与组合的文件的行数相等. 
+paste命令的基本语法如下:
+paste [option]... [file]..
+其中,paste命令常用的选项有:
+-d:指定拼接结果中列分隔符. 默认情况下paste命令生成的文件使用制表符分隔列. 
+-s:将多个文件串行地拼接在一起,即将后面文件的内容追加到前面一个文件的后面. 
+其中,-s选项表示将各个文件依次连接在一起. 也就是说,将后面一个文件的文本行追加在前面一个文件的内容的后面. 因此,如果使用-s选项,则生成的文件的列数与参与组合的文件的列数相同,但是行数等于参与组合的所有文件的行数之和. 
+file参数表示参与拼接的文件列表,文件名之间用空格隔开. 如果省略文件名,则表示从标准输入接收文本数据. 
+
+#! /bin/bash
+#拼接2个文件,并输出到磁盘文件
+paste students.txt phones.txt > contactinfo.txt
+
+#显示拼接结果
+cat contactinfo.txt
+
+9.6.2  自定义列分隔符
+默认情况下,paste命令会使用制表符作为新生成的文件的列分隔符. 但是,用户可以使用-d选项来自定义所需要的分隔符,例如逗号或者分号等. 
+#! /bin/bash
+#自定义列分隔符
+paste -d "," students.txt phones.txt > contactinfo.txt
+cat contactinfo.txt
+
+9.6.3  拼接指定的文本列
+paste命令并不直接支持只选择文件中的某些列来拼接. 但是,用户可以通过间接的途径来使得最后生成的文件中仅仅含有指定的列. 
+在这里介绍两种方法,第一种就是先使用cut命令将需要的列从各个文件中提取出来,然后再使用paste命令进行拼接;
+第二种的顺序恰好相反,先使用paste命令进行拼接各个文件,然后再使用cut命令从生成的文件中提取所需要的列. 
+由于第一种方法的执行效率相对较高,所以建议使用第一种方法来拼接指定的文本列. 
+
+#! /bin/bash 
+          
+#选择students.txt文件的第1列 
+cut -f1 students.txt > students.tmp
+#选择phones.txt文件的第2列             
+cut -f2 phones.txt > phones.tmp    
+#将生成的2个临时文件拼接            
+paste students.tmp phones.tmp > contactinfo.txt
+#输出拼接结果                                  
+cat contactinfo.txt
+
+#! /bin/bash
+
+#先将2个文件拼接
+paste students.txt phones.txt > contactinfo.tmp
+#再从拼接结果中选择第1和3列
+cut -f1,3 contactinfo.tmp > contactinfo.txt
+#输出拼接结果
+cat contactinfo.txt
+
+9.7  使用join命令联接文本列
+在9.6一节中,我们介绍了paste命令,使用该命令,可以将多个文件的文本行进行拼接. 同时,也提出了一个问题,那就是paste命令只能根据文本行的顺序进行拼接,而不能基于某个关键字进行联接. 在Shell中,用户可以使用join命令来解决这个问题. 本节将介绍join命令的使用方法. 
+
+9.7.1  join命令及其语法
+join命令是一个非常有趣的Shell命令. 对于熟悉关系型数据库的用户来说,一定会了解其中的数据表的联接的概念. 所谓联接,就是根据用户指定的条件,将多个数据表的中的数据行联接起来,形成一个新的表,这个表的列由参与联接的多个表的列构成. 
+join命令就是用来联接这些文本文件中的数据行的,它是根据参与联接的两个文本文件的公共列来联接数据行. 其基本语法如下:
+join [option]... file1 file2
+
+#! /bin/bash
+#使用默认选项联接2个文件
+result=`join students.txt phones.txt > contactinfo.txt`
+cat contactinfo.txt
+
+9.7.2  指定联接关键字列
+默认情况下,join命令会将两个文件的第1列作为关键字列进行比较. 因此,在例9-39中,尽管用户并没有明确指定关键字列,但是join命令仍然将students.txt和phones.txt这2个文件的第1列作为关键字列进行比较. 
+但是,在实际情况中,作为关键字的列并不总是第1列. 用户还可以使用-1或者-2选项来分别用作关键字的列. 其中的-1代表从第1个文件中指定关键字列,-2代表从第2个文件中指定关键字列. 这2个选项都使用列号作为参数值. 
+
+#! /bin/bash
+#指定students.txt的第1列和scores.txt文件的第2列作为列关键字
+result=`join -1 1 -2 2 students.txt scores.txt > studentsscores.txt`
+cat studentsscores.txt
+
+9.7.3  内联接文本文件
+所谓内联接文本文件,实际上就是使用默认选项的join命令对2个文本文件的联接操作. 在默认情况下,join命令只输出关键字匹配的文本行,而忽略关键字不匹配的文本行. 图9-14描述了内联接的原理,在图9-14中,左边的圆代表第1个文件的行,右边的圆代表第2个文件的行,中间的阴影代表内联接的结果,表示只有关键字匹配的文本行才会出现在结果中. 
+
+9.7.4  左联接文本文件
+所谓左联接,是指在联接结果中输出左边文件的所有行,即使在右边的文件中没有匹配的行. 
+在左联接中,对于在右边的文件中没有相应关键字的行,由右边文件所形成的列使用空白符填充. 
+左边文件的所有行都包含在输出结果中. 
+
+在join命令中,要实现左联接,可以使用以下语法:
+join -a 1 filenum file1 file2
+其中,选项-a 1表示显示第1个文件的所有的行,无论是否匹配成功. 
+
+#! /bin/bash
+#左联接文件
+result=`join -a 1 students.txt phones.txt > contactinfo.txt`
+cat contactinfo.txt
+
+9.7.5  右联接文本文件
+右联接的原理与左联接恰好相反,它是将右边文件的所有的行全部显示出来,而在匹配不成功的行中,由左边文件形成的列使用空白填充. 
+右联接的结果中包含了文件2的所有行,而对于文件1来说,仅仅包含了匹配成功的行. 
+
+右联接文本文件的语法如下:
+join -a 2 filenum file1 file2
+其中,-a 2表示输出第2个文件的所有的行. 
+
+#! /bin/bash
+#右联接文件
+result=`join -a 2 students.txt phones.txt > contactinfo.txt`
+cat contactinfo.txt
+
+9.7.6  全联接文本文件
+所谓全联接,是指除了显示2个文件中关键字匹配成功的行之外,还包括前后2个文件中所有不匹配的行. 
+同样,对于第1个文件中的关键字匹配不成功的行,由第2个文件形成的列通过空白填充;反之,对于第2个文件中的关键字匹配不成功的行,由第1个文件形成的列也通过空白填充. 
+全联接的结果中包含了2个文件中的所有的行. 
+
+全联接文本文件的语法如下:
+join -a 1 -a 2 filenum file1 file2
+在上面的语法中,同时使用了-a 1和-a 2这2个选项,表示输出第1个和第2个文件的所有的行. 
+
+#! /bin/bash
+#全联接文本文件
+result=`join -a 1 -a 2 students.txt phones.txt > contactinfo.txt`
+cat contactinfo.txt
+
+9.7.7  自定义输出列
+默认情况下,join命令会输出参与联接的2个文件的所有的列. 但是,在某些情况下,用户可能并不需要得到所有的列,就可以使用-o选项来指定要输出的列的清单. -o选项可以接受一个字段的列表,其语法如下:
+filenum.filed
+其中,filenum表示文件号,可以取值为1或者2,分别代表第1个和第2个文件. field代表要输出的列的列号,为一个十进制数字. 文件号和列号之间用圆点连接起来,组成一个整体,代表某个文件的第几列. 如果同时指定了多个列,则多个列之间用空格隔开. 
+另外,用户可以直接为-o选项指定参数值0,表示仅仅输出关键字列. 
+
+#! /bin/bash
+#联接文件,并指定输出列的清单
+result=`join -1 1 -2 2 -o 1.1 1.2 2.3 students.txt scores.txt > studentsscores.txt`
+cat studentsscores.txt
+
+9.8  使用tr命令替换文件内容
+在Shell提供的文本处理工具中,还有一种非常实用的工具,其功能是用来批量替换文本中的字符. 其中最主要的命令就是tr,本节将介绍tr命令的使用方法. 
+
+9.8.1  tr命令及其语法
+tr是单词translate的前面2个字母,其功能是转换或者删除指定的字符. 与其他的文本处理命令不同,tr命令不能直接从文件中读取数据,只能从标准输入获取数据,并且将处理结果写到标准输出设备. 
+tr命令的基本语法如下:
+tr [option]... set1 [set2]
+
+9.8.2  去除重复出现的字符
+使用tr命令,可以快速地将文本中连续出现多个相同的字符压缩为一个字符. 
+
+#! /bin/bash
+#压缩重复字符
+result=`tr -s "[a-z]" < demo9.txt`
+echo "$result"
+
+9.8.3  删除空行
+在有的文本中,会存在着许多空行. 所谓空行,是指只含有换行符,除此之外不含有任何其他字符的行. 
+
+#! /bin/bash
+#删除空白行
+result=`cat demo10.txt | tr -s ["\n"]`
+echo "$result"
+
+9.8.4  大小写转换
+在前面的例子中,实际上只为tr命令提供了一个字符集. 当使用tr进行大小写转换时,需要同时提供两个字符集. 前者是目标字符集,后者是用来替换的字符集,其语法如下:
+tr [a-z] [A-Z]
+在使用以上命令时,出现在输入文本中的字符集[a-z]中的小写字母将被字符集[A-Z]中相应位置的大写字母代替. 
+
+#! /bin/bash
+#将当前目录在的所有文件的文件名转为大写
+for file in `ls`;do
+	echo "$file" | tr 'a-z' 'A-Z'
+done
+
+9.8.5  删除指定字符
+使用tr命令可以快速地删除文本中出现的某些字符,这在某些情况下非常有效. 当用户使用tr命令删除指定字符时,需要使用-d选项. 
+
+#! /bin/bash
+#删除数字和冒号
+result=`tr -d "[0-9][:]" < demo11.txt`
+echo "$result"
+
+#! /bin/bash
+#使用补集删除某些字符
+result=`tr -cs "[a-z][A-Z]" "[\n*]" < demo11.txt`
+echo "$result"
+
+
+10  流编辑
+
+10.1  sed命令及其语法
+sed命令是将一系列的编辑命令应用于一批文本的理想工具. sed命令拥有非交互式和高效的特点,可以为用户节约大量的时间. 本节将介绍sed命令的基础知识. 
+
+10.1.1  sed命令以及语法
+sed命令是一个非交互式的文本编辑器,它可以对来自文本文件以及标准输入的文本进行编辑. 其中,标准输入可以是来自键盘, 文件重定向, 字符串, 变量或者是管道的文本. 
+sed命令会从文件或者标准输入中一次读取一行数据,将其复制到缓冲区,然后读取命令行或者脚本的编辑子命令,对缓冲区中的文本行进行编辑. 重复此过程,一直到所有的文本行都处理完毕. 
+
+
+10.1.2  sed命令的工作方式
+首先,用户可以在命令行直接执行sed命令,其基本语法如下:
+sed [options] commands inputfile
+其中commands请参考10.2节内容,,每一个commands由"定位 sed操作 可选参数"组成;其中定位可以省略,可选参数也可以根据实际情况省略;如果省略了定位将对所有行进行操作,否则只对匹配到的行进行操作;
+定位分为:1.行号定位;2.正则表达式定位;
+
+sed命令的选项
+-n  取消默认输出,只输出定位匹配到的行
+-e  允许执行多个子命令
+-f  从脚本中读取命令
+-i  直接修改原始文件
+-l  指定行的长度
+-r  在脚本中使用扩展的正则表达式
+-u  最低限度的缓存输入与输出
+
+总之,sed命令的使用方式为
+sed [sed命令的选项(可选)] "定位部分(可选) sed的操作命令 [sed操作的(可选)参数]" sed操作的文件名
+
+
+其次,用户可以将sed操作命令写入脚本文件,然后通过sed命令读取该文件并且执行其中的命令,其基本语法如下:
+sed [options] -f script inputfile
+最后,用户通过将sed的操作命令写入文件,然后将该脚本文件授予用户执行权限,其基本语法如下:
+./scrpt inputfile
+其中,script代表保存sed命令的脚本文件. 在前面已经讲过,在脚本文件中,用户应该在#!符号后面执行该脚本的解释器,因此在这种方式下,sed脚本文件的第一行应该如下:
+#! /bin/sed
+
+10.1.3  使用行号定位文本行
+1.定位某个特定的行,语法如下:
+x
+2.定位某段连续的行,语法如下:
+x,y
+3.指定起始行和步长
+first~step
+4.指定文件的第一行和最后一行
+第1行:
+1
+最后1行:
+$
+5.指定某行后面的几行,语法如下:
+x,+n
+
+10.1.4  使用正则表达式定位文本行
+除了使用行号定位文本行之外,sed命令还支持正则表达式定位. 
+sed命令中,正则表达式的语法如下:
+/regexp/
+
+两个斜线之间的regexp表示正则表达式,其中常用的正则表达式字符如下
+普通字符   字符本身就匹配字符本身,如/abc/就定位包含abc的行
+.          匹配任意字符
+^          匹配行首字符
+$          匹配行尾字符
+[]         匹配方括号中的任意单个字符
+[^]        匹配不出现在方括号中的任意单个字符
+\n         匹配换行符
+*          表示前置表达式重复了0次或多次
++          表示前置表达式重复了1次以上
+?          表示前置表达式重复了0次或1次
+{i}        表示前置表达式重复出现i次
+{i,}       表示前置表达式至少重复出现i次
+{i,j}      表示前置表达式至少匹配i次,最多匹配j次
+匹配会扩展到可能的最长的文本量
+
+注意$字符在正则表达式中匹配行尾,在行号定位中表示最后一行
+
+10.2  sed命令的常用操作
+除了定位参数之外,sed命令的另外一个组成部分就是编辑命令. 常用的编辑命令有打印, 插入, 删除以及替换等,本节将介绍如何在sed命令使用这些编辑命令. 
+10.2.1  sed编辑命令基本语法
+sed命令的基本语法如下:
+[address1[,address2]] cmd [argument]
+即"定位 sed操作 可选参数"共同组成sed的编辑命令command;
+使用时,在command前加上sed的选项,后面加上操作的文件;
+
+10.2.2  选择文本
+在sed命令中,选择文本行主要通过位置参数来完成,基本语法如下:
+[address1[ ,address2]] p
+在上面的语法中,address1和address2都是位置参数. 如果省略位置参数,则表示选择整个文件. 子命令p表示将缓冲区中的文本行执行输出操作,即打印(print)缓冲区中的文本. 
+在上面的命令中只有"定位 sed操作(p打印)",省略了操作的参数;
+
+#! /bin/bash
+#输出1~3行,不使用-n选项
+sed '1,3p' students.txt
+echo "===================================="
+#输出1~3行,使用-n选项
+sed -n '1,3p' students.txt
+
+#! /bin/bash
+#使用正则表达式定位
+result=`sed -n '/^20020017/ p' students.txt`
+echo "$result"
+
+10.2.3  替换文本
+使用sed命令,可以很方便地对文本文件中指定的文本进行替换操作. 文本的替换需要使用s子命令,其语法如下:
+[address1[ ,address2]] s/pattern/replacemen/[flag]
+在上面的语法中,address1与address2都是位置参数,关于它们的用法请参见前面的几个小节. 在s命令中,位置参数通常会被省略,表示在所有的文本行中进行替换操作,其语法如下:
+s/pattern/replacemen/[flag]
+s子命令表示执行替换(substitute)操作. pattern为使用正则表达式表示的匹配模式,replacement为用来替换的由一般字符组成的字符串,如果含有&则表示引用模式(子字符串). 
+
+在s命令中,斜线/是参数分隔符,各个参数之间并不一定要使用斜线/分割,还可以使用出空格以及换行符以外的其他任意字符;s命令会将紧跟在后面的那个字符作为参数分隔符;
+
+flag为替换标志,会影响到s命令的行为
+g            全局匹配,会替换文本行中所有符合规则的字符串
+n十进制数字  表示替换第n个符合规则的字符串
+p            替换第1个符合规则的字符串,并输出到标准输出
+w            替换第1个符合规则的字符串,并写入到磁盘文件
+空           默认替换第1个符合规则的字符串;
+
+#! /bin/bash
+echo "substitute the first pattern."
+#只将每行中第1次出现的小写字母e替换为大写字母E
+result=`sed 's/e/E/' students.txt`
+echo "$result"
+echo "substitute all the patterns."
+#将每一处的小写字母e都替换为大写字母E
+result=`sed 's/e/E/g' students.txt`
+echo "$result"
+
+
+#! /bin/bash
+#替换第1~3行中的所有的小写字母e为大写字母E
+result=`sed '1,3 s/e/E/g' students.txt`
+echo "$result"
+
+#! /bin/bash
+#使用混合位置参数
+result=`sed '1,/^200200167/ s/e/E/g' students.txt`
+echo "$result"
+
+#! /bin/bash
+#将文件中的HTML标记替换为空
+result=`sed 's/<[^>]*>//g' html.txt`
+echo "$result"
+
+#! /bin/bash
+#引用与模式相匹配的子串
+result=`sed 's/string/long &/' demo1.txt`
+echo "$result"
+
+#! /bin/bash
+#通过数字来引用模式中的子串
+result=`sed 's/\(This\) \(is\) \(a\) \(string\)/\2 \1 \3 \4/' demo1.txt`
+echo "$result"
+
+10.2.4  删除文本
+sed提供了d子命令来实现文本行的删除(delete),其语法如下:
+[address1[ ,address2]] d
+在上面的语法中,2个位置参数的涵义以及用法请参见前面的内容. 
+命令d表示删除位置参数指定的行. 如果省略位置参数,则表示删除文本文件中的所有的行. 
+在执行删除操作时,sed命令的会首先读取一行文本到缓冲区,然后将符合位置参数的文本行删除,接着再读取并处理下一行. 下面的例子演示了如何删除指定的文本行. 
+
+#! /bin/bash
+#删除第1行
+result=`sed -e '1 d' students.txt`
+echo "$result"
+
+#! /bin/bash
+#删除最后一行
+result=`sed -e '$ d' students.txt`
+echo "$result"
+
+#! /bin/bash
+#删除1~4行
+result=`sed -e '1,4 d' students.txt`
+echo "$result"
+echo "==============================="
+#删除奇数行
+result=`sed -e '1~2 d' students.txt`
+echo "$result"
+echo "=============================="
+#删除偶数行
+result=`sed -e '0~2 d' students.txt`
+echo "$result"
+echo "============================="
+#删除从第1行开始,一直到以200200172开头的行
+result=`sed -e '1,/^200200172/ d' students.txt`
+echo "$result"
+echo "============================"
+#删除从第4行开始,一直到最后一行的所有行
+result=`sed '4,$ d' students.txt`
+echo "$result"
+
+10.2.5  追加文本
+所谓追加文本,是指将某些文本插入到某个位置的后面. sed命令提供了a子命令来实现文本的追加(append),其基本语法如下:
+[address1] a string
+从上面的语法可以得知,子命令a最多只能使用一个位置参数. 参数string表示将要追加的文本. a子命令会将string代表的文本插入到address1所表示的位置的后面. 这一点也是追加文本与后面将要介绍的插入文本的区别. 
+
+#! /bin/bash
+#在第2行后面追加文本
+result=`sed '2 a 200200109      Tom' students.txt`
+echo "$result"
+
+#! /bin/bash
+#在以200200110开头的文本行后面追加文本
+result=`sed '/^200200110/ a 200200109    Tom' students.txt`
+echo "$result"
+
+10.2.6  插入文本
+插入文本的操作与追加文本非常相似,只是插入的位置不同. 
+追加文本是在位置参数指定的位置的一行后面插入文本,而插入文本则是位置参数指定的位置的一行前面插入文本. 在sed命令中,子命令i用来实现文本的插入,其语法如下:
+[address1] i string
+与子命令a一样,子命令i也是最多只能使用一个位置参数. 位置参数address1用来指定要插入文本的位置,子命令i表示当前的操作是插入文本,参数string表示将要被插入的文本. 
+
+#! /bin/bash
+#在以200200110开头的文本行前面插入文本
+result=`sed '2 i 200200109      Tom' students.txt`
+echo "$result"
+
+10.3  组合命令
+sed命令支持将多个子命令组合在一起使用,这一点非常重要,因为在通常情况下,用户需要对文本进行多个不同的操作. 如果不支持组合命令的话,则需要使用多个sed命令来完成;如果使用组合命令,则可以在一条sed命令中将这些操作完成. 本节将介绍sed中的组合命令的使用方法. 
+
+10.3.1  使用-e选项执行多个子命令
+sed命令的-e选项可以使得sed将跟在其后面的字符串作为子命令执行. 在前面的绝大部分例子中,由于都是一个子命令,所以将该选项省略. 但是,如果想要为sed命令同时指定多个子命令,则必须使用多个-e选项. 
+
+#! /bin/bash
+#将所有的小写字母e替换为大写字母,然后打印2~3行
+result=`sed -n -e 's/e/E/g' -e '2,3 p' students.txt`
+echo "$result"
+
+10.3.2  使用分号执行多个子命令
+用户还可以使用分号来将各个子命令隔开,其语法如下:
+sed -e 'command1;command2...' filename
+其中,command1以及command2等表示多个子命令,这些子命令之间用分号隔开. filename参数表示要处理的文本文件. 
+
+#! /bin/bash
+#使用分号隔开多个子命令
+result=`sed -e 's/e/E/g; 2 i 200100001    Ellen' students.txt`
+echo "$result"
+
+10.3.3  对一个地址使用多个子命令
+在某些情况下,用户需要对同一个地址使用多个子命令,例如,对某个文件的前20行进行多次替换操作等. sed命令提供了对同一个地址使用多个子命令的语法,如下:
+address {
+	command1
+    command2
+	command3
+	...
+}
+
+#! /bin/bash
+#组合命令
+result=`sed -n '1,5 {
+	s/e/E/g
+	s/a/A/g
+	2 i 201303009 Tom
+	p
+}' students.txt`
+echo "$result"
+
+10.3.4  sed脚本文件
+sed提供了-f选项,通过这个选项,sed命令可以从指定的脚本文件中读取子命令,然后对每个文本行依次执行各个子命令,其语法如下:
+sed -f script
+其中,script表示sed脚本文件. 
+sed脚本的语法比较简单,就是将各个子命令依次列出来,不必使用引号. 如果将多条子命令写在同一行中,需要使用分号将其隔开. 另外,sed脚本文件支持代码注释,如果某一行以#开头,则表示该行为注释. sed脚本的注释仅限于行注释,不能跨行. 
+
+
+11 文本处理利器awk命令
+
+11.1  awk入门
+awk是一种非常强大的数据处理工具,其本身可以称为是一种程序设计语言,因而具有其他程序设计语言所共同拥有的一些特征,例如变量, 函数以及表达式等. 通过awk,用户可以编写一些非常实用的文本处理工具. 本节将介绍awk的基础知识. 
+
+11.1.1  awk的功能
+awk是Linux以及UNIX环境中现有的功能最强大的数据处理工具. 简单地讲,awk是一种处理文本数据的编程语言. awk的设计使得它非常适合于处理由行和列组成的文本数据. 而在Linux或者UNIX环境中,这种类型的数据是非常普遍的. 
+除此之外,awk还是一种编程语言环境,它提供了正则表达式的匹配,流程控制,运算符,表达式,变量以及函数等一系列的程序设计语言所具备的特性. 它从C语言等中获取了一些优秀的思想. awk程序可以读取文本文件,对数据进行排序,对其中的数值执行计算已经生成报表等. 
+
+11.1.2  awk命令的基本语法
+awk命令的基本语法如下:
+awk pattern { actions  }
+在上面的语法中,pattern表示匹配模式,actions表示要执行的操作. 以上语法表示,当某个文本行符合pattern指定的匹配规则时,执行actions所执行的操作. 在上面的语法中,pattern和actions都是可选的,但是两者必须保证至少有一个. 如果省略匹配模式pattern,则表示对所有的文本行执行actions所表示的操作;如果省略actions,则表示将匹配成功的行输出到屏幕. 
+
+11.1.3  awk的工作流程
+对于初学者来说,搞清楚awk的工作流程非常重要. 只有在掌握了awk的工作流程之后,才有可能用好awk来处理数据. 在awk处理数据时,它会反复执行以下4个步骤:
+(1)自动从指定的数据文件中读取行文本. 
+(2)自动更新awk的内置系统变量的值,例如列数变量NF, 行数变量NR, 行变量$0以及各个列变量$1, $2等等. 
+(3)依次执行程序中所有的匹配模式及其操作. 
+(4)当执行完程序中所有的匹配模式及其操作之后,如果数据文件中仍然还有为读取的数据行,则返回到第(1)步,重复执行(1)~(4)的操作. 
+
+11.1.4  执行awk程序的几种方式
+1.通过命令行执行awk程序,语法如下:
+awk 'program-text' datafile
+
+#输出所有的行
+{ print  }
+
+2.执行awk脚本
+在awk程序语句比较多的情况下,用户可以将所有的语句写在一个脚本文件中,然后通过awk命令来解释并执行其中的语句. awk调用脚本的语法如下:
+awk -f program-file file ..
+在上面的语法中,-f选项表示从脚本文件中读取awk程序语句,program-file表示awk脚本文件名称,file表示要处理的数据文件. 
+
+3.可执行脚本文件
+在上面介绍的两种方式中,用户都需要输入awk命令才能执行程序. 除此之外,用户还可以通过类似于Shell脚本的方式来执行awk程序. 在这种方式中,需要在awk程序中指定命令解释器,并且赋予脚本文件的可执行权限. 其中指定命令解释器的语法如下:
+#!/bin/awk -f
+以上语句必须位于脚本文件的第一行. 然后用户就可以通过以下命令执行awk程序:
+awk-script file
+其中,awk-script为awk脚本文件名称,file为要处理的文本数据文件. 
+
+#! /bin/awk -f
+#输出所有的行
+{ print  }
+
+11.2  awk的模式匹配
+在awk中,匹配模式处于非常重要的地位,它决定着匹配模式后面的操作会影响到哪些文本行. awk中的匹配模式主要包括关系表达式, 正则表达式, 混合模式,BEGIN模式以及END模式等,本节将对这些模式匹配进行详细地介绍. 
+
+11.2.1  关系表达式
+awk提供了许多关系运算符,例如大于＞, 小于＜或者等于==等,关于关系运算符的详细使用方法,将在第4节中详细介绍. awk允许用户使用关系表达式作为匹配模式,当某个文本行满足关系表达式时,将会执行相应的操作. 
+
+#! /bin/bash
+#打印第2列的成绩超过80的行
+result=`awk '$2 > 80 { print  }' scores.txt`
+echo "$result"
+
+11.2.2  正则表达式
+awk支持以正则表达式作为匹配模式,与sed一样,用户需要将正则表达式放在两条斜线之间,其基本语法如下:
+/regular_expression/
+
+#! /bin/bash
+#输出以字符T开头的行
+result=`awk '/^T/ { print  }' scores.txt`
+echo "$result"
+
+#! /bin/bash
+#输出以Tom或者Kon开头的行
+result=`awk '/^(Tom|Kon)/ { print  }' scores.txt`
+echo "$result"
+
+11.2.3  混合模式
+awk不仅支持单个的关系表达式或者正则表达式作为模式,还支持使用逻辑运算符&&, ||或者!将多个表达式组合起来作为一个模式. 其中,&&表示逻辑与,||表示逻辑或,!表示逻辑非,关于这3个运算符的详细用法,将在第4节中介绍. 
+
+#! /bin/bash
+#混合模式
+result=`awk '/^K/ && $2 > 80 { print  }' scores.txt`
+echo "$result"
+
+11.2.4  区间模式
+awk还支持一种区间模式,也就是说通过模式可以匹配一段连续的文本行. 区间模式的语法如下:
+pattern1, pattern2
+其中,pattern1和pattern2都是前面所讲的匹配模式,可以是关系表达式,也可以是正则表达式等. 当然,也可以是这些模式的混合形式. 
+
+#! /bin/bash
+#区间模式
+result=`awk '/^Nancy/, $2==92 { print }' scores.txt`
+echo "$result"
+
+11.2.5  BEGIN模式
+BEGIN模式是一种特殊的内置模式,其成立的时机为awk程序刚开始执行,但是又尚未读取任何数据之前. 
+因此,该模式所对应的操作仅仅被执行一次,当awk读取数据之后,BEGIN模式便不再成立. 所以,用户可以将与数据文件无关,而且在整个程序的生命周期中,只需执行1次的代码放在BEGIN模式对应的操作中. 
+
+#! /bin/awk -f
+#通过BEGIN模式输出字符串
+BEGIN { print "Hello! World." }
+
+#! /bin/awk -f
+#通过BEGIN模式初始化变量
+BEGIN {
+	FS="[\t:]"
+	RS="\n"
+	count=30
+	print "The report is about students's scores."
+}
+
+11.2.6  END模式
+END模式是awk的另外一种特殊模式,该模式成立的时机与BEGIN模式恰好相反,它是在awk命令处理完所有的数据,即将退出程序时成立,在此之前,END模式并不成立. 
+无论数据文件中包含多少行数据,在整个程序的生命周期中,该模式所对应的操作只被执行1次. 因此,一般情况下,用户可以将许多善后工作放在END模式对应的操作中. 
+
+#! /bin/awk -f
+#输出报表头
+BEGIN {
+	print "scores report"
+	print "================================="
+}
+#输出数据
+{ print  }
+#报表完成
+END {
+	print "================================"
+	print "printing is over"
+}
+
+11.3  变量
+与其他的程序设计语言一样,awk本身支持变量的相关操作,包括变量的定义和引用,以及参与相关的运算等. 此外,还包含了许多内置的系统变量. 本节将介绍awk中的变量的相关知识. 
+
+11.3.1  变量的定义和引用
+变量的作用是用来存储数据. 变量由变量名和值两部分组成,其中变量名是用来实现变量值的引用的途径,而变量值则是内存空间中存储的用户数据. 
+awk的变量名只能包括字母, 数字和下划线,并且不能以数字开头. 例如abc, a_, _z以及a123都是合法的变量名,而123abc则是非法的变量名. 另外,awk的变量名是区分大小写的,因此,X和x分别表示不同的变量. 
+在awk中定义变量的方法非常简单,只要给出一个变量名并且赋予适当的值即可. 
+awk中的变量类型分为两种,分别为字符串和数值. 但是在定义awk变量时,毋需指定变量类型,awk会根据变量所处的环境自动判断. 如果没有指定值,数值类型的变量的缺省值为0,字符串类型的变量的缺省值为空串. 
+
+#! /bin/awk -f
+
+BEGIN {
+	#定义变量x
+	x=3
+	#定义变量message
+	message="Hello " "world"
+	#输出变量
+	print x
+	print message
+}
+
+11.3.2  系统内置变量
+akw提供了许多非常实用的系统变量,例如字段变量, 字段数变量以及记录数变量等. 
+变量    说明
+$0      记录变量,表示当前记录
+$n      字段变量,其中n为整数,且n>1,表示第n个字符的值
+NF      整数值,表示当前记录的字段数
+NR      整数值,表示awk已经读入的字段数
+FILENAM 表示正在处理的数据文件的名称
+RS      记录分隔(record seperator)字符,默认值是换行符
+FS      字段分割(field seperator)字符,默认值是空格或者制表符
+
+11.3.3  记录分隔符RS和字段分隔符FS
+记录分隔符使用系统变量RS来指定,如果没有指定,则默认为换行符\n. 在绝大部分的情况下,这种方式都是有效的,因为awk每次都是从数据文件中只读取一行数据进行处理. 
+所以正常情况下,一行数据就代表一条记录. 但是,这并不意味着总是这样,有些数据文件中用多行文本来描述一条记录
+
+#! /bin/awk -f
+{ 
+	#输出每行数据
+	print
+	print "=========================================="
+}
+
+#! /bin/awk -f
+BEGIN {
+	#定义记录分隔符
+	RS=""		     
+}
+   
+{
+	print
+	print "=========================================="		   
+}
+
+
+#! /bin/awk -f
+BEGIN {
+	#定义记录分隔符
+	RS=""
+	#定义字段分隔符
+	FS="\n"
+}
+#输出第1个字段
+{ print $1 }
+
+11.3.4  记录和字段的引用
+在awk中,用户可以使用系统变量来引用数据文件中的记录和字段. 
+与关系型数据库不同,awk每次只是读取1行文本,因此,在awk程序中,所说的记录和字段的引用都是针对当前记录来说的. 
+变量$0表示正在读取的当前的记录,该变量将整个记录作为一个字符串来处理. 
+
+#! /bin/awk -f
+#通过$0引用整个记录
+{ print $0  }
+
+#! /bin/awk -f
+{
+	#输出第1个字段以及第2~5个字段的和
+	print $1, $2+$3+$4+$5
+}
+
+11.4  运算符和表达式
+awk是一种编程语言环境,因此,它也支持常用的运算符以及表达式,例如算术运算, 逻辑运算以及关系运算等. 本节将对awk所支持的常用的运算符以及表达式进行介绍. 
+
+11.4.1  算术运算符
+awk支持常用的算术运算,这一点与其他的程序设计语言基本相同
+运算符  说明
++       加法运算
+-       减法运算
+*       乘法运算
+/       除法运算
+%       求模运算
+^       指数运算
+
+#! /bin/awk -f
+BEGIN {
+	#除法运算
+	x=5/2
+	print x
+	#求模运算
+	x=5%2
+	print x
+	#指数运算
+	x=2^3
+	print x
+}
+
+11.4.2  赋值运算符
+= += -= *= /= %= ^=
+
+#! /bin/awk -f
+BEGIN {
+	#简单赋值
+	x=4
+	print x
+	#求和赋值
+	x+=10
+	print x
+	#乘积赋值
+	x*=2
+	print x
+	#幂运算赋值
+	x^=2
+	print x
+}
+
+11.4.3  条件运算符
+awk中的条件运算符只有一个,其语法如下:
+expression ? value1 : value2
+这是一个三目运算符,当表达式expression的值为真时,返回值为value1;否则,返回值为value2. 
+
+#! /bin/awk -f
+{
+	#如果大于90,输出A,否则输出B
+	grade=($2>90?"A":"B")
+	print grade
+}
+
+11.4.4  逻辑运算符
+awk支持3种逻辑运算,分别为逻辑与(&&), 逻辑或(||)和逻辑非(!);
+
+#! /bin/awk -f
+#输出所有的字段的值都大于80的记录
+$2 > 80 && $3 > 80 && $4 > 80 && $5 >80 {
+	print
+}
+
+11.4.5  关系运算符
+awk支持常用的关系运算符,例如大于, 小于以及等于;
+
+#! /bin/awk -f
+#匹配第1个字段以字符K开头的记录
+$1 ~ /^K/ { print  }
+
+11.4.6  其他运算符
+除了前面介绍的运算符之外,awk还支持其他的一些运算符,例如正号+, 负号-, 自增++以及自减--等. 这些运算符的使用方法与其他的语言的使用方法完全相同,不再举例说明. 
+
+11.5  函数
+awk提供函数的支持. awk本身提供了许多系统函数,例如字符串函数以及算术函数. 另外,用户还可以自定义函数. 由于自定义函数使用非常少,所以本节主要介绍awk提供的系统函数. 
+
+11.5.1  字符串函数
+字符串是awk中的两大类型之一,awk提供了一些常见的字符串处理函数,例如index(), length()以及match()等,下表列出了常用的字符串函数. 
+
+index(string1, string2)
+	返回string2在string1中的位置;如果string1不包含string2则返回0;
+
+length(string)
+	返回字符串string的长度;
+
+match(string, regexp)
+	在字符串string中搜索符合正则表达式regexp的(第一个)子字符串,返回值体现在系统变量RSTART和RLENGTH中;
+
+split(string, array, seperator)
+	根据指定的分隔符seperator,将字符串string分割成多个字段,并存储到array数组中;
+
+sub(regexp, replacement, string)
+	将字符串string中的第1个符合正则表达式regexp的子字符串全部替换为replacement;
+
+gsub(regexp, replacement, string)
+	将字符串string中的所有符合正则表达式regexp的子字符串全部替换为replacement;
+
+substr(string, start, [length])
+	从字符串string中截取指定的字符串,起始位置为start,长度为length;如果省略length,则表示从start开始一直截取到字符串结束;
+
+1.index(string1, string2)
+该函数用来定位字符串string2在字符串string1中出现的位置. 如果出现多次,则返回第1次出现的位置;如果string1不包含string2,则该函数返回0. 该函数区分大小写,用户在使用时一定要注意. 
+#! /bin/awk -f
+BEGIN {
+	#输出子串在父串中出现的位置
+	print index("Hello,world.","world")
+}
+
+2.length(string)
+该函数的返回值为整数,表示字符串string的长度. 
+#! /bin/awk -f
+BEGIN {
+	#输出字符串的长度
+	print length("Hello, world.")
+}
+
+3.match(string, regexp)
+该函数的第1个参数为字符串,第2个参数为正则表达式,其功能是在字符串string中搜索匹配正则表达式的子串. 
+用户可以通过系统变量RSTART和RLENGTH来获取相关的返回值. 
+其中,
+RSTART用来返回正则表达式匹配的子串在父串中出现的位置,如果匹配不成功,则返回0. 
+RLENGTH用来返回正则表达式匹配的子串的长度,如果匹配不成功,则返回-1. 
+
+#! /bin/awk -f
+BEGIN {
+	#通过正则表达式搜索子串
+	match("Hello, world.",/o/)
+	print RSTART, RLENGTH
+}
+
+4.split(string,array,seperator)
+该函数的功能是将一个字符串根据指定的分隔符拆分成一个数组. 
+其中第1个参数为要拆分的字符串,第2个参数是用来存储拆分结果的数组,第3个参数用来指定分隔符,分隔符可以使用正则表达式来表达. 
+
+#! /bin/awk -f
+BEGIN {
+	string="5P12p89"
+	#使用分隔符P或者p分隔字符串
+	split(string,arr,/[Pp]/)
+	#输出第1~3个数组元素
+	print arr[1]
+	print arr[2]
+	print arr[3]
+}
+
+5.sub(regexp,replacement,string)和gsub(regexp,replacement,string)
+这2个函数的作用都是替换字符串中的子串,其区别在于前者只替换第1次出现的子串,而后者则替换所有出现的子串. 
+这2个函数的参数完全相同,第1个参数为正则表达式,表示匹配规则. 第2个参数为用来替换的字符串,第3个参数是将要被处理的字符串. 
+
+#! /bin/awk -f
+BEGIN {
+	#定义字符串
+	string="abcd6b12abcabc212@123465"
+	#将第1个符合正则表达式/(abc)+[0-9]*/的子串用括号括起来
+	sub(/(abc)+[0-9]*/,"(&)",string)
+	print string
+	#将所有符合正则表达式/(abc)+[0-9]*/的子串用括号括起来
+	gsub(/(abc)+[0-9]*/,"(&)",string)
+	print string
+}
+
+6.substr(string,start,[length])
+该函数的功能是截取指定长度的子串. 
+第1个参数为父串,第2个参数表示子串开始截取的位置,第3个参数表示要截取的长度. 其中,第3个参数可以省略,如果省略了该参数,则表示从start参数指定的位置开始,一直截取到父串的末尾. 
+通过match()函数和substr()函数,用户可以将父串中所有符合规则的子串提取出来. 
+
+#! /bin/awk -f
+BEGIN {
+	#定义字符串变量
+	pages="p12-P34 P56-p78"
+	#通过循环依次匹配字符串中的数字
+	while(match(pages,/[0-9]+/)>0) {
+	#截取并输出匹配的子串
+		print substr(pages,RSTART,RLENGTH)
+		#删除匹配的子串
+		sub(/[0-9]+/,"",pages)								     
+	}
+}
+
+11.5.2  算术函数
+awk提供了基本的执行算术运算的函数
+int(x)   返回数值x的整数部分
+sqrt(x)  返回数值x的平方根
+exp(x)   返回e的x次方
+log(x)   返回以e为底x的对数
+sin(x)   返回x的正弦值
+cos(x)   返回x的余弦值
+rand()   返回介于0和1之间的随机数
+srand([x]) 以x为种子返回一个随机数
+
+11.6  数组
+用户可以在awk编程环境中使用数组. 这种特性使得用户在存储结构化的数据时变得非常方便. 与其他的程序设计语言相比,awk中的数组有许多特殊的使用方法,本节将对这些使用方法进行详细介绍. 
+
+11.6.1  数组的定义和赋值
+数组是用来存储一组相互关联的数据的结构体. 在awk中,用户可以自定义数组,并且在定义数组时,毋需指定其类型和大小. 
+数组元素赋值的语法如下:
+array[n]=value
+其中,array表示数组名称,n表示数组元素的下标,等号为赋值运算符,value为要赋给数组元素的数值. 
+用户可以使用以下语法引用数组元素的值:
+array[n]
+其中,array表示数组名称,n为数组元素的下标. 
+
+#! /bin/awk -f
+BEGIN {
+	#为数组元素赋值
+	arr[1]="Tim"
+	arr["a"]=12
+	arr[3]=3.1415
+	arr[4]=5
+	#输出数组元素的值
+	print arr[1],arr[2],arr["a"]*arr[3],arr[4]
+}
+
+11.6.2  遍历数组
+所谓数组的遍历,是指将数组中的每个元素的值依次输出. 
+当然,用户可以通过循环结构来实现数组的遍历. 
+在使用正常的循环结构来遍历数组时,必须首先知道数组的长度,这样的话才能确定循环终止的条件. 
+在awk中,数组的长度可以使用length()函数获得,该函数以数组名作为参数,返回数组的长度. 
+
+#! /bin/awk -f
+BEGIN {
+	#定义数组
+	stu[1]="200200110"
+	stu[2]="200200164"
+	stu[3]="200200167"
+	stu[4]="200200168"
+	stu[5]="200200172"
+	#计算数组的长度
+	len=length(stu)
+	#通过循环遍历数组
+	for(i=1;i<=len;i++)
+	{
+		print i,stu[i]
+	}
+}
+
+#! /bin/awk -f
+BEGIN {
+	#定义数组
+	arr[1]="Tim"
+	arr[2]="John"
+	arr["a"]=12
+	arr[3]=3.1415
+	arr[4]=5
+	arr[99]=23
+	#遍历数组
+	for(n in arr)
+	{
+		print arr[n]
+	}
+}
+
+11.7  流程控制
+作为一种程序设计语言,awk支持程序的流程控制,例如条件判断, 循环以及其他的一些流程控制语句,例如continue, break以及exit等. 掌握这些基本的流程控制语句,对于编写出结构良好的程序非常重要. 本节将介绍awk流程控制语句的使用方法. 
+
+11.7.1  if语句
+if语句的功能是根据用户指定的条件来决定执行程序的哪个分支,其语法如下:
+if (expression){
+	statement1
+	statement2
+｝else {
+	statement3
+	statement4
+}
+
+#! /bin/awk -f
+{
+	#90分以上为A
+	if ($2 >= 90) {
+		print $1,"A"      
+	} else {
+		#80分以上为B
+		if($2 >= 80 && $2 < 90){
+			print $1,"B"
+		}
+		#其余为C
+		else
+		{
+			print $1,"C"
+		}								   
+	}
+}
+
+11.7.2  while语句
+while语句是另外一种常用的循环结构,其语法如下:
+while (expression)
+{
+	statement1
+	statement2
+	...
+}
+当表达式expression的值为真时,执行循环体中的statement1以及statement2等语句. 如果循环体中只包含一条语句,则可以省略大括号. 
+
+#! /bin/awk -f
+BEGIN {
+	#定义循环变量
+	i=0
+	#while循环开始
+	while (++i <= 9)
+	{
+		#输出循环变量i的平方
+		print i^2
+	}
+}
+
+11.7.3  do…while语句
+awk还支持另外一种while循环语句,其语法如下:
+do {
+	statement1
+	statement2
+	...
+} while (expression)
+
+同样,当表达式expression的值为真时执行循环体中的语句. 
+
+#! /bin/awk -f
+BEGIN {
+	#定义循环变量
+	i=1
+	do {
+		#输出循环变量的平方
+		print i^2 
+	} while (++i<=9)
+}
+
+11.7.4  for语句
+for循环语句通常用在循环次数已知的场合中,其语法如下:
+for(expression1; expression2; expression3)
+{
+	statement1
+	statement2
+	...
+}
+在上面的语法中,表达式expression1通常用来初始化循环变量,表达式expression2通常用来指定循环执行的条件,表达式expression3通常用来改变循环变量的值. 当表达式expression2的值为真时,执行循环体中的语句. 
+
+#! /bin/awk -f
+BEGIN {
+	#外层循环
+	for(i=1;i<=9;i++)
+	{
+		#内层循环
+		for(j=1;j<=i;j++)
+		{
+			#将每一行的数值连接成一个字符串
+			if(i*j<10)
+			{
+				row=row"   "i*j
+			}
+			else
+			{
+				row=row"  "i*j
+			}
+		}
+		#输出每一行数值
+		print row
+		row=""
+	}
+}
+
+11.7.5  break语句
+用户可以通过使用break语句在适当的时机退出for以及while等循环结构,用来退出循环结构,而不必等到循环结构自己退出. 
+
+#! /bin/awk -f
+BEGIN {
+	#循环读取数据
+	while( getline < "scores.txt" > 0 )
+	{
+		#当第1个字段的额值为Kity时退出
+		if($1=="Kity")
+			break
+		else
+			print $1,$2,$3,$4,$5											     }
+}
+
+11.7.6  continue语句
+continue语句的主要功能是跳过循环结构中该语句后面的尚未执行的语句. break语句与continue语句的功能有着明显的区别,前者是直接退出循环结构,而后者是跳过循环体中尚未执行的语句,重新执行下一次循环. 
+
+#! /bin/awk -f
+BEGIN {
+	#通过循环读取数据
+	while( getline < "scores.txt" > 0 )
+	{
+		#当第1个字段含有字符串Nancy时跳过后面的语句
+		if($1 == "Kity")
+			continue
+		print $1,$2,$3,$4,$5
+	}
+}
+
+11.7.7  next语句
+next语句的功能与continue语句非常相似,但是next语句并不是用在循环结构中,而是用在整个akw程序中. 当awk执行程序时,如果遇到next语句,则该语句后面的所有的程序语句都被忽略,包括其他的模式以及对应的操作. awk会继续读取下一行数据,并且从第一个模式及其操作开始执行. 
+
+#! /bin/awk -f
+#当读取的行为空行时跳过后面的语句
+/^[\t]*$/ {
+	next
+}
+
+#输出各个字段
+{
+	print $1,$2,$3,$4,$5
+
+}
+
+11.7.8  exit语句
+exit语句的功能是终止awk程序的执行. 
+
+11.8  awk程序的格式化输出
+对于程序来说,输出是一项非常重要的功能. 而绝大部分的用户对于数据输出都有一定的格式要求. awk提供了基本的格式化输出功能,本节将介绍awk中与输出有关的函数. 
+
+11.8.1  基本print语句
+print语句提供了基本的输出功能. 我们在前面许多例子中,已经使用该语句来输出各种数据. print语句的基本语法如下:
+print string1,string2,...
+在上面的语法中,参数string1以及string2等是要输出的数据,各个参数之间使用逗号隔开. 在输出的时候,print语句会自动使用空格将各个参数值隔开. 
+
+11.8.2  格式化输出printf语句
+虽然大多数情况下awk的print语句可以完成任务,但有时我们还需要对格式做更多的控制. awk提供了printf函数来实现字符串的格式化. 这个函数的功能和语法与C语言中的printf()函数基本相同,如下:
+printf(format, [arguments])
+其中圆括号是可选的,第1个参数format是一个用来描述输出格式的字符串,通常以引号括起来的字符串常量的形式提供. arguments为一个参数列表,表示用来显示的数据,可以是变量名等,多个参数之间用逗号隔开. 参数列表的项是有顺序的,与前面的格式化字符串中的格式说明相对应. 
+格式化字符串的语法如下:
+%format
+
+#! /bin/awk -f
+
+{
+	printf("%s\t%d\t%d\t%d\t%d\t%d\n",$1,$2,$3,$4,$5,($2 + $3 + $4 + $5))
+}
+
+11.8.3  使用sprintf()函数生成格式化字符串
+sprintf函数的功能与printf函数的功能大致相同,但是该函数只是以字符串的形式返回格式化结果,并不输出到标准输出设备. 用户可以将格式化的结果进行其他的处理或者使用print和printf函数输出到标准输出. 
+
+#! /bin/awk -f
+BEGIN {
+	print "Scores list"
+}
+
+{
+	printf ("%s\t%d\t%d\t%d\t%d\t%d\n",$1,$2,$3,$4,$5,($2 + $3 + $4 + $5))
+	total+=$2 + $3 + $4 + $5
+}
+
+END {
+	average=total/NR
+	sum=sprintf("Total: %d students, average: %.2f",NR,average)
+	print sum
+}
+
+11.9  awk的程序与Shell的交互
+awk提供了与Shell命令交互的能力,从而可以使得用户在awk程序中使用系统资源. awk主要通过2种机制来实现这种交互功能,分别为管道和Sytem函数. 本节将对这2种交互机制进行详细介绍. 
+
+11.9.1  通过管道实现与Shell的交换
+用户可以很容易地在awk程序中使用操作系统资源,包括在程序中调用Shell命令处理程序中的数据;或者在awk程序中获取Shell命令的执行结果. awk提供了管道来实现这种数据的双向交互. awk的管道与UNIX或者Linux中的管道非常相似,但是特性有些不同. 
+
+#! /bin/awk -f
+BEGIN {
+	while("who" | getline) n++
+	printf("There %d online users.\n",n)
+}
+
+11.9.2  通过system函数实现与Shell的交互
+awk提供另一个调用Shell命令的方法, 即使用awk函数,其语法如下:
+system(command)
+其中参数command表示要执行的Shell命令. 与管道相比,system函数有许多据局限,例如不能在awk程序中直接获取Shell命令的执行结果,另外,也不能直接将awk程序中的数据传递给Shell命令来处理. 要实现这种数据传递,必须借助其他的的一些手段. 
+
+#! /bin/awk -f
+BEGIN {
+	system("ls > filelist")
+	
+	while(getline < "filelist" > 0)
+	{
+		print $1
+	}
+}
+
+
+12 文件的操作
+
+12.1  文件
+对于绝大部分的Linux以及UNIX系统管理员来说,他们每天面对的都是各种类型的文件,包括系统配置的更改, 软件的安装以及调试. 因此,了解Linux中的文件的基础知识非常重要. 本节将介绍文件的类型以及文件的权限等. 
+
+12.1.1  列出文件
+Linux提供了ls命令来列出某个目录的内容,其基本语法如下:
+ls [option]... [file]...
+在上面的语法中,option表示ls命令的选项. file参数表示文件名. 
+
+12.1.2  文件类型
+1.普通文件
+2.目录
+3.伪文件
+
+12.1.3  文件的权限
+Unix使用一套简单有效的方式来为文件设置权限. 我们再次浏览一下上面的ls -l命令的输出结果,该结果一共有7列,其中第1列就是文件的权限,如下:
+-rwxr-xr-x
+第1个字符是"-",这个字符表示当前的文件是一个普通文件,不属于权限的范围. 从第2个字符开始一直到结尾的9个字符代表了当前文件的存取权限. 
+
+12.2  查找文件
+文件的搜索是UNIX以及Linux中经常用到的操作. 在Shell程序设计的时候,也经常用到文件搜索. Linux提供了几个关于文件搜索的命令,例如locate, whereis以及find等. 其中,find命令的功能最为强大,所以本节详细介绍find命令在Shell程序中的使用方法. 
+
+12.2.1  find命令以及语法
+简单地讲,find命令的基本思想就是搜索一个或者多个目录树,根据用户指定的测试条件,查找符合特定标准的文件. 当查找完成之后,find命令将对查找到的文件执行指定的操作. 这些操作可以非常简单,例如仅仅将文件名打印出来;也可以非常复杂,例如删除文件, 显示文件的详细信息或者将搜索结果传递给另外一个命令. 
+在使用find命令的,用户通常需要提供3种信息,分别为要搜索的路径, 测试条件以及操作. find命令的基本语法如下:
+find path test action
+其中,path参数表示要搜索的路径,用户可以同时指定多个路径,路径之间用空格隔开. test参数表示测试条件,同样,用户也可以同时指定多个测试条件,它们之间用空格隔开. action参数则表示对于搜索结果要执行的操作,如果有多个操作,则这些操作之间用空格隔开. 
+
+12.2.2  find命令:路径
+find命令的路径参数表示在何处搜索指定的文件. 通常情况下,路径都是一个目录名. 用户可以使用相对路径, 绝对路径以及简写形式来指定路径. 例如,下面的命令中都是一些合法的路径:
+find /usr/bin
+find /
+find .
+find ~root
+
+#! /bin/bash
+files=`find . -name "*.sh"`
+echo "$files"
+
+#! /bin/bash
+files=`find /etc /usr/local -name httpd.conf`
+echo "$files"
+
+12.2.3  find命令:测试
+find命令的测试条件用来对搜索结果进行筛选. 只有符合指定条件的文件才会出现在最终的搜索结果中. 前面已经讲过,当用户省略测试条件时,则表示指定目录中的所有的文件都将出现在搜索结果中. 
+
+-name pattern      表示包含指定匹配模式的文件名
+-iname pattern     表示包含指定匹配模式的文件名,大小写不敏感
+-type type         指定文件类型
+-perm mode         匹配其权限被设置为指定mode的文件
+-user userid       匹配其所有者为指定用户ID的文件
+-group groupid     匹配其所有者为指定组ID的文件
+-size size         匹配其大小为size的文件
+-empty             匹配空文件
+-amin [-+]n        文件最后一次访问时间,+(-)n表示距今n分钟前(内),n恰好n分钟;
+-atime [-+]n       文件最后一次访问时间,+(-)n表示距今n天以前(内),n恰好n天;
+-cmin [-+]n        文件最后一次状态改变时间,+(-)n表示距今n分钟前(内),n恰好n分钟;
+-ctime [-+]n       文件最后一次状态改变时间,+(-)n表示距今n天以前(内),n恰好n天;
+-mmin [-+]n        文件最后一次被修改的时间,+(-)n表示距今n分钟前(内),n恰好n分钟;
+-mtime [-+]n       文件最后一次被修改的时间,+(-)n表示距今n天以前(内),n恰好n天;
+
+#! /bin/bash
+files=`find /etc -type f -print | wc -l`
+directories=`find /etc -type d -print | wc -l`
+echo "There are $files regular files in /etc directory."
+echo "There are $directories directories in /etc directory."
+
+#! /bin/bash
+file=`find /etc -name httpd.conf -print`
+head -5 $file
+
+#! /bin/bash
+file=`find /etc -name "httpd.conf*" -print`
+head -5 $file
+
+#! /bin/bash
+files=`find /etc -name rc[1-9].d -print`
+echo "$files"
+
+12.2.4  find命令:使用!运算符对测试求反
+find命令提供了一个感叹号运算符!,用来对测试条件求反. !符号可以加在任何测试条件的前面,表示其后测试的相反条件. 在使用!运算符的时候,一定要注意语法问题,即必须在!符号的左右各留一个空格,这样find命令才会正确解释!运算符. 另外,为了避免Shell解释!符号,用户需要使用单引号或者反斜线将其引用起来. 
+例如,下面的命令搜索/data1/wwwroot目录中,除jpg文件之外的普通文件:
+find /data1/wwwroot -type f \! -name "*.jpg" -print
+
+12.2.5  find命令:处理文件权限错误信息
+find命令可以在任意指定的位置中搜索指定的文件. 但是,Linux系统的权限非常严格. 如果当前用户对于指定的目录没有访问权限,则find命令会给出一些错误信息,
+
+12.2.6  find命令:动作
+find命令最为强大的功能在于不仅仅可以根据复杂的条件来搜索文件,而且还可以非常方便地对搜索结果进行处理. 前面已经讲过find命令的语法中的第3部分的action参数就是find命令对于搜索结果的动作. 
+
+-print        默认动作,将搜索结果写入到标准输出
+-fprint file  将搜索结果写入到文件
+-ls           以长格式显示搜索结果
+-fls file     将搜索结果以长格式写入到文件file
+-delete       将搜索到的文件删除
+-exec cmd {} \;  查找并执行命令,{}表示搜索到的文件名;
+-ok cmd {} \;    查找并执行命令,但是需要用户确认;
+
+#! /bin/bash
+find ./tmp -name "*.php" -exec rm -f {} \;
+if [ $? -eq 0  ] ;then
+	echo "the files have been deleted successfully.";
+else
+	echo "Failed to delete files.";
+fi
+
+12.3  比较文件
+通常情况下,Linux中的数据都是以文本文件的形式存储的,并且每一行为一条记录. 因此,在Shell程序中处理数据的话,经常会遇到将多个数据文件中的数据进行对比分析的情况. 本节将介绍Linux中最常用的两个比较文件的命令comm和diff. 
+
+12.3.1  使用comm比较文件
+comm命令的作用是逐行比较两个有序的文件,其语法如下:
+comm [option]... file1 file2
+
+#! /bin/bash
+p1=`comm -2 -3 students.txt students1.txt`
+echo "These students only appear in students.txt:"
+echo "$p1"
+p2=`comm -1 -3 students.txt students1.txt`
+echo "These students only appear in students1.txt:"
+echo "$p2"
+p3=`comm -1 -2 students.txt students1.txt`
+echo "These students appear in both students.txt and students1.txt:"
+echo "$p3"
+
+
+#! /bin/bash
+q1=`comm -2 -3 students.txt students1.txt | wc -l`
+echo "These are $q1 students only appear in students.txt."
+q2=`comm -1 -3 students.txt students1.txt | wc -l`
+echo "These are $q2 students only appear in students1.txt."
+q3=`comm -1 -2 students.txt students1.txt | wc -l`
+echo "These are $q3 students appear in both students.txt and students1.txt."
+
+12.3.2  使用diff比较文件
+diff命令功能也是逐行比较多个文件的内容. 所不同的是,diff命令并不要求参与比较的文件是有序的. 另外,diff不仅可以比较普通文件,而且还可以比较多个目录的内容的差异. diff命令的基本语法如下:
+diff [option]... files
+
+12.4  文件描述符
+在Shell程序中操作文件的时候,经常会遇到使用文件描述符的情况. 使用文件描述符来操作文件,可以使得程序符合POSIX标准. 本节将介绍文件描述符的基础知识, 常用的文件描述符以及自定义文件描述符的方法. 
+
+12.4.1  什么是文件描述符
+从形式上讲,文件描述符是一个非负整数. 实际上,它是一个索引值,指向内核为每一个进程所维护的该进程打开文件的记录表. 当程序打开一个现有文件或者创建一个新文件时,内核向进程返回一个文件描述符. 在程序设计中,一些涉及底层的程序编写往往会围绕着文件描述符展开. 但是文件描述符这一概念往往只适用于UNIX以及Linux等操作系统. 
+
+12.4.2  标准输入, 标准输出和标准错误
+当用户在Shell中执行命令的时候,每个进程都和3个文件描述符相关联,并且使用这3个文件描述符来引用相关的文件. 这3个文件描述符分别为标准输入, 标准输出和标准错误. 默认情况下,这3个文件描述符会自动创建,用户直接使用即可. 
+标准输入的文件描述符为0,表示默认的输入文件,即Shell需要执行命令的来源. 通常情况下,标准输入为键盘,因为绝大部分的命令来自于键盘的输入. 但是,标准输入也可以是文件或者其他的命令的输出,这需要使用输入重定向. 
+标准输出的文件描述符为1,表示默认的输出文件,即显示Shell命令的执行结果的地方. 通常情况下,标准输出的设备为显示器,但是也可以是其他的文件或者设备. 
+标准错误的文件描述符为2,标准Shell命令的错误消息输出的地方. 默认情况下,标准错误与标准输出的设备相同,也是显示器,但是也可以是其他的文件或者设备. 
+
+12.5  重定向
+在Linux的输入输出中,重定向占有非常重要的地位. 在编写Shell程序以及进行系统管理的时候,经常与重定向打交道. 因此,对于初学者来说,搞清楚重定向的使用技巧非常有用. 
+
+12.5.1  输出重定向(覆盖)
+通常情况下,所谓输出重定向是指将原本输出到标准输出的数据输出到其他的文件或者设备中. 输出重定向的操作符为大于号>,其基本语法如下:
+cmd > file
+在上面的语法中,cmd表示Shell命令,大于号>为重定向操作符,file表示重定向的目标文件. 
+
+12.5.2  输出重定向(追加)
+除了覆盖模式之外,输出重定向还有一种追加模式,其操作符为连续的两个大于号>>. >>操作符的功能与>基本相同,只是前者不会覆盖目标文件的内容,而是追加在已有文件的后面. >>操作符的基本语法如下:
+cmd [n]>> file
+其中cmd表示Shell命令,n为文件描述符,如果省略n,则默认值为1,即标准输出. >>操作符同样支持一组命令,语法如下:
+{ cmd1;cmd2;...;  } [n]>> file
+
+12.5.3  输入重定向
+通常情况下,Shell命令会从标准输入,即键盘读取用户输入的数据. 但是Shell提供了另外一种读取用户输入的机制,即从文件中获取输入,这种机制称为输入重定向,如图12-5所示. 输入重定向与输出重定向非常相似,其操作符为小于号<,基本语法如下:
+cmd < file
+在上面的语法中,cmd表示Shell命令,file文件的内容将作为cmd命令的输入. 
+
+12.5.4  当前文档
+输入重定向的另外一个用途是生成当前文档(here documents). 当前文档主要用在命令行中需要多行输入的情况,其基本语法如下:
+cmd << delimiter
+document
+delimiter
+其中,cmd表示Shell命令,<<为输入重定向操作符,delimiter为分隔符. 当Shell遇到重定向操作符<<时,会一直读取用户的输入,直到遇到某一行,其中包含指定的分隔符delimiter. 两个分隔符delimiter之间的行都属于命令cmd的标准输入. 最后的delimiter告诉Shell,当前文档已经结束. 如果没有后面的分隔符,Shell将会继续读取输入,并会永远进行下去. 
+
+12.5.5  重定向两个文件描述符
+在前面的例子中,介绍了输出重定向,即把标准输出重定向到文件. 除此之外,用户还可以通过重定向操作将到一个文件描述符的输出重定向到另外一个文件描述符,即复制一个文件描述符,其语法如下:
+n>&m
+在上面的语法中,n和m都是文件描述符. 当n=1且m=2时,文件描述符1成为文件描述符2的副本,所以所有的标准标准输出都被重定向到标准错误;而当n=2,m=1时,文件描述符2成为文件描述符1的副本,所以所有的标准错误都被重定向到标准输出. 当n=1时,可以省略. 
+
+12.5.6  使用exec命令分配文件描述符
+用户在命令后面使用重定向操作符的时候,重定向只对当前的命令有效. 用户可以使用exec命令创建新的文件描述符,并且将文件描述符绑定到文件或者另外一个文件描述符或者文件. 
+
+exec 2> file  将所有标准错误输出重定向到文件file
+exec n< file  只读方式打开的文件名称file,并使用描述符n,n是大于3的
+exec n> file  以写入的方式打开名称为file的文件,并使用文件描述符n,n是大于3的
+exec n<> file 以读写方式打开file,并使用描述符n,n是大于3的
+exec n>&-     关闭文件描述符n
+exec n>&m     使得文件描述符n称为文件描述符m的副本,即将文件描述符m复制到n
+
+# /bin/bash
+exec 99>&2
+exec 2> errlog
+ls -lw
+exec 2>&99
+exec 99>&-
+
+#!/bin/bash
+echo 'START'
+exec 100< <(ls -l)
+num=1
+while read line; do
+	echo "LINE $num: $line"
+	num=$(($num + 1))
+done <&100
+exec 100>&-		#close it
+echo 'END'
+
+
+13 子Shell与进程处理
+
+13.1  子Shell
+Shell本身也是一个程序,也可以启动自己的子进程,这些子进程称为子Shell. 作为初学者,必须搞清楚子Shell与其父Shell的区别与联系以及Shell命令与子Shell的关系. 本节将对子Shell的基础知识进行介绍. 
+
+13.1.1  什么是子Shell
+所谓子Shell,实际上是父Shell的一个子进程. 子Shell本身也可以创建自己的子进程,从而成为其子进程的父Shell. 从定义可以看出,父Shell和子Shell都是相对的. 某个Shell可以成为一个Shell的父Shell,也可以同时成为另外一个Shell的子Shell,反之亦然. 在环境变量以及标准输入, 标准输出和标准错误等方面,父Shell和子Shell是相同的. 
+
+#! /bin/bash
+cd /var/log
+pwd
+
+13.1.2  内部命令, 保留字和外部命令
+Shell命令分为内部命令和外部命令. 所谓内部命令,是指包含在Shell工具包中的命令,内部命令是Shell本身的重要组成部分. 内部命令嵌入在Shell程序中,并不单独以磁盘文件的形式存在于磁盘上. 例如cd, bg以及fg等命令都是bash Shell的内部命令. 
+
+bash常用的内部命令
+.       读取shell脚本,并在当前脚本中执行
+alias   设置命令别名
+bg      将作业置于后台运行
+cd      改变当前工作目录
+echo    打印指定的文本
+eval    将参数作为shell命令执行
+exec    以特定的程序取代shel或者改变当前shell的输出输入
+exit    退出shell
+export  将变量声明为环境变量
+fc      与命令历史一起运行
+fg      将作业置于前台运行
+getopts 处理命令行选项
+history 显示命令历史
+jobs    显示在后台运行的作业
+kill    向进程发信号
+logout  从shell中注销
+pwd     显示当前工作目录
+set     设置(显示)shell环境变量
+shift   变换命令行参数
+
+#! /bin/bash
+ps -ef|grep ps
+echo $SHLVL
+pidof -x ex13-2.sh
+exit 0
+
+13.1.3  在子Shell中执行命令
+1.圆括号结构
+当一组命令放在圆括号中时,该组命令会在一个子Shell环境中执行,其语法如下:
+(command1;command2;command3;...)
+在上面的语法中,command1, command2以及command3等都是Shell命令,这些命令些在一行中,它们之间用分号隔开. 
+
+
+#!/bin/bash
+echo
+echo "Subshell level OUTSIDE subshell = $BASH_SUBSHELL"
+echo
+outer_variable=Outer
+(
+echo "Subshell level INSIDE subshell = $BASH_SUBSHELL"
+inner_variable=Inner
+echo "From subshell, \"inner_variable\" = $inner_variable"
+echo "From subshell, \"outer\" = $outer_variable"
+)
+echo
+echo "Subshell level OUTSIDE subshell = $BASH_SUBSHELL"
+echo
+if [ -z "$inner_variable" ] ;then
+	echo "inner_variable undefined in main body of shell"
+else
+	echo "inner_variable defined in main body of shell"
+fi
+echo "From main body of shell, \"inner_variable\" = $inner_variable"
+echo
+exit 0
+
+
+#!/bin/bash
+echo "Before starting subshell"
+(
+    count=1
+    while [ $count -le 10  ]
+	do
+	    echo "$count"
+		sleep 1
+	    (( count++  ))
+	done
+) &
+echo "Finished"
+
+
+2.后台执行或异步执行
+在某些情况下,Shell命令需要较长的时间来执行,尤其是在处理大量的数据的时候. 在这种情况下,用户可以将命令置于后台执行,而不必等待命令执行结束. 
+将命令置于后台执行的语法如下:
+command &
+
+#! /bin/bash
+echo "generating a background child process"
+for ((i=9; i>=0; i--))
+do
+	sleep 1
+	echo -e "\rsleeping ${i}s ...\c"
+done &
+## 创建后台进程
+## 获取最近创建的后台进程的PID
+BG_PID=$!
+echo "child process's PID is ${BG_PID}"
+
+
+3.命令替换
+命令替换的语法如下:
+`command`
+或者
+$(command)
+其中,command表示要执行的命令. command会在一个子Shell中执行,不会影响到当前的Shell环境. 
+
+#! /bin/bash
+(cd /;ls;echo "current working directory is ";pwd)
+echo "current working directory is"
+pwd
+
+13.1.4  把子Shell中的变量值传回父Shell
+在子Shell中,代码可以访问父Shell的变量;反之,在父Shell中,却无法访问到子Shell中的变量的值. 但是,用户可以通过一些变通的技巧来取得子Shell中的变量的值. 下面分别进行介绍. 
+
+1.通过临时文件
+在Linux中,通过临时文件传递数据是一个非常重要的技巧,许多地方都使用到. 对于磁盘文件来说,只要拥有足够的权限,任何进程都可以访问到. 另外,通过临时文件,用户可以在进程之间传递大量的数据,不会受到内存空间的限制. 
+
+#! /bin/bash
+(
+    x=500
+    echo "$x" >tmp
+)
+echo "$x"
+read b <tmp
+echo "$b"
+
+2.使用命名管道
+命名管道是Linux以及UNIX系统中的最古老的进程间通信的方式,同时也是一个相对比较简单的通信机制. 
+
+#! /bin/bash
+if [ ! -e fifo  ];then
+	mkfifo fifo
+fi
+(
+    x=500
+	echo "$x" > fifo
+)&
+read y <fifo
+echo "$y"
+
+3.不使用子Shell
+之所以出现以上变量传递问题,是因为使用了子Shell. 如果不使用子Shell,则以上问题就不存在. 当用户在某个Shell脚本中调用另外一个脚本时,被调用的脚本会在子Shell中执行. 但是,用户可以通过圆点命令和source命令来执行脚本,使得被调用的脚本在当前Shell进程中执行. 
+
+#! /bin/bash
+echo "$message"
+
+#! /bin/bash
+message="Hello world."
+source ./output.sh
+
+13.2  进程处理
+在进行系统维护的过程中,经常会遇到进程和作业的处理问题. 通过Shell编程,用户可以对进程和作业进行有效地管理. 本节介绍如何通过Shell进行进程的相关操作. 
+
+13.2.1  什么是进程
+进程是指在自身的虚拟地址空间运行的一个单独的程序,是程序执行的基本单元. 进程会利用处理器资源, 内存资源,并且进行各种I/O操作,从而完成某项指定的任务. 因此,进程是一个动态的概念. 
+
+13.2.2  通过脚本监控进程
+通常情况下,通过脚本来监控进程可以收到事半功倍的效果. 例如,在绝大部分的Web服务器都是运行在Linux上面. 但是在某些情况下,Web服务器的进程httpd会由于某些错误而退出,导致用户的网站不能访问. 而系统管理员则不可能会24小时都在监控Web服务器的运行状态. 
+
+#! /bin/bash
+RESTART="/sbin/service httpd restart"
+PGREP="/usr/bin/pgrep"
+HTTPD="httpd"
+$PGREP ${HTTPD} &>/dev/null
+if [ $? -ne 0  ] ;then
+    $RESTART
+fi
+
+13.2.3  作业控制
+作业控制指的是用户控制正在运行的组成作业的进程的行为. 在前面已经介绍过,用户可以在命令的后面附加&操作符,使得该命令在后台执行. 另外,用户还可以将作业中的某个进程挂起,暂停其执行,然后在某个时刻再继续执行该进程. 
+
+#! /bin/bash
+sleep 10
+
+13.2.4  信号与trap命令
+信号在Linux系统中非常重要的一种通信机制. 信号在软件层次上模拟了硬件中断机制. 因此,简单地讲,信号即软件中断. 在Linux系统中,用户可以通过kill命令给某个进程发送一个特定的信号,也可以通过键盘发送一些信号,比如组合键CTRL+C可能触发 SIGINT信号,而组合键CTRL+\可能触发SIGQUIT信号等. 
+kill [-s signal|-p] [--] pid...
+trap [[arg] sigspec ...]
+
+#! /bin/bash
+function signal_handler {
+    echo "Good bye."
+}
+
+trap signal_handler 0
+
+
+14  Shell脚本调试技术
+
+14.1  Shell脚本中的常见错误
+实际上,编写Shell脚本的过程就是不断排除错误的过程. 尤其对于初学者来说,由于不熟悉Shell脚本的语法,会经常出现一些意想不到的错误. 本节列出了Shell程序设计中经常出现的错误,从而使得读者在编程时可以避免这些错误的发生. 
+
+14.1.1  常见语法错误
+在进行Shell程序设计的时候,语法错误经常出现在关键字书写错误,引号错误,漏掉空格符以及变量的大小写问题等. 
+
+#! /bin/bash
+n=1
+while [ $n -le 5  ];
+do
+	#注意do/done的配对
+   echo "the numberis $n."
+   let "n+=1"
+done
+
+#! /bin/bash
+
+while :
+do
+   read x
+	#注意if语句中的空格
+   if [ $x == "exit" ]; then
+      exit 0
+   else
+      echo "$x"
+   fi
+done
+
+14.1.2  常见逻辑错误
+通常情况下,Shell脚本中的语法错误是非常明显的,并且语法错误一般会导致程序不可执行. 但是逻辑错误却比较隐蔽,因为这些错误通常不会引起程序执行失败,但是逻辑错误却会导致程序得到错误的结果. 因此,相比语法错误,逻辑错误调试起来会更加困难. 
+
+#! /bin/bash
+
+x=1
+if [ x == 1  ]; then
+   echo "x=1"
+elif [ x == 0  ]; then
+   echo "x=0"
+else
+   echo "other"
+fi
+#应该使用$x来引用变量
+
+14.2  Shell脚本调试技术
+任何一个Shell开发者,都必须掌握所需要的调试技术,对于初学者来说,这显得尤为重要. 因为在编写Shell脚本的时候,经常会遇到各种各样的错误,通过调试技术,可以快速地排除错误. 本节将介绍Shell编程中经常使用的几种调试技术. 
+
+14.2.1  使用echo命令调试脚本
+echo命令是Shell编程中最简单的调试技术. 当用户需要验证程序中某个变量的值时,就可以直接使用echo命令将该变量的值输出到屏幕. 
+
+#! /bin/bash
+a=1
+if [ "$a" -eq 1  ]
+then
+   b=2
+else
+   b=1
+fi
+c=3
+echo "a=$a"
+echo "b=$b"
+echo "c=$c"
+
+14.2.2  使用trap命令调试Shell脚本
+在Shell脚本执行的时候,会产生3个所谓的伪信号,分别为EXIT, ERR以及DEBUG. 其中,EXIT信号在退出某个函数或者某个脚本执行完成时触发,ERR信号在某条命令返回非0状态时触发,DEBUG信号在脚本的每一条命令执行之前触发. 
+#! /bin/bash
+ERRTRAP()
+{
+   echo "[LINE:$1] Error:Command or function exited with status code $?"
+}
+func()
+{
+   return 1
+}
+trap 'ERRTRAP $LINENO' ERR
+abc
+func
+
+#! /bin/bash
+trap 'echo "before execute line: $LINENO, a=$a, b=$b, c=$c"' DEBUG
+a=1
+if [ "$a" -eq 1  ]
+then
+   b=2
+else
+   b=1
+fi
+c=3
+echo "end"
+
+14.2.3  使用tee命令调试Shell脚本
+由于在实际开发过程中,管道和重定向在Shell脚本中使用得非常多. 所以必须找到能够输出中间结果的方法. 在这种情况下,tee命令就可以轻松地完成任务. tee命令会从标准输入读取数据,将其内容输出到标准输出设备,同时又可将内容保存成文件. 
+
+#! /bin/bash
+list=`ls -l | tee list.txt | awk '{print toupper($9)}'`
+echo "$list"
+
+14.2.4  使用调试钩子调试Shell脚本
+在许多程序设计语言中,用户在调试程序的时候都可以设定一个开关变量,当该变量的值为真时,才输出调试信息;否则,不输出调试信息. 例如用户可以设计以下代码:
+if [ "$DEBUG" = "true" ]; then
+   输出调试信息
+fi
+只有当变量DEBUG的值为true时,才输出调试信息. 这样的代码块称为调试钩子. 
+
+#! /bin/bash
+export DEBUG=true
+DEBUG()
+{
+   if [ "$DEBUG" == "true" ];then
+      $@
+   fi
+}
+a=1
+DEBUG echo "a=$a"
+if [ "$a" -eq 1  ]
+then
+     b=2
+else
+     b=1
+fi
+DEBUG echo "b=$b"
+c=3
+DEBUG echo "c=$c"
+
+
+15  利用Shell脚本解决实际问题
+
+15.1  编写系统服务脚本
+在进行系统管理的时候,许多时候都需要用到系统服务脚本. 通过编写服务脚本,可以使得系统服务的管理更加便利,更加规范. 在本节中,将介绍Linux的系统启动过程,初始化过程,并且以MySQL服务脚本为例,来说明系统服务脚本的编写方法. 
+
+15.1.1  系统启动过程
+加电-> BIOS -> GRUB内核装载器 -> 装入内核 -> 执行/bin/init程序
+	-> 读取/etc/inittab文件,执行初始化 -> 用户登录
+
+15.1.2  运行级别
+所谓运行级别,是指UNIX或者Linux等类UNIX操作系统的不同运行模式. 在不同的运行级别下,用户可以执行相应的操作,例如运行级别1表示单用户模式,在这种运行级别下,只允许root用户登录,不启动网络服务. 运行级别的概念只用于System V流派的UNIX系统以及Linux系统,对于BSD流派的UNIX系统则不使用运行级别的概念. 
+在通常情况下,运行级别分为7级,分别使用0~6这7个数字来表示. 典型的运行级别如下:
+
+0:停机. 
+1:单用户模式,不启用网络,不启动各种服务,只允许root用户登录进行维护. 
+2:多用户模式,不启用网络,不启动各种服务. 
+3:多用户模式,除图形界面之外,各种网络服务都可以使用. 
+4:用户自定义. 
+5:带图形界面的多用户模式. 
+6:重新启动系统. 
+
+15.1.3  服务脚本的基本语法
+在Linux系统中,服务脚本有固定的语法,通常情况下,服务脚本应该包括处理服务启动, 服务停止, 服务重新启动以及查看服务状态的函数. 另外,服务脚本还可以接受某些特定的参数,例如start, stop以及restart等,并且根据这些参数调用不同的函数. 
+
+15.1.4  编写MySQL服务脚本
+1.定义常量和函数
+2.定义状态处理函数
+3.接收参数值
+
+15.2  通过脚本管理Apache服务器日志
+在系统维护的过程中,Apache Web服务器的日志管理也是一件比较麻烦的工作. 如果能够通过脚本来自动将旧日志文件归档,然后将其删除,则可以大大减轻系统管理员的工作. 本节将介绍如何通过脚本以及任务计划来自动管理Apache日志. 
+
+15.2.1  Apache以及日志文件简介
+Apache是目前世界上最为流行的Web服务器之一,特别是最热门和访问量大的网站,都几乎无一例外地采用了Apache作为网站的服务器软件. Apache是由美国Apache软件基金会管理的一个开放源码的应用软件,可以在绝大部分的操作系统中运行,包括UNIX, Linux以及Windows等. 
+Apache服务器提供了非常全面而灵活的日志记录功能,主要包括两种日志类型,分别为错误日志和访问日志. 
+
+15.2.2  备份归档文件名生成函数
+为日志归档文件指定一个有意义的名称非常重要. 按照惯例,备份文件的名称一般是以备份的时间命名的. 这样做有两个好处,其一是通过文件名就可以知道当前备份创建的时间,其二是文件名不会出现重名的情况. 正因为以备份日期命名有着非常大的便利性,所以在本例中专门编写一个函数来生成文件名称. 
+
+15.2.3  过期日志备份归档函数
+在编写完成归档文件名生成函数之后,接下来就要编写一个函数来将旧的日志文件进行归档. 归档函数的功能是查找日志目录中前一天生成的日志文件,然后通过tar命令将其归档. 为了节省磁盘空间,还可以将归档后的备份档案压缩. 
+
+15.2.4  过期日志删除函数
+当所有的过期日志都已经成功备份之后,就可以将其从磁盘中删除,以释放被占用的磁盘空间. 
+
+15.2.5  日志归档主程序
+#将过期日志归档
+archivelog "/root/chapter15/"
+
+#删除已归档日志
+if [ "$?" -eq 0 ]
+then
+   remove archivedlog
+fi
+
+exit 0
+
+15.2.6  定时运行日志归档脚本
+要实现Apache日志的完全自动化管理,必须定时运行上面创建的归档脚本. 通常情况下,用户可以使用两种方法来实现脚本的定时运行. 其中一种方法就是使用sleep命令,另外一种方法就是使用cron工具. 
+#! /bin/bash
+clear
+
+function process_signal(){
+	echo "generating a background child process"
+	for ((i=9; i>=0; i--))
+	do
+		## 接收HUP信号,并进行处理
+		trap 'echo -e "\nchild process catched HUP signal and exit"; exit 0' HUP
+		sleep 1
+		echo -e "\rsleeping ${i}s ...\c"
+	done &
+	## 创建后台进程
+	## 获取最近创建的后台进程的PID
+	BG_PID=$!
+	
+	sleep 3
+	## 向后台进程发HUP信号
+	echo -e "\nkill HUP signal to child process ${BG_PID}"
+	(kill -9 ${BG_PID})
+	# (kill -HUP ${BG_PID})
+
+	## 如果直接使用	(kill -9 ${BG_PID}) 结束后台子进程,
+	## 将会有多余的消息被打印
+
+	VAR="hello good morning"
+	echo ${VAR}
+	echo "function finished."
+}
+
+process_signal
+echo ${VAR}
+echo ${VAR}
+echo ${VAR}
+echo "sleeping 3s .. "
+sleep 3
+
+如果直接使用kill -9将会出现一下打印信息;
+generating a background child process
+sleeping 8s ...
+kill HUP signal to child process 8546
+signal_process.sh: line 4:  8546 Killed  (Terminated)                for ((i=9; i>=0; i--))
+do
+    trap 'echo -e "\nchild process catched HUP signal and exit"; exit 0' HUP; sleep 1; echo -e "\rsleeping ${i}s ...\c";
+done
+hello good morning
+function finished.
+hello good morning
+hello good morning
+hello good morning
+sleeping 3s ..
+
+如果改为以上形式就不会有多余的信息显示;
+如果是kill -2 会被忽略
+
+
+16  Shell脚本专题
+16.1 变量操作
+16.1.1. 特殊变量
+$0			shell程序/脚本的名字
+$1			第1个参数
+$2			第2个参数
+$*			所有的参数 #每个参数都是一个独立的引用字符串
+$@			所有的参数 #每个参数都是一个独立的引用字符串
+"$*"		所有的参数 #被看作为一个引用字符串
+$#			当前进程的参数个数
+$?			前一命令的退出状态
+$$			shell进程的编号
+$!			最后一个后台程序的进程编号
+${FUNCNAME}	当前函数名
+${HOME}		登录用户的宿主目录
+${USER}		登录用户名
+${PATH}		命令查找路径
+${PPID}		父进程的进程编号
+${PS1}			主要的命令提示符字符串,默认为 $
+${PS2}			行继续的提示字符串, 默认为 >
+${PS4}			以set -x设置的执行跟踪提示的提示字符串,默认为 +
+${PWD}			当前工作目录
+
+##############################################
+echo -e "Usage:\n\t$(basename $0) arg1 arg2 etc.\n"
+
+echo "Listing args with \"\$*\":"
+index=1
+for arg in "$*"
+do
+   echo "Arg #$index = $arg"
+   let "index+=1"
+done
+echo
+
+echo "Listing args with \"\$@\":"
+index=1
+for arg in "$@"
+do
+   echo "Arg #$index = $arg"
+   let "index+=1"
+done
+echo
+
+echo 'Listing args with $* (unquoted):'
+index=1
+for arg in $*
+do
+   echo "Arg #$index = $arg"
+   let "index+=1"
+done
+exit 0
+##############################################
+# $ bash args.sh 1 2 3 4
+# Usage:
+#         args.sh arg1 arg2 etc.
+# 
+# Listing args with "$*":
+# Arg #1 = 1 2 3 4
+# 
+# Listing args with "$@":
+# Arg #1 = 1
+# Arg #2 = 2
+# Arg #3 = 3
+# Arg #4 = 4
+# 
+# Listing args with $* (unquoted):
+# Arg #1 = 1
+# Arg #2 = 2
+# Arg #3 = 3
+# Arg #4 = 4
+
+16.1.2. 字符串操作
+16.1.2.1 变量/字符串长度
+${#var}
+
+16.1.2.2 大小写转换
+直接使用变量自身转换
+var1=TesT
+var2=tEst
+
+echo ${var1,,} ${var2,,} #转换为小写
+echo ${var1^^} ${var2^^} #转换为大写
+
+16.1.2.3 变量扩展
+指定方式	说明
+${parameter-default}	如果变量 parameter 没被声明，那么就使用默认值。
+${parameter:-default}	如果变量 parameter 没被设置，那么就使用默认值。
+${parameter=default}	如果变量parameter没声明，那么就把它的值设为default。
+${parameter:=default}	如果变量parameter没设置，那么就把它的值设为default。
+${parameter+alt_value}	如果变量parameter被声明了，那么就使用alt_value，否则就使用null字符串。
+${parameter:+alt_value}	如果变量parameter被设置了，那么就使用alt_value，否则就使用null字符串。
+${parameter?err_msg}	如果parameter已经被声明，那么就使用设置的值，否则打印err_msg错误消息。
+${parameter:?err_msg}	如果parameter已经被设置，那么就使用设置的值，否则打印err_msg错误消息。
+
+16.1.2.4 字符串截取
+${var#Pattern}, ${var##Pattern} 从变量$var的开头删除最短或最长匹配$Pattern的子串。“#”表示匹配最短，“##”表示匹配最长。
+${var%Pattern}, ${var%%Pattern} 从变量$var的结尾删除最短或最长匹配$Pattern的子串。“%”表示匹配最短，“%%”表示匹配最长。
+
+var=/usr/local/bin/env
+${var}		/usr/local/bin/env
+${var#/}	usr/local/bin/env
+${var##/}	usr/local/bin/env
+${var#*/}	usr/local/bin/env
+${var##*/}	env
+${var%/*}	/usr/local/bin
+${var%%/*}	#空
+
+16.1.2.5 切片
+${var:pos:len} 变量var从位置pos开始，并扩展len个字符，len省略表示到结尾
+如
+var=/usr/local/bin/env
+${var:4:6}	# /local
+
+假设有变量
+var=http://blog.csdn.net/halazi100  
+
+16.1.2.5.1 显示从左边[m]位字符开始,一直到结束. 
+ echo ${var:7} 
+ 其中的7表示从左边[7]位字符开始,一直到结束.
+ 结果是 blog.csdn.net/halazi100 
+
+16.1.2.5.2 显示从左边[m]位字符开始,共n个字符 
+ echo ${var:0:5}
+ 其中的0表示左边第一个字符开始,5表示字符的总个数.  
+ 结果是 http:   
+ 
+16.1.2.5.3 显示倒数[m]位字符开始,一直到结束. 
+ echo ${var:0-7}
+ 表示从右边[7]位字符开始,一直到结束.  
+ 结果是: lazi100
+  
+16.1.2.5.4 显示倒数[m]位字符开始,共n个字符  
+ echo ${var:0-7:3}
+ 其中的 0-7 表示右边算起[7]位字符开始,3 表示字符的个数.  
+ 结果是: laz  
+注: (左边的第一个字符是用0表示,右边的第一个字符用0-1表示)
+
+
+16.1.2.6 变量替换
+${var/Pattern/Replacement} 使用Replacement来替换变量var中第一个匹配Pattern的字符串。
+${var//Pattern/Replacement} 全局替换。所有在变量var匹配Pattern的字符串，都会被替换为Replacement
+
+${var/#Pattern/Replacement} 如果变量var的前缀匹配Pattern，那么就使用Replacement来替换匹配到Pattern的字符串，否则不会替换。
+${var/%Pattern/Replacement} 如果变量var的后缀匹配Pattern，那么就使用Replacement来替换匹配到Pattern的字符串，否则不会替换。
+
+如
+var=/usr/local/bin/env
+${var/env/python}		# /usr/local/bin/python
+
+#和%在标准键盘上分别是一个在左，一个在右；
+所以
+#匹配左边（最短匹配），%匹配右边（最短匹配） ：只有一个#或%，匹配的短
+##匹配左边（最长匹配），%%匹配右边（最长匹配）：有两个##或%%，匹配的长哦
+
+${variable#pattern}  ：从左端匹配最短部分并删除，返回剩余部分
+${variable##pattern} ：从左端匹配最长部分并删除，返回剩余部分
+${variable%pattern}  ：从右端匹配最短部分并删除，返回剩余部分
+${variable%%pattern} ：从右端匹配最短部分并删除，返回剩余部分
+
+示例
+假设有变量
+var=http://blog.csdn.net/halazi100  
+ 
+#号从左开始删除第一个匹配的左边所有字符
+ echo ${var#*//}
+ 其中 var 是变量名,#号是运算符,*// 表示从左边开始删除第一个 //号及左边的所有字符
+ 即删除 http:// 
+ 结果是 blog.csdn.net/halazi100
+##号从左开始删除最后一个匹配的左边所有字符 
+ echo ${var##*/}
+ ##*/ 表示从左边开始删除最后(最右边)一个/号及左边的所有字符
+ 即删除http://blog.csdn.net/
+ 结果是 halazi100
+%号从右开始删除第一个匹配的右边所有字符
+ echo ${var%/*}
+ %/* 表示从右边开始,删除第一个/号及右边的字符
+ 结果是 http://blog.csdn.net
+%%号从右开始删除最后一个匹配的右边所有字符 
+ echo ${var%%/*}
+ %%/* 表示从右边开始,删除最后(最左边)一个/号及右边的字符
+ 结果是 http:
+
+16.1.2.7 间接传参
+在某个脚本中,存在以下2个变量:
+var=name
+name=John
+可以发现,在上面的代码中,变量var的值恰好是后面一个变量的变量名. 此时,对于第2个变量,用户可以通过以下2种方式来引用:
+${name}
+${!var}
+
+16.2 数学运算
+
+shell数学运算
+在Bash shell环境中，用普通的变量赋值方法定义数值，它会被存储为字符串。因此没法直接做数学运算。
+这时，可以利用let、((  ))、[]和expr进行整数运算，使用bc进行浮点数，平方，进制转换等运算。
+shell中进行数学计算的方法
+16.2.1 使用let,[ ],(( ))三种运算符进行简单的基本运算
+
+错误举例 
+a) 
+var=1+1 
+echo $var 
+输出的结果是1+1，悲剧，呵呵
+
+b) 
+var=1 
+var=$var+1 
+echo $var 
+输出结果是1+1，依然悲剧，呵呵
+
+正确方法
+16.2.1.1 利用let执行数学运算
+格式紧凑,算术表达式中没有空格;变量引用可以加$也可不加;
+
+let 命令可以用于直接执行基本操作：
+当使用 let 的时候，我们不使用 $ 符号引用变量。
+
+[~]$ let count=count+1
+[~]$ echo $count
+1
+[~]$ let count=count+1
+[~]$ let count=count+1
+[~]$ echo $count      
+3
+[~]$
+
+var=1 
+let "var+=1" 
+echo $var
+输出结果为2，算术表达式中没有空格
+
+16.2.1.2 利用(())执行数学运算
+格式松散自由,可以带空格也可不带空格;变量引用可以加$也可不加;
+
+使用(())执行算数运算时，变量名之前可以加$,也可不加$
+支持使用 $ 符号引用变量进行基本运算，同时支持变量名与运算符之间不带空格。
+
+var=1 
+((var+=1)) 
+echo $var 
+输出结果为2
+
+result1=$(( no1 + no2  ));
+result2=$((no1+no2+3));
+result3=$(( $no1+$no2 + 5 ))
+另外还支持C风格的++,--操作
+$(( var++  )) #注意后++的结果后生效
+[~]$ echo $(( var++  ))
+7
+[~]$ echo $(( var++  ))
+8
+[~]$ echo $(( var++ )) 
+9
+[~]$ echo $((var++)) 
+10
+[~]$ echo $((var++))
+11
+[~]$ echo $((var))  
+12
+[~]$
+
+16.2.1.3 利[ ]执行数学运算
+格式松散自由,可以带空格也可不带空格;变量引用可以加$也可不加;
+
+使用[ ]执行算数运算时，变量名之前可以加$,也可不加$
+"[ ]" 运算符里面可以使用 $ 符号引用变量，同时支持变量名与运算符之间不带空格。
+
+var=1 
+var=$[$var+1] 
+echo $var 
+输出结果位2 
+result1=$[ no1 + no2 ];
+result2=$[no1+no2 + 7];
+result3=$[ $no1+$no2+5 ];
+注意:
+a)$[]将中括号内的表达式作为数学运算先计算结果再输出 
+b)$[]支持的运算符与let相同，但也只支持整数运算
+
+16.2.1.4 使用expr执行数学运算
+格式松散(变量名与运算符号之间必须留一个空格);变量引用必须加$;
+
+expr变量名之前必须加$，且变量名与运算符号之间必须留一个空格，不然不执行算数运算。expr不支持自增减运算，也不支持简写。
+
+在使用 "expr" 命令对变量进行运算后，整个表达式必须使用 "` expression `" 的模式赋值给变量，即包含在 "`" 符里面，
+并且等效于 "$( expression  )" 模式。
+result1=`expr 3 + 4`
+result2=`expr $no1 + 4`
+result3=`expr $no1 + $no2`
+result4=`expr $no1+$no2`
+result5=$(expr $no1 + 3)
+result6=$(expr $no1+4)
+result7=$(expr $no1+$no2)
+var=1 
+var=`expr $var + 1` 
+echo $var 
+输出结果为2 
+注意:
+a)expr后的表达式每个符号间需用空格隔开;
+b)expr支持的操作符有： |、&、<、<=、=、!=、>=、>、+、-、*、/、% 
+c)expr支持的操作符中在使用时需用\进行转义的有：|、&、<、<=、>=、>、* 
+e)expr同样只支持整数运算
+
+16.2.2 使用expr运算
+16.2.2.1 使用bc(可以进行浮点数计算) 
+var=1 
+var=`echo "$var+1"|bc` 
+echo $var 
+输出结果为2 
+介绍： 
+bc是linux下的一个简单计算器，支持浮点数计算，在命令行下输入bc即进入计算器程序，而我们想在程序中直接进行浮点数计算时，利用一个简单的管道即可解决问题。 
+注意： 
+1)经我测试bc支持除位操作运算符之外的所有运算符。 
+2)bc中要使用scale进行精度设置 
+3)浮点数计算实例 
+var=3.14 
+var=`echo "scale=2;$var*3"|bc` 
+echo $var 
+输出结果为9.42
+
+16.2.2.2 使用awk(可进行浮点数计算) 
+var=1 
+var=`echo "$var 1"|awk '{printf("%g",$1*$2)}'` 
+echo $var 
+输出结果为2 
+介绍： 
+awk是一种文本处理工具，同时也是一种程序设计语言，作为一种程序设计语言，awk支持多种运算，而我们可以利用awk来进行浮点数计算，和上面bc一样，通过一个简单的管道，我们便可在程序中直接调用awk进行浮点数计算。
+ 注意： 
+1)awk支持除微操作运算符之外的所有运算符 
+2)awk内置有log、sqr、cos、sin等等函数 
+3)浮点数计算实例 
+var=3.14 
+var=`echo "$var 2"|awk '{printf("%g",sin($1/$2))}'` 
+echo $var 
+输出结果为1
+
+16.2.3 使用bc命令实现高级数学运算
+ bc 命令使用 标准输入 stdin 作为输入；
+ bc 是一个支持精确的浮点运算的高级计算器；
+ bc 拥有相当多的输入选项，并且支持数学函数调用；
+ 执行 bc --help 自行查看 bc 所支持的输入选项；
+ 
+16.2.3.1 bc命令
+使用标准输入 stdin 作为输入，并且支持浮点运算：
+ echo "----------------- bc command ----------------"
+ echo "4 * 0.56" | bc;
+ no=48;
+ result1=`echo "$no * 1.5" | bc`;
+ echo "result1 = $result1";
+
+16.2.3.2 bc命令支持运算精度设置
+ 通过附加参数可以给 bc 指定运算精度；
+ 附加参数使用分号 " ; " 作为分隔符；
+ result2=`echo "scale=9;$no / 3;" | bc`;
+ echo "result2 = $result2";
+
+16.2.3.3 使用bc进行数值的记数进制间转换
+ 通过 ibase=value 作为附加参数，指定输入变量的记数进制；
+ 通过 obase=value 作为附加参数，指定输出变量的记数进制；
+ no=100;
+ echo "echo \"obase=2;ibase=10;$no\" | bc = `echo "obase=2;ibase=10;$no" | bc`";
+ no=1000;
+ echo "echo \"scale=5;obase=10;ibase=2;$no/3\" | bc = `echo "scale=5;obase=10;ibase=2;$no/3" | bc`";
+
+16.2.3.4 使用bc调用数学公式进行高级数学运算
+ " sqrt(value) " 执行 value 的开方运算；
+ " value^index " 执行 value 的幂运算；
+ echo "sqrt(100) = `echo "sqrt(100)" | bc`";
+ echo "sqrt(100) = $(echo "sqrt(100)" | bc)";
+ echo "10^3 = `echo "10^3" | bc`";
+ echo "10^3 = $(echo "10^3" | bc)";
+

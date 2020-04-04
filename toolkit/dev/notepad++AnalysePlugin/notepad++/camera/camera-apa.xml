@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText bgColor="orange">BusyBox</SearchText>
+    <SearchText bgColor="orange"> Startup finished in </SearchText>
+    <SearchText bgColor="orange">Set_Linux_System_Time</SearchText>
+    <SearchText bgColor="liteRed">_Initialize thread_id</SearchText>
+    <SearchText bgColor="liteRed">Init_BEV_UserConfig</SearchText>
+    <SearchText> GMLAN_EVG_POWER_MODE_O</SearchText>
+    <SearchText>GMLAN_EVG_DRIVER_DOOR_</SearchText>
+    <SearchText bgColor="blueGreen">GMLAN_EVG_VN_DEACTIVATE</SearchText>
+    <SearchText bgColor="liteBlue">Broadcast_System_State =</SearchText>
+    <SearchText doSearch="false">volumeLevel =</SearchText>
+    <SearchText doSearch="false" bgColor="offWhite"> mcore_logger.c:</SearchText>
+    <SearchText bgColor="veryLiteBlue">camera</SearchText>
+    <SearchText bgColor="veryLiteBlue">LayerMgr_Request_Result</SearchText>
+    <SearchText bgColor="veryLiteBlue">BUC_EVG_LAYER_CONTROL</SearchText>
+    <SearchText bgColor="veryLiteBlue">COM_MGR_PUB_EVT_TOUCH_SCREEN_KEY_VALUES</SearchText>
+    <SearchText doSearch="false"> early_start:</SearchText>
+    <SearchText hide="true">Feed WDog: VIPP_EV_AP_ALIVE</SearchText>
+    <SearchText bgColor="veryLiteGrey" comment="layer mgr">; lm_</SearchText>
+    <SearchText bgColor="liteBlue" comment="layer mgr">LM_CLIENT_APA</SearchText>
+    <SearchText bgColor="liteBlue" comment="layer mgr">LM_CLIENT_VPM</SearchText>
+    <SearchText bgColor="liteBlue" comment="layer mgr">LM_CLIENT_RVC</SearchText>
+    <SearchText bgColor="liteBlue" comment="layer mgr">layermanger</SearchText>
+    <SearchText>bev_socket_server.c</SearchText>
+    <SearchText>apa_socket_server.c</SearchText>
+    <SearchText>bev_event_handle.c</SearchText>
+    <SearchText bgColor="yellow">BEV_Rep_VPM_Status_Notify </SearchText>
+    <SearchText bgColor="darkYellow" comment="layer mgr">RVC_VIDEO</SearchText>
+    <SearchText bgColor="green" comment="Car gear">COM_MGR_PUB_EVT_CAN_BODY_INFO</SearchText>
+    <SearchText bgColor="offWhite" comment="Car gear">COM_MGR_PUB_EVT_CAN_VEHILE_SPEED</SearchText>
+    <SearchText bgColor="offWhite" comment="Car gear">COM_MGR_PUB_EVT_CAN_PARK_ASSISST</SearchText>
+    <SearchText bgColor="offWhite" comment="Car gear">Wheel_Angle</SearchText>
+    <SearchText bgColor="offWhite" comment="Car gear">COM_MGR_PUB_EVT_CAN_WHEEL_ANGLE</SearchText>
+    <SearchText bgColor="orange">Camera O</SearchText>
+    <SearchText bgColor="green">BUC_Set_Display_ON</SearchText>
+    <SearchText bgColor="green">BUC_EVG_CAMERA_ON</SearchText>
+    <SearchText bgColor="green">BUC_Display_PAR_Symbols</SearchText>
+    <SearchText bgColor="darkYellow">en_VPM_Message_active</SearchText>
+    <SearchText bgColor="darkYellow">en_VPM_Message_deactive</SearchText>
+    <SearchText bgColor="liteBeige">Guidelines</SearchText>
+</AnalyseDoc>

@@ -1,0 +1,14 @@
+
+git config --global user.name LiLongbin
+git config --global user.email longbin.li@aptiv.com
+git config --global core.editor vim
+git config --global commit.template ${HOME}/.gitcommit.template.txt
+
+modify:
+[remote "origin"]
+	fetch = +refs/heads/*:refs/remotes/origin/*
+	url = https://github.com/lilongbin/projects.git
+to:
+[remote "origin"]
+	fetch = +refs/heads/*:refs/remotes/origin/*
+	url = https://xxx@github.com/lilongbin/projects.git

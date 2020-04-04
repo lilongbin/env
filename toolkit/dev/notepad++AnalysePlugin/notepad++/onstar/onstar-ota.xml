@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText bgColor="orange"> Startup finished in </SearchText>
+    <SearchText bgColor="orange">Set_Linux_System_Time</SearchText>
+    <SearchText bgColor="blueGreen">GMLAN_EVG_VN_DEACTIVATE</SearchText>
+    <SearchText bgColor="liteBlue">Broadcast_System_State =</SearchText>
+    <SearchText bgColor="veryLitePurple">OnstarOTAProgramming</SearchText>
+    <SearchText bgColor="liteGrey"> audio_status_code:</SearchText>
+    <SearchText bgColor="veryLiteGrey"> audio_mgr_proxy.c</SearchText>
+    <SearchText bgColor="liteGrey">NOTIFY - @ Request_</SearchText>
+    <SearchText bgColor="veryLiteBlue">ODI_EVENT_ONSTAR_DS </SearchText>
+    <SearchText bgColor="veryLiteBlue">NOTIFY - OnstarOneButtonDiag::</SearchText>
+    <SearchText bgColor="veryLiteBlue">NOTIFY - OnstarTwoButtonDiag::</SearchText>
+    <SearchText bgColor="veryLiteBlue">NOTIFY - OnstarMenuTitleList::</SearchText>
+    <SearchText bgColor="veryLiteBlue">NOTIFY - menuList</SearchText>
+    <SearchText bgColor="veryLiteBlue">NOTIFY - OnstarMessageDiag::</SearchText>
+    <SearchText bgColor="green">NOTIFY - OnstarService sendMsgToApsOnstar</SearchText>
+    <SearchText bgColor="green"> NOTIFY - handleOnstar</SearchText>
+    <SearchText bgColor="green">process_HMI_ACTION</SearchText>
+    <SearchText bgColor="darkYellow"> onstar_can_msg_interface.cpp</SearchText>
+    <SearchText bgColor="liteBlue">ActivateTitledMenuTemplate</SearchText>
+</AnalyseDoc>

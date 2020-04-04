@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText bgColor="offWhite">socket connect</SearchText>
+    <SearchText bgColor="veryLiteBlue">linkStatus</SearchText>
+    <SearchText bgColor="veryLitePurple">linkStatus_ok</SearchText>
+    <SearchText bgColor="offWhite">Ethernet</SearchText>
+    <SearchText bgColor="offWhite">netlink</SearchText>
+</AnalyseDoc>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText doSearch="false" color="grey">TBoxService:</SearchText>
+    <SearchText color="grey" bgColor="liteBeige">apps_tboxsignal</SearchText>
+    <SearchText>transferTBoxMsg</SearchText>
+    <SearchText bgColor="liteGrey">sendToTBox</SearchText>
+    <SearchText color="grey">eCmd_TBoxTxTBoxKeepAliveReq</SearchText>
+    <SearchText color="grey">eCmd_RadioTxTBoxKeepAliveAck</SearchText>
+    <SearchText color="grey" bgColor="darkYellow">linkStatus</SearchText>
+</AnalyseDoc>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText>onstar_audio_server_hsm.c</SearchText>
+    <SearchText bgColor="green">GMLAN_Send_Phone</SearchText>
+    <SearchText bgColor="green">OnstarService sendMsgToApsOnstar</SearchText>
+    <SearchText bgColor="liteGrey">audio_mgr_proxy</SearchText>
+    <SearchText bgColor="liteBeige"> audio_status_code</SearchText>
+    <SearchText bgColor="green"> Audio_Status_Channel_Changed:</SearchText>
+    <SearchText bgColor="offWhite">? Audio_Status_Is_Audio_Available</SearchText>
+    <SearchText bgColor="offWhite">@ Save_Audio_Source_Status</SearchText>
+    <SearchText bgColor="offWhite">@ Start_State_Timer</SearchText>
+    <SearchText bgColor="offWhite">@ Init_Activating_Source</SearchText>
+    <SearchText bgColor="orange">@ Request_Source_Activation</SearchText>
+    <SearchText bgColor="orange">@ Request_Source_Deactivation</SearchText>
+    <SearchText bgColor="orange">@ Request_Source_Fade_To_Connection</SearchText>
+    <SearchText bgColor="pink">? Airbag_Is_Active:</SearchText>
+    <SearchText bgColor="darkYellow">AM_EV_REQ_AUDIO_CON</SearchText>
+    <SearchText bgColor="yellow">OnStarAudioActive</SearchText>
+    <SearchText bgColor="liteBlue"># AM_AUDIO_CONN_RES</SearchText>
+    <SearchText bgColor="offWhite"># ON_AU_EV_UNMUTED</SearchText>
+    <SearchText bgColor="litePink"># AM_SRC_FAULT_RECOVER</SearchText>
+    <SearchText bgColor="offWhite">? Audio_Source_Is_Granted</SearchText>
+    <SearchText bgColor="offWhite">, response: </SearchText>
+    <SearchText bgColor="offWhite">@ Stop_State_Timer</SearchText>
+    <SearchText bgColor="liteBlue">ON_AU_EV_UNMUTED</SearchText>
+    <SearchText bgColor="liteBlue"># AM_EVG_AUDIO_DIS_CONN_RES</SearchText>
+    <SearchText bgColor="beige">@ Request_GMLAN_Connect</SearchText>
+    <SearchText bgColor="beige">@ Request_GMLAN_Connect_Complete</SearchText>
+    <SearchText bgColor="green">@ Clear_Airbag_Active</SearchText>
+    <SearchText bgColor="beige">@ Request_GMLAN_Disconnect</SearchText>
+    <SearchText bgColor="beige">@ Request_GMLAN_Do_Not_Connect</SearchText>
+</AnalyseDoc>

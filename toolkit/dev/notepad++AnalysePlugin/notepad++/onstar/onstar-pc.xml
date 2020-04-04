@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText bgColor="orange"> Startup finished in </SearchText>
+    <SearchText bgColor="orange">Set_Linux_System_Time</SearchText>
+    <SearchText doSearch="false">onstar_data_settings_service</SearchText>
+    <SearchText>OnstarDataSettings</SearchText>
+    <SearchText doSearch="false" bgColor="veryLiteGrey">onstar_personal_calling_service.cpp</SearchText>
+    <SearchText doSearch="false" bgColor="veryLiteGrey">OnstarPersonalCalling</SearchText>
+    <SearchText bgColor="darkYellow">onstar_can_msg_interface</SearchText>
+    <SearchText bgColor="liteRed">_Initialize thread_id</SearchText>
+    <SearchText> GMLAN_EVG_POWER_MODE_O</SearchText>
+    <SearchText>GMLAN_EVG_DRIVER_DOOR_</SearchText>
+    <SearchText doSearch="false"> gDriverDoorOpen</SearchText>
+    <SearchText doSearch="false" bgColor="offWhite">NOTIFY - audio_status_code</SearchText>
+    <SearchText bgColor="offWhite"> audio_status_code</SearchText>
+    <SearchText bgColor="veryLiteGrey">Set_Produce_Audio_Replied_Flag</SearchText>
+    <SearchText bgColor="offWhite">, response: </SearchText>
+    <SearchText bgColor="offWhite"># ON_AU_EV_STATE_TIMEOUT</SearchText>
+    <SearchText bgColor="litePink"># AM_SRC_FAULT_RECOVER</SearchText>
+    <SearchText bgColor="offWhite"># ON_AU_EV_AUDSRC_TIMEOUT</SearchText>
+    <SearchText bgColor="offWhite"># AM_AUDIO_CONN_RES</SearchText>
+    <SearchText bgColor="offWhite"># AM_EVG_AUDIO_DIS_CONN_RES</SearchText>
+    <SearchText bgColor="darkYellow">OnStarAudioActive_</SearchText>
+    <SearchText bgColor="darkYellow">DynDataMultiReq </SearchText>
+    <SearchText matchCase="true" bgColor="orange">GMLAN_Send_PhoneSpeechRecReq</SearchText>
+    <SearchText matchCase="true" bgColor="veryLitePurple">RX EVP_MOST_APP_MOST_MESSAGE</SearchText>
+    <SearchText doSearch="false" bgColor="liteBlue">most message</SearchText>
+    <SearchText matchCase="true" bgColor="veryLitePurple">RX SWCButtonEvent_StartAck</SearchText>
+    <SearchText bgColor="liteGrey">request.pcontent:</SearchText>
+    <SearchText bgColor="liteGrey">audio_mgr_proxy</SearchText>
+    <SearchText bgColor="liteGrey">source: EAUDIO_SOURCE_ONSTAR_VR_PLAY, response:</SearchText>
+    <SearchText bgColor="liteGrey">Request_Source_</SearchText>
+    <SearchText bgColor="veryLiteGrey">@ Request_GMLAN_</SearchText>
+    <SearchText doSearch="false" bgColor="pink">? Airbag_Is_Active:</SearchText>
+    <SearchText bgColor="green">OnStarDataSettingsValid_Status</SearchText>
+    <SearchText bgColor="green">OnstarLanguageSetting</SearchText>
+    <SearchText bgColor="green">notifyToShowLanguageSetting</SearchText>
+    <SearchText select="text" bgColor="litePink">sendMsgToApsOnstar</SearchText>
+    <SearchText select="text" bgColor="litePink">m_OnstarServiceHmiReady</SearchText>
+    <SearchText select="text" bgColor="green">process_HMI_ACTION</SearchText>
+    <SearchText select="text" bgColor="liteBlue">process_FSA_ACTION</SearchText>
+    <SearchText bgColor="green">handleOnstarStatusReq</SearchText>
+    <SearchText bgColor="liteGreen">handleOnstarStatusPublish</SearchText>
+    <SearchText bgColor="liteGreen">ONSTAR_SERVICE_</SearchText>
+    <SearchText select="text" bgColor="green">handleOnstarListActionSelected</SearchText>
+    <SearchText bgColor="green">handleOnstarDialogClicked</SearchText>
+    <SearchText bgColor="veryLiteBlue">ODI_DYNAMICDATA_ONSTAR_DS </SearchText>
+    <SearchText bgColor="veryLiteBlue">ODI_EVENT_ONSTAR_DS </SearchText>
+    <SearchText bgColor="veryLiteBlue">OnstarMessageDiag</SearchText>
+    <SearchText bgColor="veryLiteBlue">OnstarOneButtonDiag</SearchText>
+    <SearchText bgColor="veryLiteBlue">OnstarTwoButtonDiag</SearchText>
+    <SearchText select="text" bgColor="veryLiteBlue">setMenuTitle </SearchText>
+    <SearchText select="text" bgColor="veryLiteBlue"> menuList</SearchText>
+    <SearchText select="text" bgColor="veryLiteBlue"> setMenuList</SearchText>
+    <SearchText bgColor="veryLiteBlue">ODI_INDICATION_ONSTAR_DS </SearchText>
+    <SearchText doSearch="false" bgColor="veryLiteBlue">ODI_TP_DYN_DATA_TEL </SearchText>
+    <SearchText bgColor="liteBlue">ActivateTitledMenuTemplate</SearchText>
+    <SearchText bgColor="liteBlue">DeactivateMenu</SearchText>
+    <SearchText bgColor="liteBlue">handleOnstarExit</SearchText>
+    <SearchText bgColor="liteBlue">isOnstarHmiActivating</SearchText>
+    <SearchText bgColor="liteBeige">OnstarAECallService</SearchText>
+    <SearchText bgColor="veryLiteBlue"> ODI_DYNAMICDATA_ONSTAR_PC</SearchText>
+    <SearchText bgColor="veryLiteBlue"> ODI_EVENT_ONSTAR_PC</SearchText>
+    <SearchText bgColor="veryLiteBlue"> ODI_INDICATION_ONSTAR_PC</SearchText>
+    <SearchText bgColor="veryLiteBlue"> ODI_TP_DYN_DATA_TEL</SearchText>
+    <SearchText bgColor="veryLiteBlue">feedBackNumber</SearchText>
+    <SearchText matchCase="true" bgColor="liteBlue"> stateChange</SearchText>
+    <SearchText bgColor="orange"> callnumber</SearchText>
+    <SearchText bgColor="orange">m_numberOrName</SearchText>
+    <SearchText bgColor="orange">notifyNumberDigitOutput</SearchText>
+    <SearchText bgColor="orange"> callstate</SearchText>
+    <SearchText doSearch="false" bgColor="orange"> calltype</SearchText>
+    <SearchText bgColor="orange">g_CallType</SearchText>
+    <SearchText bgColor="orange">setOnstar_callType</SearchText>
+    <SearchText bgColor="orange">HandsFreePhoneEvent_Status </SearchText>
+    <SearchText doSearch="false">number_of_bytes</SearchText>
+    <SearchText bgColor="yellow">OnstarSignal</SearchText>
+    <SearchText bgColor="yellow">updateOnstar</SearchText>
+    <SearchText bgColor="veryLiteGrey">onstarservice_hmi</SearchText>
+    <SearchText>OnstarIdcService</SearchText>
+    <SearchText bgColor="green">DestinationEntryAssist</SearchText>
+    <SearchText bgColor="green"> - Destination</SearchText>
+    <SearchText bgColor="green"> oddDst</SearchText>
+    <SearchText bgColor="offWhite">OnstarODDinfo:</SearchText>
+    <SearchText doSearch="false" select="text" bgColor="pink">online</SearchText>
+    <SearchText doSearch="false" select="text" bgColor="pink">offline</SearchText>
+    <SearchText doSearch="false" hide="true">ProcessMessage Event</SearchText>
+    <SearchText doSearch="false" bgColor="red">SendMessage - app id: 3, tid: 71</SearchText>
+    <SearchText doSearch="false" bgColor="red">SendMessage - app id: 3, tid: 72</SearchText>
+    <SearchText bgColor="yellow">FUNC_ID_MICROPHONE_TOGGLEMUTED</SearchText>
+    <SearchText bgColor="blueGreen">GMLAN_EVG_VN_DEACTIVATE</SearchText>
+    <SearchText bgColor="liteBlue">Broadcast_System_State =</SearchText>
+    <SearchText bgColor="veryLitePurple">OnstarOTAProgramming</SearchText>
+    <SearchText doSearch="false" bgColor="pink">Press Hard Home</SearchText>
+    <SearchText doSearch="false" bgColor="pink">The key event sent to Android Framework is value= 21</SearchText>
+    <SearchText bgColor="beige">volumeLevel =</SearchText>
+</AnalyseDoc>

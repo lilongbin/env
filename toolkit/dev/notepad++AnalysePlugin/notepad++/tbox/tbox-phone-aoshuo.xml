@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText bgColor="green">apps_tboxphone</SearchText>
+    <SearchText bgColor="green">PostLocalNotifyCallStatus</SearchText>
+    <SearchText bgColor="green">&#x5B89;&#x5409;&#x661F;</SearchText>
+    <SearchText bgColor="green">CallPersonalNumber</SearchText>
+    <SearchText bgColor="green">AcceptPersonalCall</SearchText>
+    <SearchText bgColor="green">OnLocalPcallDeclineIncoming</SearchText>
+    <SearchText bgColor="green">HangupPersonalCall</SearchText>
+    <SearchText bgColor="green">AcceptTBoxCall</SearchText>
+    <SearchText bgColor="green">NotifyPhoneStatus start</SearchText>
+    <SearchText bgColor="green">TBoxTxPcallC1CallStateNotifyHdler</SearchText>
+    <SearchText bgColor="green">HangupTBoxCall</SearchText>
+    <SearchText bgColor="liteBeige">apps_tboxVRTTS</SearchText>
+    <SearchText bgColor="liteBeige">Ethernet link</SearchText>
+    <SearchText bgColor="liteBeige">PostProtobufCommunicationSyncNotify</SearchText>
+    <SearchText>audio_mgr_proxy</SearchText>
+    <SearchText doSearch="false" bgColor="liteGrey">tbox_audio_mgr_hsm</SearchText>
+    <SearchText doSearch="false" bgColor="offWhite">PostHeartBeat</SearchText>
+    <SearchText bgColor="veryLiteBlue">NOTIFY - logical_av_chan</SearchText>
+    <SearchText bgColor="veryLiteBlue">NOTIFY - audio_status_code</SearchText>
+    <SearchText bgColor="darkYellow">ON_AU_EV_AUDSRC_TIMEOUT</SearchText>
+    <SearchText bgColor="veryLiteBlue"> Mute Src </SearchText>
+    <SearchText bgColor="offWhite">transferTBoxMsg</SearchText>
+    <SearchText color="darkGrey" bgColor="offWhite">sendToTBox</SearchText>
+    <SearchText color="darkGrey" bgColor="offWhite">Request_Source_Deactivation</SearchText>
+    <SearchText color="darkGrey" bgColor="offWhite">Request_Source_Fade_To_Connection</SearchText>
+</AnalyseDoc>

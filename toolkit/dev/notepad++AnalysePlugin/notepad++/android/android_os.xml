@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText color="red" bgColor="darkYellow">reboot</SearchText>
+    <SearchText select="text" bgColor="orange">shutdown</SearchText>
+    <SearchText bgColor="yellow">Stack backtrace</SearchText>
+    <SearchText bgColor="yellow"> fault</SearchText>
+    <SearchText bgColor="offWhite">F DEBUG  </SearchText>
+    <SearchText bgColor="yellow">backtrace:</SearchText>
+    <SearchText doSearch="false" bgColor="darkYellow"> anr </SearchText>
+    <SearchText bgColor="darkYellow">RemoteException</SearchText>
+    <SearchText doSearch="false" bgColor="veryLiteGrey">DeadObjectException</SearchText>
+    <SearchText doSearch="false">init</SearchText>
+    <SearchText doSearch="false">start</SearchText>
+    <SearchText bgColor="cyan">AndroidRuntime START</SearchText>
+    <SearchText bgColor="cyan">registering native functions</SearchText>
+    <SearchText doSearch="false">server</SearchText>
+    <SearchText doSearch="false">manage</SearchText>
+</AnalyseDoc>

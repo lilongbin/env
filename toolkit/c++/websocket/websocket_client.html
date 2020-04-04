@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>  
+<html>  
+<head>  
+<meta http-equiv="content-type" content="text/html" />  
+<title>websocket test</title>  
+<script>
+var socket; 
+var isConnected = 0;
+function Connect(){ 
+	try {  
+		socket=new WebSocket('ws://127.0.0.1:10111');  
+	} catch(e) {  
+		alert('error');  
+		return;  
+	}  
+	socket.onopen = sOpen;  
+	socket.onerror = sError;
+	socket.onmessage= sMessage;
+	socket.onclose= sClose;
+	document.getElementById('txtVal').innerHTML = '';
+}  
+
+function sOpen(){
+	isConnected = 1;
+	console.log('connect success!');
+	log("websocket connect success!");
+}
+
+function sError(e){
+	console.log("error " + e);
+	log("ERROR: " + e);
+}
+
+function sMessage(event){  
+	console.log('server: ' + event.data);  
+	log("Server: " + event.data);
+	if(typeof event.data === String) {
+		console.log("Received data string");
+	}
+	if(event.data instanceof ArrayBuffer){
+		var buffer = event.data;
+		console.log("Received arraybuffer");
+	}
+}
+
+function sClose(e){
+	isConnected = 0;
+	console.log("connect closed:" + e.code);
+	log("web socket disconnected.")
+}  
+
+function Send(){
+	msg = document.getElementById("msg").value;
+	if (isConnected == 1)
+	{
+		socket.send(msg);
+		log(Date() + " [Client]: " + msg);
+		console.log(msg);
+	}
+	else
+	{
+		log("ERROR: socket is not alive.")
+	}
+} 
+
+function Close(){
+	isConnected = 0;
+	socket.close();
+	log("web socket has closed.")
+}  
+
+function log(data)
+{
+	<!-- document.write(data); -->
+		document.getElementById('txtVal').innerHTML+=data + "<p>";
+}
+
+</script>
+</head>  
+
+<body>  
+<h1>Web Socket Test</h1>
+<p>
+<input id="msg" type="text">  
+<button id="connect" onclick="Connect();">Connect</button>  
+<button id="send" onclick="Send();">Send</button>  
+<button id="close" onclick="Close();">Close</button>
+</p>
+<div id="txtVal"></div>
+</body>  
+
+</html>  

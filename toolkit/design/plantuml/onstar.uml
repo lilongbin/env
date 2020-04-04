@@ -1,0 +1,31 @@
+@startuml                                                                                                           
+header onstarservice start seq
+autonumber
+    HMI -> ICI: start onstar
+	ICI -[#red]>> onstar: GMLAN_Send_PhoneSpeechRecReq
+== onstar req src 52, and play VR/TTS ==
+... delayed about 1s sometime ...
+	ICI <<[#0000FF]-- onstar: produce available src 52
+|||
+	ICI -[#black]>> audio: Request_Source_Activation
+	audio -> audio: req src 52
+	ICI <<--[#black] audio: AM_AUDIO_CONN_RES granted
+	ICI -[#red]>> onstar: Request_GMLAN_Connect
+	ICI <<[#0000FF]-- onstar: Producing_Silence
+|||
+	ICI -[#black]>> audio: Request_Source_Fade_To_Connection
+	audio -> audio: fade in src 52
+	ICI <<--[#black] audio: ON_AU_EV_UNMUTED
+	ICI -[#red]>> onstar: Request_GMLAN_Connect_Complete
+loop loop until onstar exit
+	ICI <<[#0000FF]-- onstar: Producing_Audio
+end
+== show onstar homepage ==
+... delayed about 0.5s ...
+	ICI <<[#0000FF]-- onstar: active menu display event
+	ICI -[#red]>> onstar: req menu title
+	ICI -[#red]>> onstar: req menu list
+	ICI <<[#0000FF]-- onstar: menu title
+	ICI <<[#0000FF]-- onstar: menu list
+	ICI -->> HMI: display onstar menu
+@enduml

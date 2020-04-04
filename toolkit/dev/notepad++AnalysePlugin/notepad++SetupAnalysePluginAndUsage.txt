@@ -1,0 +1,15 @@
+﻿NotePad++ 安装配置 AnalysePlugin 多条件搜索分析插件
+1. 下载安装 notepad++;
+2. 下载 AnalysePlugin;
+   https://sourceforge.net/projects/analyseplugin/files/binaries/
+   切换到目录 C:\Program Files (x86)\Notepad++\plugins
+   64位系统是 C:\Program Files\Notepad++\plugins
+   然后在当前目录下新建子目录 AnalysePlugin
+   将 AnalysePlugin.dll 拷贝到 AnalysePlugin 目录；
+3. 打开 notepad++ 之后，选择[Plugins]-->[AnalysePlugin]-->[Show Analyse Dialog];开启插件对话框;
+4. 配置过滤规则
+   将需要过滤的关键字拷贝到搜索框,点击 Add,添加到下方的过滤规则列表中； 
+   点击BG后的方块可以设置背景颜色,selection 可以选择在结果中高亮整行还是仅关键字,点击 update,更新规则到下方列表中；
+   选中过滤规则中某条目后,按上下箭头可以调整过滤规则的顺序,执行时会按照规则列表顺序执行,对于重复条目后面的规则的结果会覆盖前面的结果；
+   规则配置完毕后,可以点击save,将过滤规则存储到本地文件,下次可以load进来直接使用;
+5. 点击search,按照配置过滤规则列表进行搜索,结果显示在 Analyse Result 窗口。

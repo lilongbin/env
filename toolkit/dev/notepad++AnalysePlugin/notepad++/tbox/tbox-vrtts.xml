@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText bgColor="liteBeige">apps_tboxphone</SearchText>
+    <SearchText bgColor="green">apps_tboxVRTTS</SearchText>
+    <SearchText bgColor="green">TBoxStatus</SearchText>
+    <SearchText bgColor="green">publishTboxStatus</SearchText>
+    <SearchText doSearch="false" bgColor="liteGrey">tbox_audio_mgr_hsm</SearchText>
+    <SearchText bgColor="liteGrey">audio_mgr_proxy</SearchText>
+    <SearchText bgColor="veryLiteBlue">NOTIFY - audio_status_code</SearchText>
+    <SearchText doSearch="false">transferTBoxMsg</SearchText>
+    <SearchText doSearch="false">sendToTBox</SearchText>
+</AnalyseDoc>

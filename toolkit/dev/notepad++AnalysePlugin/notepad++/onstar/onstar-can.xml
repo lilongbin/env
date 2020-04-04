@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText bgColor="green" comment="Phone_Speech_Rec_Req">90 29 C0 80 01</SearchText>
+    <SearchText bgColor="darkYellow" comment="event">90 AC 00 97 00</SearchText>
+    <SearchText bgColor="offWhite" comment="indication">90 AC A0 97</SearchText>
+    <SearchText bgColor="veryLiteBlue" comment="ODIDynDataMultiReq">90 AE 60 80</SearchText>
+    <SearchText bgColor="veryLitePurple" comment="ODIDynDataListReq">90 AD E0 80 06 1D 02</SearchText>
+    <SearchText bgColor="liteBlue" comment="ODI Dyndata">90 B0 20 97</SearchText>
+    <SearchText comment="ODI_TEL_2_CenterStack">90 B2 00</SearchText>
+</AnalyseDoc>

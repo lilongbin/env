@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText bgColor="offWhite">OnStarManager</SearchText>
+    <SearchText>OnStarService:</SearchText>
+    <SearchText bgColor="veryLiteBlue">OnStarJNI:</SearchText>
+    <SearchText bgColor="liteBeige">OnstarIdcService</SearchText>
+    <SearchText bgColor="green">commandId</SearchText>
+    <SearchText bgColor="veryLitePurple">onstarservice_hmi</SearchText>
+    <SearchText bgColor="offWhite">notifyToshowTitleMenuDisplayTemplete</SearchText>
+    <SearchText bgColor="offWhite">notifyToShowMessageDialog</SearchText>
+    <SearchText bgColor="offWhite">notifyToShowOneBtnMessageDialog</SearchText>
+    <SearchText bgColor="offWhite">notifyToShowTwoButtonMessageDialog</SearchText>
+    <SearchText bgColor="offWhite">notifyNumberDigitOutput</SearchText>
+    <SearchText bgColor="offWhite">notifyMuteStatus</SearchText>
+    <SearchText bgColor="offWhite">notifyOnstarStatus</SearchText>
+    <SearchText bgColor="offWhite">notifyToShowMINDigits</SearchText>
+    <SearchText bgColor="offWhite">notifyToCancelMenu</SearchText>
+    <SearchText bgColor="offWhite">notifyToSpeechDisplayStoreEcho</SearchText>
+</AnalyseDoc>

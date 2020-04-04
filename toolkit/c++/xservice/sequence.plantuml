@@ -1,0 +1,20 @@
+@startuml
+header xservice thread-msgqueue sequence
+boundary user
+boundary xservice
+box msgmanager
+boundary sender
+boundary receiver
+boundary dispatcher
+end box
+
+user -> xservice: registerEventCallback
+user -> xservice: onRequest
+xservice --> sender: msg
+sender --> dispatcher: msg
+dispatcher -> xservice: handle msg
+xservice -> user: callback
+receiver --> dispatcher: msg
+dispatcher -> xservice: handle msg
+xservice -> user: callback
+@enduml

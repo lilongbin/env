@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText bgColor="darkYellow">Startup finished in</SearchText>
+    <SearchText doSearch="false" bgColor="offWhite">Process ready: APM_READY_INIT</SearchText>
+    <SearchText bgColor="offWhite">NOTIFY - Set_Linux_System_Time: </SearchText>
+    <SearchText doSearch="false" bgColor="liteGrey"> NOTIFY - Initializing: </SearchText>
+    <SearchText doSearch="false"> NOTIFY - Subsystem activated: </SearchText>
+    <SearchText bgColor="veryLitePurple">APM_MOST_APP</SearchText>
+    <SearchText bgColor="veryLitePurple">APM_AUDIO_MGR</SearchText>
+    <SearchText bgColor="veryLitePurple">APM_AUDIO_GATE</SearchText>
+    <SearchText bgColor="darkYellow">NOTIFY - Initializing: APM_ONSTAR_</SearchText>
+    <SearchText bgColor="liteBeige">NOTIFY - Subsystem activated: APM_ONSTAR_</SearchText>
+    <SearchText bgColor="veryLiteBlue">NOTIFY - Initializing: APM_TBOX_</SearchText>
+    <SearchText bgColor="liteBlue">NOTIFY - Subsystem activated: APM_TBOX_</SearchText>
+    <SearchText bgColor="litePink">_Initialize thread_id</SearchText>
+</AnalyseDoc>

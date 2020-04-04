@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText color="red" bgColor="darkYellow">reboot</SearchText>
+    <SearchText doSearch="false" color="blue">temperature</SearchText>
+    <SearchText color="red" bgColor="offWhite">shutdown</SearchText>
+    <SearchText color="blue" bgColor="orange">power off</SearchText>
+    <SearchText color="blue" bgColor="orange">Power Loss</SearchText>
+    <SearchText color="red" bgColor="yellow">FAULT - SIGNAL</SearchText>
+    <SearchText color="red" bgColor="yellow">FAULT - SOH </SearchText>
+    <SearchText>Stack</SearchText>
+    <SearchText color="red" bgColor="yellow">FAULT - Stack backtrace</SearchText>
+</AnalyseDoc>

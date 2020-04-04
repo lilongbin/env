@@ -1,0 +1,31 @@
+SSH端口转发的好处：
+    1. 利用SSH通道天然的加密特性
+    2. 通过具备访问权限的第三者，突破防火墙对自己的限制，或者隐身
+
+
+设置本地端口转发在本机A使用以下命令
+ssh -fNg -L <client-port>:<remote-host>:<server-port> username@<ssh-server>
+此时ssh-server为对端主机B
+
+设置远端端口转发在远端主机B使用以下命令
+ssh -fNg -R <client-port>:<remote-host>:<server-port> username@<ssh-server>
+此时ssh-server为主机A
+
+使用以上任何一条命令后，使用netstat -lnt可以看到在本地主机A上已经设置了对client-port端口监听
+
+pc1：192.168.1.1
+APP client：localhost:8888
+
+pc2：192.168.1.2
+APP Server：localhost:8889
+
+在pc1(192.168.1.1)上执行以下命令
+ssh -fNg -L 8888:localhost:8889 user@192.168.1.2
+然后即可在pc1上让app client端和APP Server端建立连接。client发往8888端口的数据会被监听并转发给ssh到对端的localhost:8889端口。
+
+或者
+在pc2(192.168.1.2)上执行以下命令
+ssh -fNg -R 8888:localhost:8889 user@192.168.1.1
+然后即可在pc1上让app client端和APP Server端建立连接。client发往8888端口的数据会被监听并转发给ssh到对端的localhost:8889端口。
+
+

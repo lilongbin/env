@@ -1,0 +1,26 @@
+#! /bin/bash
+# 
+####################################################
+# Author      : longbin
+# Created date: 2019-03-21 10:57:44
+####################################################
+
+function plantuml()
+{
+	if [ $# = 0 ] ;then
+		echo "ERROR: invalid param, please figure plantuml source code text file"
+		return
+	fi
+	local cur_dir=$(dirname $0)
+	if [ "${cur_dir}" = "" ] ;then
+		cur_dir=$(pwd)
+	fi
+	local plantumljar=$(find ${cur_dir} -maxdepth 1 -name plantuml\*.jar)
+	# echo "${plantumljar}"
+	if [ -f ${plantumljar} ] ;then
+		java -jar ${plantumljar} $*
+	fi
+}
+
+plantuml $*
+

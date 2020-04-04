@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText bgColor="green">apps_tboxnavigation</SearchText>
+    <SearchText doSearch="false" bgColor="veryLiteBlue">NOTIFY - audio_status_code</SearchText>
+    <SearchText bgColor="veryLiteBlue">SetMapMatchingInfo</SearchText>
+    <SearchText bgColor="darkYellow">eCmd_RadioTxMapMatchingNotify</SearchText>
+    <SearchText bgColor="green">eCmd_TBoxTxDestinationInfoNotify</SearchText>
+    <SearchText bgColor="green">eCmd_TBoxTxDestinationEntryAssistCompleteNotify</SearchText>
+    <SearchText doSearch="false" bgColor="offWhite">transferTBoxMsg</SearchText>
+    <SearchText doSearch="false" color="darkGrey" bgColor="offWhite">sendToTBox</SearchText>
+</AnalyseDoc>

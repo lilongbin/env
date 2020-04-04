@@ -1,0 +1,46 @@
+package RadioInterfaceTBox;
+//Ver 2.17 2018-8-28
+
+enum  CommandID           
+{
+	eCmd_RadioTxCommunicationSyncNotify					= 0;	//通信协议和消息封装
+	eCmd_TBoxTxCommunicationHandShakeNotify				= 1;	//通信协议和消息封装
+	eCmd_RadioTxGetTBoxSupportFunctionReq				= 2;	//通信协议和消息封装
+	eCmd_TBoxTxGetTBoxSupportFunctionAck				= 3;	//通信协议和消息封装
+	eCmd_TBoxTxTBoxKeepAliveReq							= 4;	//通信协议和消息封装
+	eCmd_RadioTxTBoxKeepAliveAck						= 5;	//通信协议和消息封装
+	eCmd_RadioTxCommunicationGoodbyeNotify				= 6;	//通信协议和消息封装
+}
+
+//通信协议和消息封装
+enum MessageHeaderFlag
+{
+	MHF_MsgTypeRequest			= 1;
+	MHF_MsgTypeReply			= 2;
+	MHF_MsgTypeNotification		= 4;
+}
+
+
+message  RadioTxCommunicationSyncNotify
+{
+	required   bool  Sync = 1;
+	required   RadioInfo  RadioBasicInfo = 2;
+	required   string  RadioInformation = 3;
+	required   uint32   SyncSerialNumber = 4;
+}
+
+message RadioInfo
+{
+	required  string  RadioHMIVersion  = 1;
+	required  string  RadioForTBoxServiceVersion  = 2;
+	required  string  CommunicationProtocolVersion  =3;
+}
+
+//typedef struct TBox_Msg_Header_Tag
+//{
+//   uint16_t Flag;			//enum MessageHeaderFlag
+//   uint32_t SequenceID;
+//   uint32_t CommandID;	//enum CommandID
+//   uint16_t Length;		//protobuf payload length
+//} TBox_Msg_Header_T;
+

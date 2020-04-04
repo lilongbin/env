@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText doSearch="false" color="red" bgColor="darkYellow">reboot</SearchText>
+    <SearchText doSearch="false" select="text" bgColor="orange">shutdown</SearchText>
+    <SearchText doSearch="false" bgColor="yellow">Stack backtrace</SearchText>
+    <SearchText doSearch="false" bgColor="yellow">fault</SearchText>
+    <SearchText doSearch="false" select="text" bgColor="yellow">denied </SearchText>
+    <SearchText doSearch="false" select="text" bgColor="offWhite">F DEBUG  </SearchText>
+    <SearchText doSearch="false" select="text" bgColor="darkYellow">backtrace:</SearchText>
+    <SearchText bgColor="darkYellow">anr</SearchText>
+    <SearchText doSearch="false" bgColor="darkYellow">RemoteException</SearchText>
+    <SearchText doSearch="false" bgColor="liteBeige">AptivGnssHal</SearchText>
+    <SearchText bgColor="orange">AptivTBoxHal service</SearchText>
+    <SearchText select="text" bgColor="yellow">onServiceStatusCheck</SearchText>
+    <SearchText doSearch="false" bgColor="offWhite">TBoxGps</SearchText>
+    <SearchText bgColor="veryLitePurple">registerOnTBox</SearchText>
+    <SearchText bgColor="veryLiteBlue">TBoxSomeipManager</SearchText>
+    <SearchText bgColor="offWhite">TBoxMsgQueue</SearchText>
+    <SearchText bgColor="offWhite">TBoxMsgMgr</SearchText>
+    <SearchText select="text" bgColor="liteGrey">TBoxModuleTSPCom</SearchText>
+    <SearchText select="text" bgColor="liteGrey">tboxStatusChangedCb</SearchText>
+    <SearchText doSearch="false">TBoxModuleSystemFunctions</SearchText>
+    <SearchText>TBoxRtpManager</SearchText>
+    <SearchText bgColor="veryLitePurple">TBoxRtpReceiver</SearchText>
+    <SearchText select="text" bgColor="liteRed">TBoxModuleTelephony</SearchText>
+    <SearchText select="text" bgColor="liteGreen">notifyTBoxCallState TBox</SearchText>
+    <SearchText select="text" bgColor="pink">requestTBoxCallOperation</SearchText>
+    <SearchText select="text" bgColor="cyan">notifyTBoxCallState joStr</SearchText>
+    <SearchText doSearch="false" bgColor="offWhite">BaseInfoTService</SearchText>
+    <SearchText bgColor="offWhite">TBoxConnection_aa</SearchText>
+    <SearchText bgColor="litePink">onTServiceRequest</SearchText>
+    <SearchText select="text" bgColor="liteBeige">TBoxServiceManager</SearchText>
+    <SearchText doSearch="false" select="text" bgColor="beige">onTServiceResponse</SearchText>
+    <SearchText select="text" bgColor="offWhite">TBoxAudioSourceService</SearchText>
+    <SearchText select="text" bgColor="offWhite">AudioManagerTService</SearchText>
+    <SearchText select="text" bgColor="litePink">notifySsmTBoxAudioSource</SearchText>
+    <SearchText select="text" bgColor="offWhite">TBoxMultiDisplay</SearchText>
+    <SearchText bgColor="cyan">TBoxAudioFocus</SearchText>
+    <SearchText select="text" bgColor="liteBlue">TBoxAudioTrackManager</SearchText>
+    <SearchText select="text" bgColor="offWhite">CallManagerTService</SearchText>
+    <SearchText select="text" bgColor="offWhite">CallBase</SearchText>
+</AnalyseDoc>

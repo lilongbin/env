@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText> TBoxService:</SearchText>
+    <SearchText bgColor="veryLiteGrey">transferTBoxMsg</SearchText>
+    <SearchText bgColor="veryLiteGrey">sendToTBox</SearchText>
+    <SearchText bgColor="liteBeige">apps_tboxdatarecorder</SearchText>
+    <SearchText bgColor="green">apps_tboxphone</SearchText>
+    <SearchText bgColor="liteBlue">apps_tboxwifi</SearchText>
+    <SearchText bgColor="orange">apps_tboxvrtts</SearchText>
+    <SearchText bgColor="litePink">apps_tboxcommuniction</SearchText>
+    <SearchText bgColor="liteBeige">apps_tboxinfo</SearchText>
+    <SearchText bgColor="offWhite">apps_tboxota</SearchText>
+    <SearchText bgColor="yellow">apps_tboxsignal</SearchText>
+    <SearchText bgColor="darkYellow">apps_tboxusb</SearchText>
+    <SearchText bgColor="liteGrey">tbox_service_client_reallog</SearchText>
+    <SearchText bgColor="liteBeige">apps_tboxnavi</SearchText>
+    <SearchText bgColor="veryLitePurple">tbox_service_tinyrpc</SearchText>
+</AnalyseDoc>

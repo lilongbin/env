@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText bgColor="liteBeige">apps_tboxdatarecorder</SearchText>
+    <SearchText doSearch="false" bgColor="veryLiteGrey">transferTBoxMsg</SearchText>
+    <SearchText doSearch="false" bgColor="veryLiteGrey">sendToTBox</SearchText>
+</AnalyseDoc>
