@@ -180,7 +180,7 @@ function djump()
 			echo "ERROR: ${dtag}: Invlid dtag, please check the destination directory."
 			return 1
 		fi
-		# 直接cd到指定的目标(目录)
+		# 直接cd到指定的目标(物理目录)
 		cd -P ${__DIR_TAGS_PATH}/${dtag} 2>/dev/null
 		if [ "$?" != "0" ] ;then
 			echo "ERROR: ${dtag}: Invalid dtag."
