@@ -18,6 +18,7 @@ TOOLS_AUDIO="audacity audacious "
 TOOLS_MEDIA="ubuntu-restricted-addons ubuntu-restricted-extras mpv smplayer"
 TOOLS_SNAP="snapd snapcraft "
 TOOLS_MONO="mono-complete mono-addins-utils mono-devel gtk-sharp2 gnome-sharp2 "
+TOOLS_QT_DEV="qt4-dev-tools qt4-doc qt4-qtconfig qt4-demos qt4-designer qtcreator "
 
 TOOLS_CENTOS_EXTRA="ntlmaps net-tools wireshark nfs4-acl-tools nfs-utils nfs-utils-lib ncurses-devel ncurses "
 TOOLS_UBUNTU_EXTRA="ntlmaps net-tools wireshark emacs usb-creator-gtk libjsoncpp-dev "
@@ -26,7 +27,7 @@ TOOLS_UBUNTU_EXTRA="ntlmaps net-tools wireshark emacs usb-creator-gtk libjsoncpp
 # sudo add-apt-repository ppa:noobslab/macbuntu
 # audo apt install albert
 BASIC_TOOLS="${TOOLS_COMM} ${TOOLS_EDITOR} ${TOOLS_PACKET} ${TOOLS_NETWORK} ${TOOLS_TERM}"
-CODE_TOOLS="${TOOLS_PYTHON} ${TOOLS_EMBED} ${TOOLS_CODING} ${TOOLS_BUILD}"
+CODE_TOOLS="${TOOLS_PYTHON} ${TOOLS_EMBED} ${TOOLS_CODING} ${TOOLS_BUILD} ${TOOLS_QT_DEV}"
 
 # for android env
 BUILD_ANDROID_U12="git gnupg flex bison gperf python-markdown build-essential zip curl ia32-libs libc6-dev libncurses5-dev:i386 xsltproc x11proto-core-dev libx11-dev:i386 libreadline6-dev:i386 libgl1-mesa-dev g++-multilib mingw32 tofrodos libxml2-utils zlib1g-dev:i386 "
