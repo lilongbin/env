@@ -1,0 +1,102 @@
+python 安装配置常见问题总结
+
+常用python模块
+sudo apt install python-dev python-pip python-setuptools
+# tkinter
+sudo apt install python-tk python3-tk
+sudo apt install tkintertk-devel tk tcl tk-dev tcl-dev
+
+# 数据分析工具
+python -m pip install numpy scipy sympy matplotlib pandas
+# 网络爬虫
+python -m pip isntall scrapy beautifulsoup4 html5lib lxml
+# 深度学习pytorch
+python -m pip install torch torchvision
+# 微信机器人
+python -m pip install WeRoBot
+# baidu开放平台接口
+python -m pip install baidu-aip
+# qt界面
+python -m pip install pyqt5 pyqt5-tools
+# 自然语言处理
+python -m pip install jieba snowlp
+
+1. 下载python源码包并重新编译安装
+官网 https://www.python.org/ 下载python指定版本源码包,如 Python-2.7.16.tgz;
+解压后编译安装，命令如下:
+$ tar -zxvf Python-3.8.1.tgz
+$ cd Python-3.8.1
+$ ./configure --prefix=/usr/local/python38
+$ make -j16
+$ sudo make install
+创建连接文件,当输入 python 命令时,实际调用最新安装的版本;
+$ sudo ln -sf /usr/local/python38/bin/python /usr/bin/python
+
+2. 手动安装的 python 没有 pip模块,python “No module named pip”
+python 升级后导致不能使用原来的pip命令
+windows平台
+cmd中敲命令：python -m ensurepip
+得到pip的setuptools
+然后就可以用：easy_install pip
+下载相应版本的pip，最后就可以愉快的用pip命令了
+
+linux平台
+官网 https://pypi.org/ 搜索并下载 pip 和 setuptools 源码包，如 pip-19.2.1.tar.gz 和 setuptools-41.0.1.zip
+首先解压 setuptools-41.0.1.zip 并切换到 setuptools-41.0.1 目录下执行
+$ sudo python setup.py install
+然后解压 pip-19.2.1.tar.gz 并切换到 pip-19.2.1 目录下执行
+$ sudo python setup.py install
+对pip进行升级,执行
+$ sudo python -m pip install pip --upgrade
+
+3. No module named _tkinter
+File "/usr/local/python27/lib/python2.7/lib-tk/Tkinter.py", line 39, in <module>
+    import _tkinter # If this fails your Python may not be configured for Tk
+ImportError: No module named _tkinter
+
+首先需要安装 python-tk 及 python3-tk
+命令
+$ sudo apt install python-tk
+$ sudo apt install python3-tk
+然后重新安装 python
+
+4. tcl.h: No such file or directory
+重新编译安装 python 时,手动修改 Modules/Setup 放开 _tkinter 编译有关的注释,重新编译;
+./Modules/_tkinter.c:70:17: fatal error: tcl.h: No such file or directory
+compilation terminated.
+直接编译报错,然后修改 Modules/Setup 再注释掉 _tkinter ,重新编译;
+编译成功,但是提示以下modules没有编译,包括 _tkinter;
+INFO: Can't locate Tcl/Tk libs and/or headers
+
+Python build finished, but the necessary bits to build these modules were not found:
+_bsddb             _tkinter           bsddb185        
+dbm                dl                 gdbm            
+imageop            sunaudiodev                        
+To find the necessary bits, look in setup.py in detect_modules() for the module's name.
+
+需要安装 tcl 及 tk 模块并安装 dev 包;
+命令如下
+$ sudo apt install tk tcl
+$ sudo apt install tk-dev tcl-dev
+然后重新编译安装 python 即可
+
+5. the necessary bits to build these modules were not found
+Python build finished, but the necessary bits to build these modules were not found:
+_bsddb _tkinter bsddb185
+dl imageop sunaudiodev
+To find the necessary bits, look in setup.py in detect_modules() for the module's name.
+
+可以手动修改 Modules/Setup 放开对应的编译注释,然后重新编译查看报错, 针对报错各个击破;如 _tkinter;
+暂时没有找到比较好的方法;
+
+6. Cannot uninstall 'six'
+ERROR: Cannot uninstall 'six'. It is a distutils installed project and thus we cannot accurately determine which files belong to it which would lead to only a partial uninstall.
+解决方法:
+$ sudo python -m pip install six --upgrade --ignore-installed six
+
+7. ImportError: No module named crypto.PublicKey.RSA
+需要使用pip安装pycrypto包，如果pip版本为3则替换为pip3
+sudo python -m pip install pycrypto
+或者
+sudo python3 -m pip install pycrypto
+注意安装crypto包不能解决问题;
