@@ -6,7 +6,7 @@
 
 #list the software need to be installed to the variable FILELIST
 TOOLS_COMM="figlet ghex gimp nautilus-open-terminal shutter tree alien "
-TOOLS_EDITOR="vim vim-doc vim-scripts ctags cscope gawk indent gedit gedit-plugins "
+TOOLS_EDITOR="vim vim-doc vim-scripts ctags cscope gawk indent gedit gedit-plugins glogg lnav "
 TOOLS_PACKET="rar unrar zip unzip p7zip p7zip-full p7zip-plugins "
 TOOLS_NETWORK="axel curl ssh openssl openssl-devel libssl-dev uget tftp-hpa tftpd-hpa nfs-kernel-server filezilla "
 TOOLS_TERM="ckermit minicom putty "
