@@ -9,8 +9,7 @@
     <SearchText doSearch="false" select="text" bgColor="darkYellow">backtrace:</SearchText>
     <SearchText bgColor="darkYellow">anr</SearchText>
     <SearchText doSearch="false" bgColor="darkYellow">RemoteException</SearchText>
-    <SearchText bgColor="liteBeige">AptivGnssHal</SearchText>
+    <SearchText bgColor="veryLiteBlue">AptivGnssHal</SearchText>
     <SearchText bgColor="offWhite">TBoxGps</SearchText>
     <SearchText bgColor="green">registerTBoxGPSCallback</SearchText>
-    <SearchText bgColor="darkYellow">signalHandler</SearchText>
 </AnalyseDoc>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <AnalyseDoc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./AnalyseDoc.xsd">
+    <SearchText doSearch="false" matchCase="true" bgColor="darkYellow">AptivTBoxHal service</SearchText>
     <SearchText doSearch="false" color="red" bgColor="darkYellow">reboot</SearchText>
     <SearchText doSearch="false" select="text" bgColor="orange">shutdown</SearchText>
     <SearchText doSearch="false" bgColor="yellow">Stack backtrace</SearchText>
@@ -9,13 +10,12 @@
     <SearchText select="text" bgColor="darkYellow">backtrace:</SearchText>
     <SearchText bgColor="darkYellow">anr</SearchText>
     <SearchText doSearch="false" bgColor="darkYellow">RemoteException</SearchText>
-    <SearchText doSearch="false" bgColor="veryLitePurple">TBoxService_</SearchText>
-    <SearchText select="text">AptivTBoxHal</SearchText>
+    <SearchText doSearch="false" matchCase="true" bgColor="veryLitePurple">TBoxService_</SearchText>
+    <SearchText matchCase="true" select="text">AptivTBoxHal</SearchText>
     <SearchText doSearch="false" select="text" bgColor="litePink">X4_SOMEIP:</SearchText>
-    <SearchText bgColor="darkGreen">AptivTBoxHal service</SearchText>
+    <SearchText matchCase="true" bgColor="darkGreen">AptivTBoxHal service</SearchText>
     <SearchText select="text" bgColor="liteGreen">TBoxSomeipManager</SearchText>
     <SearchText select="text" bgColor="liteBlue">TBoxRtpReceiver</SearchText>
     <SearchText select="text" bgColor="liteBlue">TBoxRtpSocketBase</SearchText>
-    <SearchText bgColor="yellow">tboxservices-bootcompleteReceiver</SearchText>
-    <SearchText bgColor="darkYellow">signalHandler</SearchText>
+    <SearchText doSearch="false" bgColor="yellow">tboxservices-bootcompleteReceiver</SearchText>
 </AnalyseDoc>
