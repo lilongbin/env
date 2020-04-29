@@ -11,7 +11,7 @@ TOOLS_PACKET="rar unrar zip unzip p7zip p7zip-full p7zip-plugins "
 TOOLS_NETWORK="axel curl ssh openssl openssl-devel libssl-dev uget tftp-hpa tftpd-hpa nfs-kernel-server filezilla "
 TOOLS_TERM="ckermit minicom putty "
 TOOLS_PYTHON="build-dep python python-pip python-setuptools tkintertk-devel tk tcl tk-dev tcl-dev python-tk python3-tk python-dev python-numpy python-scipy opencv-python matplotlib python-wand "
-TOOLS_EMBED="uml-utilities squashfs-tools libelf-dev libelf-devel elfutils-libelf-devel qemu libmagickwand-dev liblz4-tool ninja-build meson "
+TOOLS_EMBED="uml-utilities squashfs-tools libelf-dev libelf-devel elfutils-libelf-devel qemu libmagickwand-dev liblz4-tool ninja-build meson arduino "
 TOOLS_CODING="meld dos2unix unix2dos tofrodos subversion git-core gitk "
 TOOLS_BUILD="build-essential libtool cmake automake flex bison gperf graphviz gnupg gettext mingw32 readline readline-devel libc6-dev libc++-dev lib32stdc++6 lib32bz2-1.0 lib32bz2-dev gcc gcc-c++ g++ g++-multilib zlib zlib-devel tshark libncurses5-dev libncursesw5-dev libjsoncpp-dev ccache "
 TOOLS_AUDIO="audacity audacious "
@@ -20,6 +20,8 @@ TOOLS_SNAP="snapd snapcraft "
 TOOLS_MONO="mono-complete mono-addins-utils mono-devel gtk-sharp2 gnome-sharp2 "
 TOOLS_QT_DEV="qt4-dev-tools qt4-doc qt4-qtconfig qt4-demos qt4-designer qtcreator "
 
+TOOLS_ANDROID_TOOLS="android-tools-adb android-tools-fastboot android-tools-mkbootimg android-tools-adbd android-tools-fsutils "
+
 TOOLS_CENTOS_EXTRA="ntlmaps net-tools wireshark nfs4-acl-tools nfs-utils nfs-utils-lib ncurses-devel ncurses "
 TOOLS_UBUNTU_EXTRA="ntlmaps net-tools wireshark emacs usb-creator-gtk libjsoncpp-dev "
 
@@ -27,7 +29,7 @@ TOOLS_UBUNTU_EXTRA="ntlmaps net-tools wireshark emacs usb-creator-gtk libjsoncpp
 # sudo add-apt-repository ppa:noobslab/macbuntu
 # audo apt install albert
 BASIC_TOOLS="${TOOLS_COMM} ${TOOLS_EDITOR} ${TOOLS_PACKET} ${TOOLS_NETWORK} ${TOOLS_TERM}"
-CODE_TOOLS="${TOOLS_PYTHON} ${TOOLS_EMBED} ${TOOLS_CODING} ${TOOLS_BUILD} ${TOOLS_QT_DEV}"
+CODE_TOOLS="${TOOLS_PYTHON} ${TOOLS_EMBED} ${TOOLS_CODING} ${TOOLS_BUILD} ${TOOLS_QT_DEV} ${TOOLS_ANDROID_TOOLS}"
 
 # for android env
 BUILD_ANDROID_U12="git gnupg flex bison gperf python-markdown build-essential zip curl ia32-libs libc6-dev libncurses5-dev:i386 xsltproc x11proto-core-dev libx11-dev:i386 libreadline6-dev:i386 libgl1-mesa-dev g++-multilib mingw32 tofrodos libxml2-utils zlib1g-dev:i386 "

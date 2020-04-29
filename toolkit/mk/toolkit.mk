@@ -1,5 +1,5 @@
-OBJS := obj_vim
-OBJS += obj_toolkit
+OBJS := obj_toolkit
+# OBJS := obj_vim
 
 DEBUGON = 
 ifeq ($(DEBUGON),)
