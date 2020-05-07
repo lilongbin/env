@@ -432,7 +432,7 @@ func! QuickCompileRun()
 		exec '!g++ % -o %<'
 		exec '!time ./%<'
 	elseif &filetype == 'cpp'
-		exec '!g++ -std=c++11 % -o %<'
+		exec '!g++ -std=c++11 % -o %< -lpthread'
 		exec '!time ./%<'
 	elseif &filetype == 'java' 
 		exec "!javac %" 
