@@ -8,7 +8,7 @@
 # below variable should be set firstly
 cur_dir=$(pwd)
 SERVICE_SHELL_FILES="
-${cur_dir}/dtags.sh
+${cur_dir}/djump.sh
 ${cur_dir}/tshark.sh
 ${cur_dir}/bugreport.sh
 ${cur_dir}/logcat.sh
