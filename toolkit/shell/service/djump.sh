@@ -15,7 +15,7 @@ export __DJUMP_DATA_PATH=${HOME}/.djump
 
 function __djump_print_specify_length_str__()
 {
-    local target_length=${COLUMN1_WIDTH_MAX:=8}
+    local target_length=${DJUMP_PRINT_COLUMN1_WIDTH_MAX:=8}
     local str_length=$(echo $*|wc -c)
 
     echo -n "$*"
@@ -32,14 +32,14 @@ function __djump_list_tag_func__()
     local tag_len=${#tag_name}
     local tag_valid=0
     local COLUMN_SEP='----> '
-    COLUMN1_WIDTH_MAX=8
+    DJUMP_PRINT_COLUMN1_WIDTH_MAX=8
 
-    # 获取COLUMN1_WIDTH_MAX
-    DIR_TAGS_LIST=$(ls ${__DJUMP_DATA_PATH})
-    for line in ${DIR_TAGS_LIST}
+    # 获取DJUMP_PRINT_COLUMN1_WIDTH_MAX
+    DJUMP_TAGS_LIST=$(ls ${__DJUMP_DATA_PATH})
+    for line in ${DJUMP_TAGS_LIST}
     do
-        if [ "$(echo ${line}|wc -c)" -gt "${COLUMN1_WIDTH_MAX}" ] ;then
-            let COLUMN1_WIDTH_MAX=$(echo ${line}|wc -c)
+        if [ "$(echo ${line}|wc -c)" -gt "${DJUMP_PRINT_COLUMN1_WIDTH_MAX}" ] ;then
+            let DJUMP_PRINT_COLUMN1_WIDTH_MAX=$(echo ${line}|wc -c)
         fi
         if [ "${line:0:${tag_len}}" = "${tag_name}" ] ;then
             tag_valid=1
@@ -50,8 +50,8 @@ function __djump_list_tag_func__()
     fi
 
     # 显示每条tag的具体信息
-    DIR_TAGS_DETAILS=$(ls -l ${__DJUMP_DATA_PATH} | awk '{ if ($(NF-1)=="->") { print $(NF-2)"->"$(NF) } }')
-    for line in ${DIR_TAGS_DETAILS}
+    DJUMP_TAGS_DETAILS=$(ls -l ${__DJUMP_DATA_PATH} | awk '{ if ($(NF-1)=="->") { print $(NF-2)"->"$(NF) } }')
+    for line in ${DJUMP_TAGS_DETAILS}
     do
         link_file=$(echo ${line}|awk -F'->' '{print $1}')
         link_path=$(echo ${line}|awk -F'->' '{print $2}')
