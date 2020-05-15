@@ -11,6 +11,9 @@
 #include "cpptimer.hpp"
 
 using namespace std;
+long long g_totalCnt = 0;
+long long g_starttime = 0;
+long long g_lasttime = 0;
 
 long long getSteadyMillis()
 {
@@ -33,24 +36,37 @@ long long getSystemMillis()
 }
 
 void timerCallbackFunc(std::string&& s, std::string &&info=""){
+    g_totalCnt += 1;
     long long millis = getSteadyMillis();
-    std::cout << "test: " << millis << ", " << s << ", " << info << endl;
+    if (g_starttime == 0) {
+        g_starttime = millis;
+    }
+    if (g_lasttime == 0) {
+        g_lasttime = millis;
+    }
+    long long interval = millis - g_lasttime;
+    long long spendtime = millis - g_starttime;
+    std::cout<<__func__<<": sn="<<g_totalCnt<<",now="<<millis
+        <<",spendtime="<<spendtime<<",interval="<<interval
+        <<",s="<<s<<",info="<<info<<endl;
+    g_lasttime = millis;
 }
 
 int main() {
     CPPTimer t;
     //周期性执行定时任务
-    t.start(1000, std::bind(timerCallbackFunc,"hello periodic timer!", "hahaha"));
-    std::this_thread::sleep_for(std::chrono::seconds(6));
-    std::cout << "time: " << getSteadyMillis() << ", restart" << std::endl;
+    // t.start(1000, std::bind(timerCallbackFunc,"periodic timer!", "hahaha"));
+    // std::this_thread::sleep_for(std::chrono::seconds(6));
+    // std::cout << "time: " << getSteadyMillis() << ", restart" << std::endl;
 
-    t.start(1000, std::bind(timerCallbackFunc,"hello periodic timer!", "haha2"));
+    t.start(1000, std::bind(timerCallbackFunc,"periodic timer!", "haha2"));
+    g_starttime = getSteadyMillis();
     std::cout << "time: " << getSteadyMillis() << ", start" << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(61));
+    std::this_thread::sleep_for(std::chrono::seconds(6001));
     std::cout << "time: " << getSteadyMillis() << ", try to stop timer!" << std::endl;
     t.stop();
 
-    t.start(1000, std::bind(timerCallbackFunc,  "hello periodic timer!", "hi"));
+    t.start(1000, std::bind(timerCallbackFunc,  "periodic timer!", "hi"));
     std::cout << "time: " << getSteadyMillis() << ", start" << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(4));
     std::cout << "time: " << getSteadyMillis() << ", try to stop timer!" << std::endl;
@@ -61,13 +77,13 @@ int main() {
     //只执行一次定时任务
     //同步
     std::cout << "time: " << getSteadyMillis()<< ", syncdelay" << std::endl;
-    t.syncDelay(1000, timerCallbackFunc, "hello once timer!", "good");
+    t.syncDelay(1000, timerCallbackFunc, "once timer!", "good");
     //异步
     std::cout << "time: " << getSteadyMillis()<< ", asyncdelay" << std::endl;
-    t.asyncDelay(1000, timerCallbackFunc, "hello once timer!", "ok");
- 
+    t.asyncDelay(1000, timerCallbackFunc, "once timer!", "ok");
+
     std::this_thread::sleep_for(std::chrono::seconds(2));
- 
+
     return 0;
 }
 

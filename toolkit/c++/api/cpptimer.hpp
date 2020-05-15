@@ -10,6 +10,8 @@
 #include <mutex>
 #include <condition_variable>
 
+#define __USE_SIMPLE_TIMER__ 0
+
 class CPPTimer {
 public:
     typedef enum {
@@ -34,22 +36,62 @@ public:
             stop();
         }
         m_timerRunning = true;
+#if __USE_SIMPLE_TIMER__
         m_timerThread = std::thread([this, interval]() { //lambda
             // std::cout << "timer start" << std::endl;
+            std::chrono::milliseconds interval_millis(interval);
             std::unique_lock<std::mutex> tul(m_timerLock);
-            std::chrono::milliseconds clock_millis(interval);
-            std::chrono::microseconds clock_micros = std::chrono::duration_cast<std::chrono::microseconds>(clock_millis);
-            std::chrono::microseconds spent_micros(500);
-            std::chrono::microseconds sleep_micros(clock_micros - spent_micros);
+            std::chrono::microseconds interval_micros = std::chrono::duration_cast<std::chrono::microseconds>(interval_millis);
+            std::chrono::microseconds adjust_micros(600);
+            std::chrono::microseconds sleep_micros(interval_micros - adjust_micros);
             do {
                 // wait for timeout or until notified
-                // m_timerCond.wait_for(tul, std::chrono::milliseconds(clock_millis));
-                // m_timerCond.wait_for(tul, std::chrono::microseconds(clock_micros.count() - spent_micros.count()));
                 m_timerCond.wait_for(tul, std::chrono::microseconds(sleep_micros));
                 // notify work thread
                 m_workerCond.notify_one();
             } while (true == m_timerRunning);
         });
+#else
+        m_timerThread = std::thread([this, interval]() { //lambda
+            // std::cout << "timer start" << std::endl;
+            int TIMER_SLICE_COUNT = 10;
+            std::chrono::milliseconds interval_millis(interval);
+            long loopcnt = 0;
+            std::unique_lock<std::mutex> tul(m_timerLock);
+            std::chrono::microseconds interval_micros = std::chrono::duration_cast<std::chrono::microseconds>(interval_millis);
+            std::chrono::microseconds slice_micros = interval_micros / TIMER_SLICE_COUNT;
+            std::chrono::microseconds adjust_micros(0);
+            std::chrono::microseconds sleep_micros(slice_micros - adjust_micros);
+            std::chrono::microseconds diff_start_micros;
+            std::chrono::microseconds delay_expired_micros;
+            std::chrono::steady_clock::time_point tp_elapsed;
+            std::chrono::steady_clock::time_point tp_start = std::chrono::steady_clock::now();
+            do {
+                loopcnt += 1;
+                sleep_micros = (slice_micros - adjust_micros);
+                // wait for timeout or until notified
+                m_timerCond.wait_for(tul, std::chrono::microseconds(sleep_micros));
+                // notify work thread
+                if (0 == (loopcnt % TIMER_SLICE_COUNT)) {
+                    m_workerCond.notify_one();
+                }
+                tp_elapsed = std::chrono::steady_clock::now();
+                diff_start_micros = std::chrono::duration_cast<std::chrono::microseconds>(tp_elapsed - tp_start);
+                // std::cout << "micros: " << diff_start_micros.count() << std::endl;
+                delay_expired_micros = diff_start_micros - (slice_micros * loopcnt);
+                if ((delay_expired_micros.count() > 50) || (delay_expired_micros.count() < -50)) {
+                    adjust_micros = delay_expired_micros / 3;
+                    if (adjust_micros.count() >= slice_micros.count()) {
+                        //prevent overshoot
+                        adjust_micros = slice_micros / 3;
+                    }
+                } else {
+                    adjust_micros = std::chrono::microseconds(0);
+                }
+                // std::cout << "adjust_micros: " << adjust_micros.count() << std::endl;
+            } while (true == m_timerRunning);
+        });
+#endif
         m_workerThread = std::thread([this, callback]() {
             // wait for timer notify
             std::unique_lock<std::mutex> wul(m_workerLock);
@@ -72,11 +114,11 @@ public:
         if (m_workerThread.joinable()) {
             m_workerThread.join();
         }
-        std::cout << "stop." << std::endl;
+        // std::cout << "stop." << std::endl;
     }
 
     template<typename callable, class... arguments>
-        void syncDelay(int delay, callable&& fcb, arguments&&... args){
+        void syncDelay(int delay, callable&& fcb, arguments&&... args) {
             std::function<typename std::result_of<callable(arguments...)>::type()> callback
                 (std::bind(std::forward<callable>(fcb), std::forward<arguments>(args)...));
             m_timerRunning = true;
@@ -105,7 +147,7 @@ public:
         }
 
     template<typename callable, class... arguments>
-        void asyncDelay(int delay, callable&& fcb, arguments&&... args){
+        void asyncDelay(int delay, callable&& fcb, arguments&&... args) {
             std::function<typename std::result_of<callable(arguments...)>::type()> callback
                 (std::bind(std::forward<callable>(fcb), std::forward<arguments>(args)...));
             m_timerRunning = true;
