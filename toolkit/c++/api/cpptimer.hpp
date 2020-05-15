@@ -79,16 +79,23 @@ public:
                 diff_start_micros = std::chrono::duration_cast<std::chrono::microseconds>(tp_elapsed - tp_start);
                 // std::cout << "micros: " << diff_start_micros.count() << std::endl;
                 delay_expired_micros = diff_start_micros - (slice_micros * loopcnt);
-                if ((delay_expired_micros.count() > 50) || (delay_expired_micros.count() < -50)) {
-                    adjust_micros = delay_expired_micros / 3;
-                    if (adjust_micros.count() >= slice_micros.count()) {
+                if ((delay_expired_micros.count() > 200) || (delay_expired_micros.count() < -200)) {
+                    adjust_micros = delay_expired_micros / 10 * 9;
+                    if (adjust_micros.count() > slice_micros.count()) {
                         //prevent overshoot
-                        adjust_micros = slice_micros / 3;
+                        adjust_micros = slice_micros / 10 * 9;
                     }
                 } else {
                     adjust_micros = std::chrono::microseconds(0);
                 }
                 // std::cout << "adjust_micros: " << adjust_micros.count() << std::endl;
+                #if 0
+                std::cout<<"diff_start_micros="<<diff_start_micros.count()
+                    <<",sleep_micros="<<sleep_micros.count()
+                    <<",delay_expired_micros="<<delay_expired_micros.count()
+                    <<",adjust_micros="<<adjust_micros.count()
+                    <<std::endl;
+                #endif
             } while (true == m_timerRunning);
         });
 #endif
