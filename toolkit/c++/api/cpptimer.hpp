@@ -54,7 +54,7 @@ public:
 #else
         m_timerThread = std::thread([this, interval]() { //lambda
             // std::cout << "timer start" << std::endl;
-            int TIMER_SLICE_COUNT = 10;
+            int TIMER_SLICE_COUNT = 5;
             std::chrono::milliseconds interval_millis(interval);
             long loopcnt = 0;
             std::unique_lock<std::mutex> tul(m_timerLock);
@@ -70,7 +70,9 @@ public:
                 loopcnt += 1;
                 sleep_micros = (slice_micros - adjust_micros);
                 // wait for timeout or until notified
-                m_timerCond.wait_for(tul, std::chrono::microseconds(sleep_micros));
+                if (sleep_micros.count() > 0) {
+                    m_timerCond.wait_for(tul, std::chrono::microseconds(sleep_micros));
+                }
                 // notify work thread
                 if (0 == (loopcnt % TIMER_SLICE_COUNT)) {
                     m_workerCond.notify_one();
@@ -79,15 +81,9 @@ public:
                 diff_start_micros = std::chrono::duration_cast<std::chrono::microseconds>(tp_elapsed - tp_start);
                 // std::cout << "micros: " << diff_start_micros.count() << std::endl;
                 delay_expired_micros = diff_start_micros - (slice_micros * loopcnt);
-                if ((delay_expired_micros.count() > 200) || (delay_expired_micros.count() < -200)) {
-                    adjust_micros = delay_expired_micros / 10 * 9;
-                    if (adjust_micros.count() > slice_micros.count()) {
-                        //prevent overshoot
-                        adjust_micros = slice_micros / 10 * 9;
-                    }
-                } else {
-                    adjust_micros = std::chrono::microseconds(0);
-                }
+                // adjust_micros = delay_expired_micros - (delay_expired_micros / 10 * 7);
+                adjust_micros = delay_expired_micros / 3;
+
                 // std::cout << "adjust_micros: " << adjust_micros.count() << std::endl;
                 #if 0
                 std::cout<<"diff_start_micros="<<diff_start_micros.count()
