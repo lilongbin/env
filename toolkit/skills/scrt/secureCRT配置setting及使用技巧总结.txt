@@ -42,7 +42,6 @@ import subprocess
 def newSessionLogFile():
     config = crt.Session.Config
     # crt.Dialog.MessageBox("%s % config)
-    
     try:
         crt.Session.Log(False) # stop
         crt.Session.Log(True, True)  # start
@@ -77,19 +76,28 @@ def openSessionLogFile():
     if not logging:
         crt.Dialog.MessageBox("Warn: the current session is not logging")
         return
-    # crt.Dialog.MessageBox("Warn: the current session is logging")
+    # crt.Dialog.MessageBox("Info: the current session is logging")
 
     logfile = crt.Session.LogFileName
     # crt.Dialog.MessageBox(logfile)
 
-    pname = r"C:\Program Files\Notepad++\notepad++.exe"
-    subcmd = "%s %s" % (pname, logfile)
+    peditorDflt = r"C:\Program Files\Notepad++\notepad++.exe"
+    peditorBkup = r"notepad.exe"
+    subcmd = "%s %s" % (peditorDflt, logfile)
     # param = logfile
     try:
         p = subprocess.Popen(subcmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         # result = p.communicate(input=param)
     except Exception as reason:
-        crt.Dialog.MessageBox("Error: %s" % reason)
+        crt.Dialog.MessageBox("Error: %s(%s)" % (reason, subcmd))
+        # return
+        # try again with notepad.exe
+        subcmd = "%s %s" % (peditorBkup, logfile)
+        try:
+            p = subprocess.Popen(subcmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            # result = p.communicate(input=param)
+        except Exception as reason:
+            crt.Dialog.MessageBox("Error: %s(%s)" % (reason, subcmd))
     # res = result[0].decode()
     # print(res)
 
