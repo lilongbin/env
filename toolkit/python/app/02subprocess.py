@@ -24,9 +24,8 @@ def popen_test():
     	print("sPopen.pid != sPopen.pid")
     	
     # communicate can get stderr and stdout
-    out = sPopen.communicate()
-    print("sPopen.communicate out: ", out)
-    print("sPopen.communicate out[0] = ", out[0], " out[1]", out[1], "\n")
+    out,err = sPopen.communicate()
+    print("sPopen.communicate out=", out, " err=", err)
 
     res = subprocess.Popen("echo \"hello python\"", shell=True, stdout=subprocess.PIPE)
     print("res.stdout.read(): ", res.stdout.read())
