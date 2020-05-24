@@ -5,7 +5,7 @@
 # this script is available for ubuntu to configure embedded environment
 
 #list the software need to be installed to the variable FILELIST
-TOOLS_COMM="figlet ghex gimp nautilus-open-terminal shutter flameshot tree alien markdown "
+TOOLS_COMM="figlet ghex nautilus-open-terminal shutter flameshot kazam tree alien markdown gimp "
 TOOLS_EDITOR="vim vim-doc vim-scripts ctags cscope gawk indent gedit gedit-plugins glogg lnav "
 TOOLS_PACKET="rar unrar zip unzip p7zip p7zip-full p7zip-plugins "
 TOOLS_NETWORK="axel curl ssh openssl openssl-devel libssl-dev uget tftp-hpa tftpd-hpa nfs-kernel-server filezilla "
@@ -13,6 +13,7 @@ TOOLS_TERM="ckermit minicom putty "
 TOOLS_PYTHON="build-dep python python-pip python-setuptools tkintertk-devel tk tcl tk-dev tcl-dev python-tk python3-tk python-dev python-numpy python-scipy opencv-python matplotlib python-wand "
 TOOLS_EMBED="uml-utilities squashfs-tools libelf-dev libelf-devel elfutils-libelf-devel qemu libmagickwand-dev liblz4-tool ninja-build meson arduino "
 TOOLS_CODING="meld dos2unix unix2dos tofrodos subversion git-core gitk "
+TOOLS_DESIGN="dia umbrello plantuml "
 TOOLS_BUILD="build-essential libtool cmake automake flex bison gperf graphviz gnupg gettext mingw32 readline readline-devel libc6-dev libc++-dev lib32stdc++6 lib32bz2-1.0 lib32bz2-dev gcc gcc-c++ g++ g++-multilib zlib zlib-devel tshark libncurses5-dev libncursesw5-dev libjsoncpp-dev ccache "
 TOOLS_AUDIO="audacity audacious "
 TOOLS_MEDIA="libavcodec-extra ubuntu-restricted-addons ubuntu-restricted-extras mpv smplayer"
