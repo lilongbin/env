@@ -49,39 +49,35 @@ void * MsgManager::sender(void * mstruct)
     if (msgQueueReceiver == NULL) {ALOGW("%s: invalid thread param. msgQueueReceiver\n", __func__);}
     if (msgQueueDispatcher == NULL) {ALOGW("%s: invalid thread param. msgQueueDispatcher\n", __func__);}
 
-    MsgQueueType msg;
-    uint32_t commandId = 0;
-    uint16_t payloadLength = 0;
+    MsgQueueType msg {};
+    bool msgret = false;
 
     /* msgque sender --> tbox */
     while (g_MainThreadIsAlive == true)
     {
-        /* read msgque T3 TASK_TBOX_MSG_SENDER */
-		msg.header.cmdId = 0;
-        if (msgQueueSender != NULL)
-        {
-            msg = msgQueueSender->read();
-        }
+    	if (msgQueueSender == NULL)
+		{
+    		std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    		continue;
+		}
 
-        commandId = msg.header.cmdId;
-        payloadLength = msg.header.payloadLength;
-        if ((commandId == 0) && (payloadLength == 0))
-        {
-            /* invalid msg */
-            /* wait about 30ms */
-            // std::this_thread::sleep_for(std::chrono::milliseconds(30));
-			usleep(30);
-            continue;
-        }
+    	/* block read timeout or msgqueue deactived */
+		msgQueueSender->waitForItems();
+		if (g_MainThreadIsAlive != true) { break; }
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		if (g_MainThreadIsAlive != true) { break; }
+
+		msgret = msgQueueSender->read(msg);
+		if (msgret != true)
+		{
+			continue;
+		}
 
 		if (msgQueueDispatcher != NULL)
 		{
 			msgQueueDispatcher->write(msg);
 		}
-
-        /* wait about 10ms */
-        // std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		usleep(10);
     }
 
     ALOGW("MsgManager::sender exit since g_MainThreadIsAlive false\n");
@@ -109,40 +105,36 @@ void * MsgManager::receiver(void * mstruct)
     if (msgQueueReceiver == NULL) {ALOGW("%s: invalid thread param. msgQueueReceiver\n", __func__);}
     if (msgQueueDispatcher == NULL) {ALOGW("%s: invalid thread param. msgQueueDispatcher\n", __func__);}
 
-    MsgQueueType msg;
-    uint32_t commandId = 0;
-    uint16_t payloadLength = 0;
+    MsgQueueType msg {};
+    bool msgret = false;
     uint16_t bufflength = 0;
 
     /* tbox --> msgque dispatcher */
     while (g_MainThreadIsAlive == true)
     {
-        /* read from tbox */
-		msg.header.cmdId = 0;
-        bufflength = 0;
-		if (msgQueueReceiver != NULL)
-		{
-			msg = msgQueueReceiver->read();
-		}
+    	if (msgQueueReceiver == NULL) {
+    		std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    		continue;
+    	}
 
-        commandId = msg.header.cmdId;
-        payloadLength = msg.header.payloadLength;
-        if ((commandId == 0) && (payloadLength == 0))
-        {
-            /* wait about 30ms */
-            // std::this_thread::sleep_for(std::chrono::milliseconds(30));
-			usleep(30);
-            continue;
-        }
+    	/* block read timeout or msgqueue deactived */
+    	msgQueueReceiver->waitForItems();
+		if (g_MainThreadIsAlive != true) { break; }
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		if (g_MainThreadIsAlive != true) { break; }
+
+		msgret = msgQueueReceiver->read(msg);
+		if (msgret != true)
+		{
+			continue;
+		}
 
         /* send to msgque T1 TASK_TBOX_MSG_DISPATCHER */
         if (msgQueueDispatcher != NULL)
         {
             msgQueueDispatcher->write(msg);
         }
-        /* wait about 10ms */
-        // std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		usleep(10);
     }
 
     ALOGW("MsgManager::receiver exit since g_MainThreadIsAlive false\n");
@@ -170,40 +162,39 @@ void * MsgManager::dispatcher(void * mstruct)
     if (msgQueueReceiver == NULL) {ALOGW("%s: invalid thread param. msgQueueReceiver\n", __func__);}
     if (msgQueueDispatcher == NULL) {ALOGW("%s: invalid thread param. msgQueueDispatcher\n", __func__);}
 
-    MsgQueueType msg;
-    uint16_t payloadLength = 0;
-    uint32_t commandId = 0;
+    MsgQueueType msg {};
+    bool msgret = false;
 
     /* msgque dispatcher --> callback */
     while (g_MainThreadIsAlive == true)
     {
+    	if (msgQueueDispatcher == NULL) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(300));
+			continue;
+		}
+
+    	/* block read timeout or msgqueue deactived */
+    	msgQueueDispatcher->waitForItems();
+		if (g_MainThreadIsAlive != true) { break; }
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		if (g_MainThreadIsAlive != true) { break; }
+
         /* read msgque T1 dispatcher */
-		msg.header.cmdId = 0;
-        if (msgQueueDispatcher != NULL)
-        {
-            msg = msgQueueDispatcher->read();
-        }
-        payloadLength = msg.header.payloadLength;
-        commandId = msg.header.cmdId;
-        if ((commandId == 0) && (payloadLength == 0))
-        {
-            /* wait about 30ms */
-            // std::this_thread::sleep_for(std::chrono::milliseconds(30));
-			usleep(30);
-            continue;
-        }
+        msgret = msgQueueDispatcher->read(msg);
+        if (msgret != true)
+		{
+			continue;
+		}
 
         /* handle tbox msg */
 		ALOGI("%s cmdId=%d\n", __func__, msg.header.cmdId);
-        switch (commandId)
+        switch (msg.header.cmdId)
         {
             default:
 				mService->handleMsg(msg);
                 break;
         }
-        /* wait about 10ms */
-        // std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		usleep(10);
     }
 
     ALOGW("MsgManager::dispatcher exit since g_MainThreadIsAlive false\n");

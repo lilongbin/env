@@ -22,112 +22,29 @@
 #include "comm.h"
 #include "singleton.h"
 
-template<typename T>
-class ConcurrentQueue {
-public:
-    ConcurrentQueue() {}
-    ConcurrentQueue(int wait) : mWait{wait} {}
-
-    void waitForItems() {
-        std::unique_lock<std::mutex> g(mLock);
-        if (mWait > 0) {
-            if (mQueue.empty() && mIsActive) {
-                mCond.wait_for(g, std::chrono::milliseconds(mWait));
-            }
-        } else {
-            while (mQueue.empty() && mIsActive) {
-                mCond.wait(g);
-            }
-        }
-    }
-
-    std::vector<T> flushAll() {
-        std::vector<T> items {};
-        MuxGuard g(mLock);
-        if (mQueue.empty() || !mIsActive) {
-            return items;
-        }
-        while (!mQueue.empty()) {
-            items.push_back(std::move(mQueue.front()));
-            mQueue.pop();
-        }
-        return items;
-    }
-
-    T flushOne() {
-        T item {}; /* initialize object */
-        MuxGuard g(mLock);
-        if (mQueue.empty() || !mIsActive) {
-            return item;
-        }
-        if (!mQueue.empty()) {
-            item = std::move(mQueue.front());
-            mQueue.pop();
-        }
-        return item;
-    }
-
-    void push(T&& item) {
-        {
-            MuxGuard g(mLock);
-            if (!mIsActive) {
-                return;
-            }
-            if (mQueue.size() >= mMaxQueueSize)
-            {
-                /* pop queue head when queue is full */
-                mQueue.pop();
-            }
-            mQueue.push(std::move(item));
-        }
-        mCond.notify_one();
-    }
-
-    /* Deactivates the queue, thus no one can push items to it, also
-     * notifies all waiting thread.
-     */
-    void deactivate() {
-        {
-            MuxGuard g(mLock);
-            mIsActive = false;
-        }
-        mCond.notify_all();  // To unblock all waiting consumers.
-    }
-
-    //ConcurrentQueue() = default;
-
-    ConcurrentQueue(const ConcurrentQueue &) = delete;
-    ConcurrentQueue &operator=(const ConcurrentQueue &) = delete;
-private:
-    using MuxGuard = std::lock_guard<std::mutex>;
-    int mWait = 0; // wait_for time, 0 for wait forever.
-    bool mIsActive = true;
-    size_t mMaxQueueSize = 5000;
-    mutable std::mutex mLock;
-    std::condition_variable mCond;
-    std::queue<T> mQueue;
-};
+#define MESSAGE_QUEUE_TIMEOUT_VALUE 3000
 
 class MsgQueueBase
 {
 private:
+    std::string m_tagName;
     //using QueueMsgType = std::vector<uint8_t>;
     using QueueMsgType = MsgQueueType;
-    // std::unique_ptr<ConcurrentQueue<QueueMsgType>> m_Queue;
+    //std::unique_ptr<ConcurrentQueue<QueueMsgType>> m_Queue;
     std::shared_ptr<ConcurrentQueue<QueueMsgType>> m_Queue;
 
-	int init();
-	void release();
-
 protected:
-    void push(MsgQueueType &msgs);
-	MsgQueueType pull();
+    void setTagName(std::string &tagName);
 
 public:
     MsgQueueBase();
-	virtual ~MsgQueueBase();
-	virtual void write(MsgQueueType &msgs)=0;
-	virtual MsgQueueType read()=0;
+    ~MsgQueueBase();
+
+    void write(MsgQueueType &msg);
+    void waitForItems();
+    bool read(MsgQueueType &msg);
+    void clear();
+    void deactivate();
 };
 
 /* class MsgQueueSender */
@@ -136,8 +53,6 @@ class MsgQueueSender:public MsgQueueBase,public      Singleton<MsgQueueSender>
    friend class Singleton<MsgQueueSender>;
 public:
    ~MsgQueueSender();
-   void write(MsgQueueType &msgs);
-   MsgQueueType read();
 
 private:
    MsgQueueSender();
@@ -150,8 +65,6 @@ class MsgQueueReceiver:public MsgQueueBase,public      Singleton<MsgQueueReceive
    friend class Singleton<MsgQueueReceiver>;
 public:
    ~MsgQueueReceiver();
-   void write(MsgQueueType &msgs);
-   MsgQueueType read();
 
 private:
    MsgQueueReceiver();
@@ -164,8 +77,6 @@ class MsgQueueDispatcher:public MsgQueueBase,public      Singleton<MsgQueueDispa
    friend class Singleton<MsgQueueDispatcher>;
 public:
    ~MsgQueueDispatcher();
-   void write(MsgQueueType &msgs);
-   MsgQueueType read();
 
 private:
    MsgQueueDispatcher();

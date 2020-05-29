@@ -64,22 +64,50 @@ void Service::start()
 	tArgs->arg = 0;
 
 	ALOGI("%s: create thread: sender\n", __func__);
-	std::thread tSender(&m_msgManager->sender, (void *)tArgs);
+	m_senderThread = std::thread(&m_msgManager->sender, (void *)tArgs);
 	ALOGI("%s: create thread: receiver\n", __func__);
-	std::thread tReceiver(&m_msgManager->receiver, (void *)tArgs);
+	m_receiverThread = std::thread(&m_msgManager->receiver, (void *)tArgs);
 	ALOGI("%s: create thread: dispatcher\n", __func__);
-	std::thread tDispatcher(&m_msgManager->dispatcher, (void *)tArgs);
+	m_dispatcherThread = std::thread(&m_msgManager->dispatcher, (void *)tArgs);
 
-	usleep(200);
-	tSender.detach();
-	tReceiver.detach();
-	tDispatcher.detach();
 	ALOGI("%s: end\n", __func__);
 }
 
 void Service::stop()
 {
+	ALOGW("%s\n", __func__);
+
+	// set flag
 	g_MainThreadIsAlive = false;
+
+	// deactive all msg queue
+	if (m_msgQueueSender != NULL) {
+		m_msgQueueSender->deactivate();
+	}
+	if (m_msgQueueReceiver != NULL) {
+		m_msgQueueReceiver->deactivate();
+	}
+	if (m_msgQueueDispatcher != NULL) {
+		m_msgQueueDispatcher->deactivate();
+	}
+
+	// wait thread stopped
+	if (m_senderThread.joinable())
+	{
+		m_senderThread.join();
+	}
+	if (m_receiverThread.joinable())
+	{
+		m_receiverThread.join();
+	}
+	if (m_dispatcherThread.joinable())
+	{
+		m_dispatcherThread.join();
+	}
+
+	m_msgQueueSender = NULL;
+	m_msgQueueReceiver = NULL;
+	m_msgQueueDispatcher = NULL;
 }
 
 void Service::registerEventCallback(EventCallback *callback)

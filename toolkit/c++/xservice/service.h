@@ -57,6 +57,10 @@ private:
 	MsgQueueReceiver   * m_msgQueueReceiver;
 	MsgQueueDispatcher * m_msgQueueDispatcher;
 	MsgManager         * m_msgManager;
+
+	std::thread m_senderThread;
+	std::thread m_receiverThread;
+	std::thread m_dispatcherThread;
 };
 
 #endif

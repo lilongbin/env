@@ -19,112 +19,85 @@
 /*-----------MsgQueueBase--begin-----------*/
 MsgQueueBase::MsgQueueBase()
 {
-	// m_Queue = std::make_unique<ConcurrentQueue<QueueMsgType>>(1000);
-	m_Queue = std::make_shared<ConcurrentQueue<QueueMsgType>>(5000);
-    init();
+    //m_Queue = std::make_unique<ConcurrentQueue<QueueMsgType>>(MESSAGE_QUEUE_TIMEOUT_VALUE);
+    m_Queue = std::make_shared<ConcurrentQueue<QueueMsgType>>(MESSAGE_QUEUE_TIMEOUT_VALUE);
 }
 
 MsgQueueBase::~MsgQueueBase()
 {
-    release();
 }
 
-int MsgQueueBase::init()
+void MsgQueueBase::setTagName(std::string &tagName)
 {
-    ALOGI("%s: entry\n", __func__);
-    return true;
+    m_tagName = tagName;
 }
 
-void MsgQueueBase::push(MsgQueueType &msgs)
+void MsgQueueBase::write(MsgQueueType &msg)
 {
-    // ALOGD("push: cmdId=%u\n", msgs.header.cmdId);
-    m_Queue->push(std::move(msgs)); /* msgs cannot be used any more after std::move */
+    ALOGV("%s::write seqId=%u, cmdId=%u, payloadLength=%hu", m_tagName.c_str(),
+            msg.header.seqId, msg.header.cmdId, msg.header.payloadLength);
+    /* msgs cannot be used any more after push */
+    m_Queue->push(std::move(msg));
 }
 
-MsgQueueType MsgQueueBase::pull()
+void MsgQueueBase::waitForItems()
 {
-    MsgQueueType msg {};
-    // ALOGD("pull: waitForItems\n");
+    ALOGV("%s::waitForItems", m_tagName.c_str());
     m_Queue->waitForItems();
-    msg = m_Queue->flushOne();
-    // ALOGD("pull: cmdId=%u, payloadLength=%hu\n", msg.header.cmdId, msg.header.payloadLength);
-    return msg;
 }
 
-void MsgQueueBase::release()
+bool MsgQueueBase::read(MsgQueueType &msg)
 {
-    ALOGI("%s\n", __func__);
-    return;
+    bool ret = false;
+    ret = m_Queue->pull(msg);
+    if (ret == true)
+    {
+        ALOGD("%s::read seqId=%u, cmdId=%u, payloadLength=%hu", m_tagName.c_str(),
+                msg.header.seqId, msg.header.cmdId, msg.header.payloadLength);
+    }
+    return ret;
+}
+
+void MsgQueueBase::deactivate()
+{
+    ALOGI("%s::deactivate", m_tagName.c_str());
+    m_Queue->deactivate();
+}
+
+void MsgQueueBase::clear()
+{
+    ALOGI("%s::clear", m_tagName.c_str());
+    m_Queue->clear();
 }
 
 /*-----------MsgQueueBase--end-----------*/
 
 /*-----------MsgQueueSender--begin-----------*/
-MsgQueueSender::MsgQueueSender() {}
+MsgQueueSender::MsgQueueSender()
+{
+    std::string tagName = "MsgQueueSender";
+    setTagName(tagName);
+}
+
 MsgQueueSender::~MsgQueueSender() {}
-
-void MsgQueueSender::write(MsgQueueType &msgs)
-{
-    ALOGI("MsgQueueSender::write cmdId=%u\n", msgs.header.cmdId);
-    push(msgs);
-}
-
-MsgQueueType MsgQueueSender::read()
-{
-    MsgQueueType msg = pull();
-    if ((msg.header.cmdId != 0)
-        || (msg.header.payloadLength != 0))
-    {
-        ALOGI("MsgQueueSender::read cmdId=%u, payloadLength=%hu\n", msg.header.cmdId, msg.header.payloadLength);
-    }
-    return msg;
-}
 
 /*-----------MsgQueueSender--end-----------*/
 
 /*-----------MsgQueueReceiver--begin-----------*/
-MsgQueueReceiver::MsgQueueReceiver() {}
+MsgQueueReceiver::MsgQueueReceiver() {
+	std::string tagName = "MsgQueueReceiver";
+	setTagName(tagName);
+}
 MsgQueueReceiver::~MsgQueueReceiver() {}
-
-void MsgQueueReceiver::write(MsgQueueType &msgs)
-{
-    ALOGI("MsgQueueReceiver::write cmdId=%u\n", msgs.header.cmdId);
-    push(msgs);
-}
-
-MsgQueueType MsgQueueReceiver::read()
-{
-    MsgQueueType msg = pull();
-    if ((msg.header.cmdId != 0)
-        || (msg.header.payloadLength != 0))
-    {
-        ALOGI("MsgQueueReceiver::read cmdId=%u, payloadLength=%hu\n", msg.header.cmdId, msg.header.payloadLength);
-    }
-    return msg;
-}
 
 /*-----------MsgQueueReceiver--end-----------*/
 
 /*-----------MsgQueueDispatcher--begin-----------*/
-MsgQueueDispatcher::MsgQueueDispatcher() {}
+MsgQueueDispatcher::MsgQueueDispatcher() {
+	std::string tagName = "MsgQueueDispatcher";
+	setTagName(tagName);
+}
 MsgQueueDispatcher::~MsgQueueDispatcher() {}
-
-void MsgQueueDispatcher::write(MsgQueueType &msgs)
-{
-    ALOGI("MsgQueueDispatcher::write cmdId=%u\n", msgs.header.cmdId);
-    push(msgs);
-}
-
-MsgQueueType MsgQueueDispatcher::read()
-{
-    MsgQueueType msg = pull();
-    if ((msg.header.cmdId != 0)
-        || (msg.header.payloadLength != 0))
-    {
-        ALOGI("MsgQueueDispatcher::read cmdId=%u, payloadLength=%hu\n", msg.header.cmdId, msg.header.payloadLength);
-    }
-    return msg;
-}
 
 /*-----------MsgQueueDispatcher--end-----------*/
 

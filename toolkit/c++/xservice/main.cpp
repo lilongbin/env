@@ -27,6 +27,7 @@ public:
 	void onResponse(MsgQueueType msg)
 	{
         std::string str(msg.vpayload.begin(), msg.vpayload.end());
+        printf("%s %s msg.header.seqId=%d\n", __FILE__,  __func__, msg.header.seqId);
 		printf("%s %s msg.header.cmdId=%d\n", __FILE__,  __func__, msg.header.cmdId);
         printf("%s %s msg.vpayload str=%s\n", __FILE__,  __func__, str.c_str());
 		printf("%s %s put your callback func here\n", __FILE__,  __func__);
@@ -45,8 +46,9 @@ void service_init()
 
 void service_request(std::string &line)
 {
-	MsgQueueType msg;
+	MsgQueueType msg {};
 	std::vector<uint8_t> vc(line.c_str(), line.c_str()+line.length());
+	msg.header.seqId = msgSequence->getSequenceID();
 	msg.header.cmdId = msgSequence->getSequenceID();
 	msg.vpayload = std::move(vc);
 	msg.header.payloadLength = msg.vpayload.size();
@@ -59,10 +61,9 @@ void service_run_test()
 	std::string line;
 	while (1)
 	{
-		std::cout << "please input your words: ";
+		std::cout << "please input your words: ";// << std::endl;
 		std::getline(std::cin, line);
 		service_request(line);
-		usleep(200);
 		if (line.length() == 0)
 		{
 			break;
