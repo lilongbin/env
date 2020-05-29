@@ -1,7 +1,7 @@
-//cpptimer.cpp
+//mytimer.cpp
 /*****************************************
 * Copyright (C) 2020 * Ltd. All rights reserved.
-* File name   : cpptimer.cpp
+* File name   : mytimer.cpp
 * Created date: 2020-05-07 00:35:00
 *******************************************/
 
@@ -9,7 +9,7 @@
 #include <string>
 #include <memory>
 #include <time.h>
-#include "cpptimer.hpp"
+#include "mytimer.hpp"
 
 using namespace std;
 long long g_totalCnt = 0;
@@ -36,7 +36,7 @@ long long getSystemMillis()
     return milliseconds;
 }
 
-void timerCallbackFunc(std::string&& s, std::string &&info=""){
+void timerCallbackFunc(std::string &&info, int number) {
     g_totalCnt += 1;
     long long millis = getSteadyMillis();
     if (g_starttime == 0) {
@@ -47,35 +47,33 @@ void timerCallbackFunc(std::string&& s, std::string &&info=""){
     }
     long long interval = millis - g_lasttime;
     long long spendtime = millis - g_starttime;
-    std::cout<<__func__<<": sn="<<g_totalCnt<<",now="<<millis
+    std::cout<<__func__<<":sn="<<g_totalCnt<<",now="<<millis
         <<",spendtime="<<spendtime<<",interval="<<interval
-        <<",s="<<s<<",info="<<info<<std::endl;
+        <<",info="<<info<<",number="<<number<<std::endl;
     g_lasttime = millis;
 }
 
 int main() {
-    CPPTimer t;
+    MYTimer myt;
     //周期性执行定时任务
     g_lasttime = getSteadyMillis();
-    t.start(100, std::bind(timerCallbackFunc,"periodic timer!", "hahaha"));
+    myt.start(100, std::bind(timerCallbackFunc,"periodic timer!", 1));
     std::cout << "time: " << getSteadyMillis() << ", start" << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(3));
     std::cout << "time: " << getSteadyMillis() << ", try to stop timer!" << std::endl;
-    t.stop();
+    myt.stop();
 
-    g_lasttime = getSteadyMillis();
-    t.start(300, std::bind(timerCallbackFunc,"periodic timer!", "haha2"));
-    std::cout << "time: " << getSteadyMillis() << ", start" << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(6));
-    std::cout << "time: " << getSteadyMillis() << ", try to stop timer!" << std::endl;
-    t.stop();
-
-    g_lasttime = getSteadyMillis();
-    t.start(100, std::bind(timerCallbackFunc,  "periodic timer!", "hi"));
-    std::cout << "time: " << getSteadyMillis() << ", start" << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(4));
-    std::cout << "time: " << getSteadyMillis() << ", try to stop timer!" << std::endl;
-    t.stop();
+    int i = 0;
+    std::string info;
+    for (i = 0; i< 20; i++) {
+        info = "hi";
+        g_lasttime = getSteadyMillis();
+        myt.start(100, std::bind(timerCallbackFunc, info.c_str(), i));
+        std::cout << "time: " << getSteadyMillis() << ", start" << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        std::cout << "time: " << getSteadyMillis() << ", try to stop timer!" << std::endl;
+        myt.stop();
+    }
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
     return 0;

@@ -1,8 +1,9 @@
-//cpptimer.hpp
-#ifndef __CPPTIMER_H__
-#define __CPPTIMER_H__
+//mytimer.hpp
+#ifndef __MYTIMER_H__
+#define __MYTIMER_H__
 
 #include <iostream>
+#include <queue>
 #include <functional>
 #include <chrono>
 #include <thread>
@@ -11,40 +12,47 @@
 #include <mutex>
 #include <condition_variable>
 
-class CPPTimer {
+// extern long long getSteadyMillis();
+
+class MYTimer {
 public:
-    CPPTimer():m_timerRunning(false) {
+    MYTimer():m_timerThreadAlive(false) {
         m_intervalMicros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::milliseconds(1000));
         create();
     }
 
-    ~CPPTimer() {
+    ~MYTimer() {
         stop();
         destroy();
         // std::cout << "~cpptimer" << std::endl;
     }
 
-    CPPTimer(const CPPTimer&) = delete;
-    CPPTimer &operator=(const CPPTimer&) = delete;
+    MYTimer(const MYTimer&) = delete;
+    MYTimer &operator=(const MYTimer&) = delete;
 private:
     void create() {
-        m_timerStarted = false;
-        MuxGuard g(mLock);
-        if (m_timerRunning == true) {
+        m_timerRunning = false;
+        if (m_timerThreadAlive) {
             return;
         }
-        m_timerRunning = true;
+        m_timerThreadAlive = true;
         m_timerThread = std::thread([this]() { //lambda
-            // std::cout << "timer start" << std::endl;
+            std::cout << "timer create" << std::endl;
             std::unique_lock<std::mutex> tul(m_timerLock);
             do {
                 // wait for timeout or until notified
+                // std::cout<<"wait_for:"<<getSteadyMillis()<<std::endl;
                 m_timerCond.wait_for(tul, std::chrono::microseconds(m_intervalMicros));
+                if (m_timerResetting) {
+                    m_timerResetting = false;
+                    continue;
+                }
                 // notify work thread
-                if (m_timerStarted) {
+                // std::cout<<"m_timerRunning:"<<m_timerRunning<<std::endl;
+                if (m_timerRunning) {
                     m_workerCond.notify_one();
                 }
-            } while (m_timerRunning);
+            } while (m_timerThreadAlive);
         });
 
         m_workerThread = std::thread([this]() {
@@ -52,19 +60,21 @@ private:
             std::unique_lock<std::mutex> wul(m_workerLock);
             do {
                 m_workerCond.wait(wul);
-                if (!m_timerStarted) {
+                if (!m_timerRunning) {
                     continue;
                 }
                 if (m_callback) {
                     // std::cout<<"m_callback:"<<(m_callback?"do":"dont")<<std::endl;
                     m_callback();
                 }
-            } while (m_timerRunning);
+            } while (m_timerThreadAlive);
             // std::cout << "worker thread stopped." << std::endl;
         });
+        //to make sure thread wait_for then start and send notify at 1st time.
+        std::this_thread::sleep_for(std::chrono::milliseconds(3));
     }
     void destroy() {
-        m_timerRunning = false;
+        m_timerThreadAlive = false;
         m_workerCond.notify_all();
         m_timerCond.notify_all();
         if (m_timerThread.joinable()) {
@@ -78,45 +88,50 @@ private:
 public:
     void start(int intervalmillis, std::function<void()> callback) {
         //callback: std::bind(funcname, parameters...);
+        MuxGuard g(mLock);
         std::chrono::milliseconds interval_millis(intervalmillis);
         std::chrono::microseconds interval_micros = std::chrono::duration_cast<std::chrono::microseconds>(interval_millis);
-        {
-            m_timerStarted = false;
-            m_callback = std::function<void()>(nullptr);
-            m_timerCond.notify_all();
-            m_intervalMicros = interval_micros;
-            m_callback = callback;
+
+        m_timerRunning = false;
+        m_callback = std::function<void()>(nullptr);
+        m_timerResetting = true;
+        m_intervalMicros = interval_micros;
+        m_callback = callback;
+        m_timerCond.notify_all();
+        // std::cout<<"notify:"<<getSteadyMillis()<<std::endl;
+        if (!m_timerThreadAlive) {
+            //first run
+            m_timerResetting = false;
+            create();
         }
-        create();
-        {
-            //need fall back the cpu 1~3ms for other thread then start timer
-            std::this_thread::sleep_for(std::chrono::milliseconds(3));
-            m_timerStarted = true;
-        }
+        m_timerRunning = true;
     }
 
     void stop() {
-        m_timerStarted = false;
+        MuxGuard g(mLock);
+        m_timerRunning = false;
         m_callback = std::function<void()>(nullptr);
+        m_timerResetting = true;
         m_timerCond.notify_all();
-        std::this_thread::sleep_for(std::chrono::milliseconds(3));
         // std::cout << "stop." << std::endl;
     }
 
 private:
-    std::atomic<bool> m_timerRunning;
-    std::atomic<bool> m_timerStarted;
     mutable std::mutex m_timerLock;
     mutable std::mutex m_workerLock;
     std::condition_variable m_timerCond;
     std::condition_variable m_workerCond;
     std::thread m_timerThread;
     std::thread m_workerThread;
+
+    std::atomic<bool> m_timerThreadAlive;
+    std::atomic<bool> m_timerRunning;
+    std::atomic<bool> m_timerResetting;
     std::function<void()> m_callback = std::function<void()>(nullptr);
     std::chrono::microseconds m_intervalMicros;
     using MuxGuard = std::lock_guard<std::mutex>;
     mutable std::mutex mLock;
 };
 
-#endif //__CPPTIMER_H__
+#endif //__MYTIMER_H__
 
