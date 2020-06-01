@@ -17,7 +17,7 @@
 class MYTimer {
 public:
     MYTimer():m_timerThreadAlive(false) {
-        m_intervalMicros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::milliseconds(1000));
+        m_sleepMicros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::milliseconds(1000));
         create();
     }
 
@@ -39,10 +39,11 @@ private:
         m_timerThread = std::thread([this]() { //lambda
             std::cout << "timer create" << std::endl;
             std::unique_lock<std::mutex> tul(m_timerLock);
+            m_timerResetting = false;
             do {
                 // wait for timeout or until notified
                 // std::cout<<"wait_for:"<<getSteadyMillis()<<std::endl;
-                m_timerCond.wait_for(tul, std::chrono::microseconds(m_intervalMicros));
+                m_timerCond.wait_for(tul, std::chrono::microseconds(m_sleepMicros));
                 if (m_timerResetting) {
                     m_timerResetting = false;
                     continue;
@@ -91,17 +92,18 @@ public:
         MuxGuard g(mLock);
         std::chrono::milliseconds interval_millis(intervalmillis);
         std::chrono::microseconds interval_micros = std::chrono::duration_cast<std::chrono::microseconds>(interval_millis);
+        std::chrono::microseconds adjust_micros(500);
+        std::chrono::microseconds sleep_micros(interval_micros - adjust_micros);
 
         m_timerRunning = false;
         m_callback = std::function<void()>(nullptr);
         m_timerResetting = true;
-        m_intervalMicros = interval_micros;
+        m_sleepMicros = sleep_micros;
         m_callback = callback;
         m_timerCond.notify_all();
         // std::cout<<"notify:"<<getSteadyMillis()<<std::endl;
         if (!m_timerThreadAlive) {
             //first run
-            m_timerResetting = false;
             create();
         }
         m_timerRunning = true;
@@ -128,7 +130,7 @@ private:
     std::atomic<bool> m_timerRunning;
     std::atomic<bool> m_timerResetting;
     std::function<void()> m_callback = std::function<void()>(nullptr);
-    std::chrono::microseconds m_intervalMicros;
+    std::chrono::microseconds m_sleepMicros;
     using MuxGuard = std::lock_guard<std::mutex>;
     mutable std::mutex mLock;
 };

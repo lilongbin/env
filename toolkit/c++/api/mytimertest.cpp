@@ -65,15 +65,22 @@ int main() {
 
     int i = 0;
     std::string info;
-    for (i = 0; i< 20; i++) {
+    for (i = 0; i< 200; i++) {
         info = "hi";
         g_lasttime = getSteadyMillis();
         myt.start(100, std::bind(timerCallbackFunc, info.c_str(), i));
         std::cout << "time: " << getSteadyMillis() << ", start" << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(3));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         std::cout << "time: " << getSteadyMillis() << ", try to stop timer!" << std::endl;
         myt.stop();
     }
+
+    g_lasttime = getSteadyMillis();
+    myt.start(1000, std::bind(timerCallbackFunc,"periodic timer!", 1));
+    std::cout << "time: " << getSteadyMillis() << ", start" << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(60));
+    std::cout << "time: " << getSteadyMillis() << ", try to stop timer!" << std::endl;
+    myt.stop();
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
     return 0;
