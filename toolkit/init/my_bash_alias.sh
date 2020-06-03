@@ -19,17 +19,6 @@ function __load_PS1_cmd_script_XXX()
 }
 __load_PS1_cmd_script_XXX
 
-function __load_and_initialise_recordmydesktop_XXX()
-{
-	if [ "$(which recordmydesktop 2>/dev/null)" = "" ] ;then
-		return
-	fi
-	alias recordmydesktop="$(which recordmydesktop) --fps=5 --on-the-fly-encoding --output=video_by_${USER}_$(date +%F_%H%M%S)"
-	alias recordmydesktop_mini='recordmydesktop -x 100 -y 100 --width=400 --height=300'
-	alias recordmydesktop_full='recordmydesktop '
-}
-__load_and_initialise_recordmydesktop_XXX
-
 function cindex()
 {
 	if [ "$(which indent 2> /dev/null)" = "" ] ;then
@@ -71,7 +60,7 @@ function calculator()
 	fi
 }
 
-function add_myalias_to_bashrc()
+function add_alias_for_cmd()
 {
 	local myfunctionname=add_myalias_to_bashrc
 	if [ "$#" != '3' ]; then

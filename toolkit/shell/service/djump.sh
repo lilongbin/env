@@ -13,6 +13,8 @@
 export __DJUMP_VERSION='v1.1'
 export __DJUMP_DATA_PATH=${HOME}/.djump
 
+[ -d ${__DJUMP_DATA_PATH} ] || mkdir -p ${__DJUMP_DATA_PATH}
+
 function __djump_print_specify_length_str__()
 {
     local target_length=${DJUMP_PRINT_COLUMN1_WIDTH_MAX:=8}

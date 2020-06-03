@@ -7,12 +7,9 @@
 
 # below variable should be set firstly
 cur_dir=$(pwd)
-SERVICE_SHELL_TARGET=${HOME}/env/tools/app
+SERVICE_SHELL_TARGET=${HOME}/env/tools/init
 SERVICE_SHELL_FILES="
-${cur_dir}/djump.sh
-${cur_dir}/tshark.sh
-${cur_dir}/bugreport.sh
-${cur_dir}/logcat.sh
+${cur_dir}/my_bash_alias.sh
 "
 
 [ -d ${SERVICE_SHELL_TARGET} ] || mkdir -p ${SERVICE_SHELL_TARGET}

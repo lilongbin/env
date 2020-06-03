@@ -54,35 +54,43 @@ void timerCallbackFunc(std::string &&info, int number) {
 }
 
 int main() {
-    MYTimer myt;
+    MYTimer *ptimer = new MYTimer();
+    if (ptimer == NULL) {
+        std::cout << "ERROR: create timer failed." << std::endl;
+        return -1;
+    }
     //周期性执行定时任务
     g_lasttime = getSteadyMillis();
-    myt.start(100, std::bind(timerCallbackFunc,"periodic timer!", 1));
+    ptimer->start(100, std::bind(timerCallbackFunc,"periodic timer!", 1));
     std::cout << "time: " << getSteadyMillis() << ", start" << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(3));
     std::cout << "time: " << getSteadyMillis() << ", try to stop timer!" << std::endl;
-    myt.stop();
+    ptimer->stop();
 
     int i = 0;
     std::string info;
     for (i = 0; i< 200; i++) {
         info = "hi";
         g_lasttime = getSteadyMillis();
-        myt.start(100, std::bind(timerCallbackFunc, info.c_str(), i));
+        ptimer->start(100, std::bind(timerCallbackFunc, info.c_str(), i));
         std::cout << "time: " << getSteadyMillis() << ", start" << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
         std::cout << "time: " << getSteadyMillis() << ", try to stop timer!" << std::endl;
-        myt.stop();
+        ptimer->stop();
     }
 
     g_lasttime = getSteadyMillis();
-    myt.start(1000, std::bind(timerCallbackFunc,"periodic timer!", 1));
+    ptimer->start(1000, std::bind(timerCallbackFunc,"periodic timer!", 1));
     std::cout << "time: " << getSteadyMillis() << ", start" << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(60));
     std::cout << "time: " << getSteadyMillis() << ", try to stop timer!" << std::endl;
-    myt.stop();
+    ptimer->stop();
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
+    if (ptimer != NULL) {
+        delete ptimer;
+        ptimer = NULL;
+    }
     return 0;
 }
 
