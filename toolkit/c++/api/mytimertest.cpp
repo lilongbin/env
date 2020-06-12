@@ -15,6 +15,7 @@ using namespace std;
 long long g_totalCnt = 0;
 long long g_starttime = 0;
 long long g_lasttime = 0;
+long long g_warntime = 0;
 
 long long getSteadyMillis()
 {
@@ -50,6 +51,10 @@ void timerCallbackFunc(std::string &&info, int number) {
     std::cout<<__func__<<":sn="<<g_totalCnt<<",now="<<millis
         <<",spendtime="<<spendtime<<",interval="<<interval
         <<",info="<<info<<",number="<<number<<std::endl;
+    if (interval < 50) {
+        std::cout<<"###### "<<__func__<<" warning: unexpected interval="<<interval<<std::endl;
+        g_warntime += 1;
+    }
     g_lasttime = millis;
 }
 
@@ -69,11 +74,11 @@ int main() {
 
     int i = 0;
     std::string info;
-    for (i = 0; i< 200; i++) {
+    for (i = 0; i< 2000; i++) {
         info = "hi";
         g_lasttime = getSteadyMillis();
         ptimer->start(100, std::bind(timerCallbackFunc, info.c_str(), i));
-        std::cout << "time: " << getSteadyMillis() << ", start" << std::endl;
+        std::cout << "time: " << getSteadyMillis() << ", start " << i << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
         std::cout << "time: " << getSteadyMillis() << ", try to stop timer!" << std::endl;
         ptimer->stop();
@@ -91,6 +96,7 @@ int main() {
         delete ptimer;
         ptimer = NULL;
     }
+    std::cout <<"warning time="<<g_warntime<<std::endl;
     return 0;
 }
 
