@@ -12,12 +12,20 @@
 #include <mutex>
 #include <condition_variable>
 
-// extern long long getSteadyMillis();
+#if 0
+    extern long long getSteadyMillis();
+    #define DEBUG_TIMER_BEGIN  std::cout<<__func__<<" begin:"<<getSteadyMillis()<<std::endl;
+    #define DEBUG_TIMER_END    std::cout<<__func__<<" end:"<<getSteadyMillis()<<std::endl;
+#else
+    #define DEBUG_TIMER_BEGIN
+    #define DEBUG_TIMER_END
+#endif
 
 class MYTimer {
 public:
     MYTimer():m_timerMainThreadAlive(false) {
         m_sleepMicros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::milliseconds(1000));
+        m_timerStarted = false;
         create();
     }
 
@@ -30,34 +38,27 @@ public:
     MYTimer &operator=(const MYTimer&) = delete;
 private:
     void create() {
+        DEBUG_TIMER_BEGIN
         if (m_timerMainThreadAlive) {
             return;
         }
         m_timerMainThreadAlive = true;
         m_timerThread = std::thread([this]() { //lambda
-            // std::cout << "timer create" << std::endl;
-            std::unique_lock<std::mutex> tul(m_timerLock);
-            m_callbackSn = 1; //ensure 1st trigger when this thread later than start() and lost notify/wait_for
             do {
-                // wait for timeout or until notified
-                // std::cout<<"wait_for:"<<getSteadyMillis()<<std::endl;
-                m_timerCond.wait_for(tul, std::chrono::microseconds(m_sleepMicros));
-                // notify work thread
-                doNotify();
+                timerWait(); // wait for timeout or until notified
+                doNotify(); // notify work thread
             } while (m_timerMainThreadAlive);
         });
 
         m_workerThread = std::thread([this]() {
             // wait for timer notify
-            std::unique_lock<std::mutex> wul(m_workerLock);
             do {
-                m_workerCond.wait(wul);
+                workWait();
                 doCallback();
             } while (m_timerMainThreadAlive);
             // std::cout << "worker thread stopped." << std::endl;
         });
-        //to make sure thread wait_for then start and send notify at 1st time.
-        std::this_thread::sleep_for(std::chrono::milliseconds(3));
+        DEBUG_TIMER_END
     }
     void destroy() {
         m_timerMainThreadAlive = false;
@@ -75,43 +76,78 @@ private:
 public:
     void start(int intervalmillis, std::function<void()> callback) {
         //callback: std::bind(funcname, parameters...);
-        MuxGuard g(mLock);
         std::chrono::milliseconds interval_millis(intervalmillis);
         std::chrono::microseconds interval_micros = std::chrono::duration_cast<std::chrono::microseconds>(interval_millis);
         std::chrono::microseconds adjust_micros(500);
         std::chrono::microseconds sleep_micros(interval_micros - adjust_micros);
-
-        m_callbackSn = 0;
-        m_callbackFunc = std::function<void()>(nullptr);
-        while (!m_msgQueue.empty()) {
-            m_msgQueue.pop();
+        DEBUG_TIMER_BEGIN
+        {
+            MuxGuard g(mLock);
+            while (!m_workQueue.empty()) {
+                m_workQueue.pop();
+            }
+            while (!m_timerQueue.empty()) {
+                m_timerQueue.pop();
+            }
+            m_timerStarted = true;
+            m_callbackSn = 0;
+            m_callbackFunc = callback;
+            m_sleepMicros = sleep_micros;
+            m_timerQueue.push(m_callbackSn);
+            if (!m_timerMainThreadAlive) {
+                create();
+            }
         }
-        m_sleepMicros = sleep_micros;
-        m_callbackFunc = callback;
         m_timerCond.notify_all();
-        // std::cout<<"notify:"<<getSteadyMillis()<<std::endl;
+        DEBUG_TIMER_END
     }
 
+    void timerWait() {
+        std::unique_lock<std::mutex> tul(m_timerLock);
+        if (m_timerQueue.empty() && m_timerMainThreadAlive) {
+            m_timerCond.wait_for(tul, std::chrono::microseconds(m_sleepMicros));
+        }
+    }
     void doNotify() {
-        MuxGuard g(mLock);
-        m_callbackSn += 1;
-        m_msgQueue.push(m_callbackSn);
+        {
+            MuxGuard g(mLock);
+            while (!m_timerQueue.empty()) {
+                m_timerQueue.pop();
+            }
+            m_callbackSn += 1;
+            m_workQueue.push(m_callbackSn);
+        }
         m_workerCond.notify_one();
     }
 
-    void doCallback() {
-        MuxGuard g(mLock);
-        if (m_msgQueue.empty()) {
-            return;
+    void workWait() {
+        std::unique_lock<std::mutex> wul(m_workerLock);
+        while (m_workQueue.empty() && m_timerMainThreadAlive) {
+            m_workerCond.wait(wul);
         }
-        uint32_t sn = 0;
-        do {
-            // get the latest sn
-            sn = m_msgQueue.front();
-            m_msgQueue.pop();
-        } while (!m_msgQueue.empty());
-        // std::cout<<"sn:"<<sn<<",m_callbackSn="<<m_callbackSn<<std::endl;
-        if ((sn == m_callbackSn) && (sn > 1)) {
+    }
+    void doCallback() {
+        {
+            MuxGuard g(mLock);
+            uint32_t sn = 0;
+            if (m_workQueue.empty()) {
+                return;
+            }
+            do {
+                // get the latest sn
+                sn = m_workQueue.front();
+                m_workQueue.pop();
+            } while (!m_workQueue.empty());
+            if (!m_timerStarted) {
+                return;
+            }
+            // std::cout<<"sn:"<<sn<<",m_callbackSn="<<m_callbackSn<<std::endl;
+            if (sn <= 1) {
+                return;
+            }
+            if (sn != m_callbackSn) {
+                return;
+            }
             // std::cout<<"m_callbackFunc:"<<(m_callbackFunc?"do":"dont")<<std::endl;
             if (m_callbackFunc) {
                 m_callbackFunc();
@@ -120,14 +156,22 @@ public:
     }
 
     void stop() {
-        MuxGuard g(mLock);
-        m_callbackSn = 0;
-        m_callbackFunc = std::function<void()>(nullptr);
-        while (!m_msgQueue.empty()) {
-            m_msgQueue.pop();
+        DEBUG_TIMER_BEGIN
+        {
+            MuxGuard g(mLock);
+            while (!m_workQueue.empty()) {
+                m_workQueue.pop();
+            }
+            while (!m_timerQueue.empty()) {
+                m_timerQueue.pop();
+            }
+            m_timerStarted = false;
+            m_callbackSn = 0;
+            m_callbackFunc = std::function<void()>(nullptr);
+            m_timerQueue.push(m_callbackSn);
         }
         m_timerCond.notify_all();
-        // std::cout << "stop." << std::endl;
+        DEBUG_TIMER_END
     }
 
 private:
@@ -138,12 +182,14 @@ private:
     std::thread m_timerThread;
     std::thread m_workerThread;
     std::atomic<bool> m_timerMainThreadAlive;
+    std::atomic<bool> m_timerStarted;
 
     std::atomic<uint32_t> m_callbackSn;
     std::function<void()> m_callbackFunc = std::function<void()>(nullptr);
     std::chrono::microseconds m_sleepMicros;
     using MuxGuard = std::lock_guard<std::mutex>;
-    std::queue<uint32_t> m_msgQueue;
+    std::queue<uint32_t> m_workQueue;
+    std::queue<uint32_t> m_timerQueue;
     mutable std::mutex mLock;
 };
 
