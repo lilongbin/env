@@ -15,7 +15,7 @@
 #if 0
     extern long long getSteadyMillis();
     #define DEBUG_TIMER_BEGIN  std::cout<<__func__<<" begin:"<<getSteadyMillis()<<std::endl;
-    #define DEBUG_TIMER_END    std::cout<<__func__<<" end:"<<getSteadyMillis()<<std::endl;
+    #define DEBUG_TIMER_END    std::cout<<__func__<<"   end:"<<getSteadyMillis()<<std::endl;
 #else
     #define DEBUG_TIMER_BEGIN
     #define DEBUG_TIMER_END
@@ -98,7 +98,7 @@ public:
                 create();
             }
         }
-        m_timerCond.notify_all();
+        m_timerCond.notify_one();
         DEBUG_TIMER_END
     }
 
@@ -113,6 +113,9 @@ public:
             MuxGuard g(mLock);
             while (!m_timerQueue.empty()) {
                 m_timerQueue.pop();
+            }
+            if (!m_timerStarted) {
+                return;
             }
             m_callbackSn += 1;
             m_workQueue.push(m_callbackSn);
@@ -130,19 +133,16 @@ public:
         {
             MuxGuard g(mLock);
             uint32_t sn = 0;
-            if (m_workQueue.empty()) {
-                return;
-            }
-            do {
+            while (!m_workQueue.empty()) {
                 // get the latest sn
                 sn = m_workQueue.front();
                 m_workQueue.pop();
-            } while (!m_workQueue.empty());
-            if (!m_timerStarted) {
-                return;
-            }
+            };
             // std::cout<<"sn:"<<sn<<",m_callbackSn="<<m_callbackSn<<std::endl;
             if (sn <= 1) {
+                return;
+            }
+            if (!m_timerStarted) {
                 return;
             }
             if (sn != m_callbackSn) {
@@ -168,9 +168,7 @@ public:
             m_timerStarted = false;
             m_callbackSn = 0;
             m_callbackFunc = std::function<void()>(nullptr);
-            m_timerQueue.push(m_callbackSn);
         }
-        m_timerCond.notify_all();
         DEBUG_TIMER_END
     }
 
