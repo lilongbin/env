@@ -24,8 +24,10 @@
 class MYTimer {
 public:
     MYTimer():m_timerMainThreadAlive(false) {
-        m_sleepMicros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::milliseconds(1000));
         m_timerStarted = false;
+        m_callbackSn = 0;
+        m_sleepMicros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::milliseconds(1000));
+        m_callbackFunc = std::function<void()>(nullptr);
         create();
     }
 
@@ -51,12 +53,10 @@ private:
         });
 
         m_workerThread = std::thread([this]() {
-            // wait for timer notify
             do {
-                workWait();
+                workWait(); // wait for timer notify
                 doCallback();
             } while (m_timerMainThreadAlive);
-            // std::cout << "worker thread stopped." << std::endl;
         });
         DEBUG_TIMER_END
     }
@@ -82,12 +82,9 @@ public:
         std::chrono::microseconds sleep_micros(interval_micros - adjust_micros);
         DEBUG_TIMER_BEGIN
         {
-            MuxGuard g(mLock);
+            MuxGuard g(m_MuxLock);
             while (!m_workQueue.empty()) {
                 m_workQueue.pop();
-            }
-            while (!m_timerQueue.empty()) {
-                m_timerQueue.pop();
             }
             m_timerStarted = true;
             m_callbackSn = 0;
@@ -103,16 +100,23 @@ public:
     }
 
     void timerWait() {
-        std::unique_lock<std::mutex> tul(m_timerLock);
+        MuxUniqLck tul(m_MuxLock);
         if (m_timerQueue.empty() && m_timerMainThreadAlive) {
             m_timerCond.wait_for(tul, std::chrono::microseconds(m_sleepMicros));
+            m_timerQueue.push(m_callbackSn); //timeout or notified
         }
     }
     void doNotify() {
         {
-            MuxGuard g(mLock);
-            while (!m_timerQueue.empty()) {
+            MuxGuard g(m_MuxLock);
+            uint32_t sn = 0;
+            if (!m_timerQueue.empty()) {
+                sn = m_timerQueue.front();
                 m_timerQueue.pop();
+                if (sn != m_callbackSn) {
+                    // m_callbackSn changed between timerWait and doNotify, maybe start() called;
+                    return;
+                }
             }
             if (!m_timerStarted) {
                 return;
@@ -124,14 +128,16 @@ public:
     }
 
     void workWait() {
-        std::unique_lock<std::mutex> wul(m_workerLock);
+        MuxUniqLck wul(m_MuxLock);
         while (m_workQueue.empty() && m_timerMainThreadAlive) {
             m_workerCond.wait(wul);
         }
     }
     void doCallback() {
+        DEBUG_TIMER_BEGIN
+        std::function<void()> callback = std::function<void()>(nullptr);
         {
-            MuxGuard g(mLock);
+            MuxGuard g(m_MuxLock);
             uint32_t sn = 0;
             while (!m_workQueue.empty()) {
                 // get the latest sn
@@ -148,22 +154,28 @@ public:
             if (sn != m_callbackSn) {
                 return;
             }
-            // std::cout<<"m_callbackFunc:"<<(m_callbackFunc?"do":"dont")<<std::endl;
-            if (m_callbackFunc) {
-                m_callbackFunc();
+            // std::cout<<"m_callbackFunc:"<<(m_callbackFunc?"callable":"not callable")<<std::endl;
+            if (!m_callbackFunc) {
+                return;
             }
+            callback = m_callbackFunc;
         }
+        // release lock when do callback call, prevent callback spend too much time
+        try {
+            callback();
+        } catch (const std::bad_function_call &e) {
+            (void)e;
+            // std::cout<<__func__<<" error: "<<e.what()<<std::endl;
+        }
+        DEBUG_TIMER_END
     }
 
     void stop() {
         DEBUG_TIMER_BEGIN
         {
-            MuxGuard g(mLock);
+            MuxGuard g(m_MuxLock);
             while (!m_workQueue.empty()) {
                 m_workQueue.pop();
-            }
-            while (!m_timerQueue.empty()) {
-                m_timerQueue.pop();
             }
             m_timerStarted = false;
             m_callbackSn = 0;
@@ -173,8 +185,9 @@ public:
     }
 
 private:
-    mutable std::mutex m_timerLock;
-    mutable std::mutex m_workerLock;
+    mutable std::mutex m_MuxLock;
+    using MuxGuard = std::lock_guard<std::mutex>;
+    using MuxUniqLck = std::unique_lock<std::mutex>;
     std::condition_variable m_timerCond;
     std::condition_variable m_workerCond;
     std::thread m_timerThread;
@@ -185,10 +198,8 @@ private:
     std::atomic<uint32_t> m_callbackSn;
     std::function<void()> m_callbackFunc = std::function<void()>(nullptr);
     std::chrono::microseconds m_sleepMicros;
-    using MuxGuard = std::lock_guard<std::mutex>;
     std::queue<uint32_t> m_workQueue;
     std::queue<uint32_t> m_timerQueue;
-    mutable std::mutex mLock;
 };
 
 #endif //__MYTIMER_H__
