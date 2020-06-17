@@ -101,9 +101,11 @@ public:
 
     void timerWait() {
         MuxUniqLck tul(m_MuxLock);
+        uint32_t sn = 0;
         if (m_timerQueue.empty() && m_timerMainThreadAlive) {
+            sn = m_callbackSn;
             m_timerCond.wait_for(tul, std::chrono::microseconds(m_sleepMicros));
-            m_timerQueue.push(m_callbackSn); //timeout or notified
+            m_timerQueue.push(sn); //timeout or notified
         }
     }
     void doNotify() {
