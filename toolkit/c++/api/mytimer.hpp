@@ -25,7 +25,7 @@ class MYTimer {
 public:
     MYTimer():m_timerMainThreadAlive(false) {
         m_timerStarted = false;
-        m_callbackSn = 0;
+        m_callbackSn = (uint32_t)-1;
         m_sleepMicros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::milliseconds(1000));
         m_callbackFunc = std::function<void()>(nullptr);
         create();
@@ -180,7 +180,7 @@ public:
                 m_workQueue.pop();
             }
             m_timerStarted = false;
-            m_callbackSn = 0;
+            m_callbackSn = (uint32_t)-1;
             m_callbackFunc = std::function<void()>(nullptr);
         }
         DEBUG_TIMER_END
