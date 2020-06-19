@@ -10,7 +10,7 @@
 # v1.1 2020-05-04 merge dtag/duntag/djump to one command djump
 #
 
-export __DJUMP_VERSION='v1.1'
+export __DJUMP_VERSION='v1.2'
 export __DJUMP_DATA_PATH=${HOME}/.djump
 
 [ -d ${__DJUMP_DATA_PATH} ] || mkdir -p ${__DJUMP_DATA_PATH}
@@ -79,6 +79,7 @@ function djump()
 {
     local argv1=$1
     local argv2=$2
+    local argv3=$3
     local helpinfo="djump ${__DJUMP_VERSION}"\
 '\n\tIt is a convenient tool to help you change work directory quickly.'\
 '\nUsage:'\
@@ -90,29 +91,23 @@ function djump()
 '\n\tdjump --jump tag_name     change directory to the tag_name represent.'\
 '\n\tdjump --list              to list all tags created'\
 '\n\tdjump --list tag_name     to list tag named like tag_name'\
-'\n\tdjump --create tag_name   to create tag named as tag_name'\
+'\n\tdjump --create tag_name   to create tag named as tag_name, tag_name shouldnot start with (-)'\
 '\n\tdjump --delete tag_name   to delete tag named as tag_name'
 
-    case "${argv1,,}" in
-        '?')
-            echo -e "${helpinfo}"
-            return 0
-            ;;
-        '--help'|'-h')
-            echo -e "${helpinfo}"
-            return 0
-            ;;
-    esac
-    case "${argv2,,}" in
-        '?')
-            echo -e "${helpinfo}"
-            return 0
-            ;;
-        '--help'|'-h')
-            echo -e "${helpinfo}"
-            return 0
-            ;;
-    esac
+    for argvx in "$@"
+    do
+        # echo ${argvx}
+        case "${argvx,,}" in
+            '?')
+                echo -e "${helpinfo}"
+                return 0
+                ;;
+            '--help'|'-h')
+                echo -e "${helpinfo}"
+                return 0
+                ;;
+        esac
+    done
 
     [ -d ${__DJUMP_DATA_PATH} ] || mkdir -p ${__DJUMP_DATA_PATH}
     if [ "$?" != "0" ] ;then
@@ -127,11 +122,18 @@ function djump()
     if [ "${argv1:0:1}" = "-" ] ;then
         option1=${argv1}
         tag_name=${argv2}
+        extra_arg=${argv3}
     else
         option1='--jump'
         tag_name=${argv1}
+        extra_arg=${argv2}
     fi
-    if [ "$#" -gt "2" ] ;then
+    if [ "${tag_name:0:1}" = "-" ] ;then
+        echo "error: invalid tag_name, tag_name shouldnot start with (-)"
+        echo -e "${helpinfo}"
+        return 1
+    fi
+    if [ "${extra_arg}" != "" ] ;then
         echo "error: invalid parameters."
         # show all created tag
         echo -e "${helpinfo}"
@@ -172,7 +174,7 @@ function djump()
         '-c'|'--create')
             # create tag
             if [ "${tag_name}" = "" ] ;then
-                echo "error: Invalid tag_name"
+                echo "error: Invalid tag_name, tag_name shouldnot be empty."
                 echo -e "${helpinfo}"
                 return 1
             fi
@@ -194,8 +196,8 @@ function djump()
         '-d'|'--delete')
             # 如果只有一个参数则删除相应的tag_name
             if [ "${tag_name}" = "" ] ;then
-                echo "error: Invalid tag_name"
-                # show all created tag_names
+                echo "error: Invalid tag_name, tag_name shouldnot be empty."
+                # show all created tag_name
                 echo -e "${helpinfo}"
                 if [ "$(ls ${__DJUMP_DATA_PATH})" != "" ] ;then
                     echo -e "\nThe tag_name could be:"
