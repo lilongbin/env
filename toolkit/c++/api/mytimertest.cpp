@@ -47,19 +47,19 @@ void timerCallbackFunc(std::string &&info, int number) {
         g_lasttime = millis;
     }
     long long interval = millis - g_lasttime;
-    long long spendtime = millis - g_starttime;
+    long long spent = millis - g_starttime;
     if (interval < 50) {
         std::cout<<"###### "<<__func__<<" warning: unexpected interval="<<interval<<std::endl;
         g_warncount += 1;
     }
     std::cout<<__func__<<":sn="<<g_totalCnt<<",warn="<<g_warncount
-        <<",now="<<millis<<",spendtime="<<spendtime<<",interval="<<interval
-        <<",info="<<info<<",number="<<number<<std::endl;
+        <<",sys="<<getSystemMillis()<<",now="<<millis<<",spent="<<spent
+        <<",iv="<<interval<<",info="<<info<<",number="<<number<<std::endl;
     g_lasttime = millis;
 }
 
 int main() {
-    MYTimer *ptimer = new MYTimer();
+    SWTimer *ptimer = new SWTimer();
     if (ptimer == NULL) {
         std::cout << "ERROR: create timer failed." << std::endl;
         return -1;
@@ -74,7 +74,7 @@ int main() {
 
     int i = 0;
     std::string info;
-    for (i = 0; i< 2000; i++) {
+    for (i = 0; i< 20000; i++) {
         info = "hi";
         g_lasttime = getSteadyMillis();
         ptimer->start(100, std::bind(timerCallbackFunc, info.c_str(), i));
@@ -84,7 +84,7 @@ int main() {
 
     g_lasttime = getSteadyMillis();
     ptimer->start(1000, std::bind(timerCallbackFunc,"periodic timer!", 1));
-    std::this_thread::sleep_for(std::chrono::seconds(60));
+    std::this_thread::sleep_for(std::chrono::seconds(6));
     ptimer->stop();
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -92,7 +92,9 @@ int main() {
         delete ptimer;
         ptimer = NULL;
     }
-    std::cout <<"warning time="<<g_warncount<<std::endl;
+    time_t now = time(0);
+    std::cout<<"at "<<asctime(localtime(&now))<<std::endl;
+    std::cout<<"warning time="<<g_warncount<<std::endl;
     return 0;
 }
 

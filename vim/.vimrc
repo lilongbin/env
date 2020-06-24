@@ -71,7 +71,8 @@ set laststatus=2
 " highlight StatusLine cterm=bold ctermfg=NONE ctermbg=NONE guifg=SlateBlue guibg=yellow
 " highlight StatusLine cterm=bold ctermfg=white ctermbg=black
 " highlight StatusLineNC cterm=bold ctermfg=white ctermbg=black
-set statusline=[%n]\ \ %F%m%r%h\ %=%{&encoding}\ %l,%c\ %p%%\ %L\ 
+" set statusline=[%n]\ %F%m%r%h\ %=%Y\ %{&encoding}\ %l,%c\ %p%%\ %L\ 
+set statusline=[%n]\ %F%m%r%h\ %=%{&encoding}\ %l,%c\ %p%%\ %L\ 
 
 if $TERM != 'ansi'
 	set t_Co=256

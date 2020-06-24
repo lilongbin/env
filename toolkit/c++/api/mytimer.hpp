@@ -1,6 +1,6 @@
 //mytimer.hpp
-#ifndef __MYTIMER_H__
-#define __MYTIMER_H__
+#ifndef __SWTIMER_H__
+#define __SWTIMER_H__
 
 #include <iostream>
 #include <queue>
@@ -21,9 +21,9 @@
     #define DEBUG_TIMER_END
 #endif
 
-class MYTimer {
+class SWTimer {
 public:
-    MYTimer():m_timerMainThreadAlive(false) {
+    SWTimer():m_timerMainThreadAlive(false) {
         m_timerStarted = false;
         m_callbackSn = (uint32_t)-1;
         m_sleepMicros = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::milliseconds(1000));
@@ -31,13 +31,13 @@ public:
         create();
     }
 
-    ~MYTimer() {
+    ~SWTimer() {
         destroy();
         // std::cout << "~cpptimer" << std::endl;
     }
 
-    MYTimer(const MYTimer&) = delete;
-    MYTimer &operator=(const MYTimer&) = delete;
+    SWTimer(const SWTimer&) = delete;
+    SWTimer &operator=(const SWTimer&) = delete;
 private:
     void create() {
         DEBUG_TIMER_BEGIN
@@ -204,5 +204,5 @@ private:
     std::queue<uint32_t> m_timerQueue;
 };
 
-#endif //__MYTIMER_H__
+#endif //__SWTIMER_H__
 
