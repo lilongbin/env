@@ -47,8 +47,9 @@ private:
         m_timerMainThreadAlive = true;
         m_timerThread = std::thread([this]() { //lambda
             do {
-                timerWait(); // wait for timeout or until notified
-                doNotify(); // notify work thread
+                if (timerWait()) {
+                    doNotify(); // notify work thread
+                }
             } while (m_timerMainThreadAlive);
         });
 
@@ -99,26 +100,52 @@ public:
         DEBUG_TIMER_END
     }
 
-    void timerWait() {
+    bool timerWait() {
+        DEBUG_TIMER_BEGIN
         MuxUniqLck tul(m_MuxLock);
         uint32_t sn = 0;
-        if (m_timerQueue.empty() && m_timerMainThreadAlive) {
-            sn = m_callbackSn;
-            m_timerCond.wait_for(tul, std::chrono::microseconds(m_sleepMicros));
-            m_timerQueue.push(sn); //timeout or notified
+        if (!m_timerQueue.empty()) {
+            while (!m_timerQueue.empty()) {
+                m_timerQueue.pop();
+            }
+            // std::cout<<"return false queue, "<<getSteadyMillis()<<std::endl;
+            return false;
         }
+
+        sn = m_callbackSn;
+        m_startTimePoint = std::chrono::steady_clock::now();
+        m_timerCond.wait_for(tul, std::chrono::microseconds(m_sleepMicros));
+        if (!m_timerStarted) {
+            // std::cout<<"return false not started, "<<getSteadyMillis()<<std::endl;
+            return false;
+        }
+        if (sn != m_callbackSn) {
+            // std::cout<<"return false sn!=, "<<getSteadyMillis()<<std::endl;
+            return false;
+        }
+        m_nowTimePoint = std::chrono::steady_clock::now();
+        m_deltaMicros = std::chrono::duration_cast<DurationMicrosT>(m_nowTimePoint-m_startTimePoint);
+        // std::cout<<"delta:"<<m_deltaMicros.count()<<",sleep:"<<m_sleepMicros.count()<<std::endl;
+        if (m_deltaMicros.count() < m_sleepMicros.count()/2) {
+            // std::cout<<"return false interval, "<<getSteadyMillis()<<std::endl;
+            return false;
+        }
+        DEBUG_TIMER_END
+        // std::cout<<"return true: "<<getSteadyMillis()<<std::endl;
+        m_timerQueue.push(sn);
+        return true;
     }
     void doNotify() {
         {
             MuxGuard g(m_MuxLock);
             uint32_t sn = 0;
-            if (!m_timerQueue.empty()) {
-                sn = m_timerQueue.front();
-                m_timerQueue.pop();
-                if (sn != m_callbackSn) {
-                    // m_callbackSn changed between timerWait and doNotify, maybe start() called;
-                    return;
-                }
+            if (m_timerQueue.empty()) {
+                return;
+            }
+            sn = m_timerQueue.front();
+            m_timerQueue.pop();
+            if (sn != m_callbackSn) {
+                return;
             }
             if (!m_timerStarted) {
                 return;
@@ -142,12 +169,11 @@ public:
             MuxGuard g(m_MuxLock);
             uint32_t sn = 0;
             while (!m_workQueue.empty()) {
-                // get the latest sn
                 sn = m_workQueue.front();
                 m_workQueue.pop();
             };
             // std::cout<<"sn:"<<sn<<",m_callbackSn="<<m_callbackSn<<std::endl;
-            if (sn <= 1) {
+            if (sn == 0) {
                 return;
             }
             if (!m_timerStarted) {
@@ -187,6 +213,7 @@ public:
     }
 
 private:
+    typedef std::chrono::duration<int, std::ratio<1, 1000000>> DurationMicrosT;
     mutable std::mutex m_MuxLock;
     using MuxGuard = std::lock_guard<std::mutex>;
     using MuxUniqLck = std::unique_lock<std::mutex>;
@@ -202,6 +229,9 @@ private:
     std::chrono::microseconds m_sleepMicros;
     std::queue<uint32_t> m_workQueue;
     std::queue<uint32_t> m_timerQueue;
+    std::chrono::steady_clock::time_point m_startTimePoint;
+    std::chrono::steady_clock::time_point m_nowTimePoint;
+    DurationMicrosT m_deltaMicros;
 };
 
 #endif //__SWTIMER_H__
