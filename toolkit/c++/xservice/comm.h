@@ -20,19 +20,7 @@
 #include <condition_variable>
 #include <algorithm>
 
-#if 1
-#define ALOGI while(0) printf
-#define ALOGW while(0) printf
-#define ALOGE while(0) printf
-#define ALOGD while(0) printf
-#define ALOGV while(0) printf
-#else
-#define ALOGI printf("\r\n");printf
-#define ALOGW printf("\r\n");printf
-#define ALOGE printf("\r\n");printf
-#define ALOGD printf("\r\n");printf
-#define ALOGV printf("\r\n");printf
-#endif
+#define DEBUG 1
 
 typedef struct MsgHeaderType {
 	uint32_t seqId;

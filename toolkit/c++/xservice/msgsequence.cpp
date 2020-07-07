@@ -15,6 +15,7 @@
 
 #include "comm.h"
 #include "msgsequence.h"
+#include "log.h"
 
 /*-----------MsgSequenceID--begin-----------*/
 MsgSequenceID::MsgSequenceID()

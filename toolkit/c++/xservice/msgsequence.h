@@ -1,11 +1,7 @@
 /*****************************************
 * Copyright (C) 2020 * Ltd. All rights reserved.
-* 
 * File name   : msgsquence.h
 * Author      : longbin
-* Created date: 2020-01-03 13:25:34
-* Description : 
-*
 *******************************************/
 
 #ifndef __MSG_SEQUENCE_H__
@@ -23,7 +19,7 @@
 #include "singleton.h"
 
 /* class MsgSequenceID */
-class MsgSequenceID:public      Singleton<MsgSequenceID>
+class MsgSequenceID:public Singleton<MsgSequenceID>
 {
 	friend class Singleton<MsgSequenceID>;
 public:

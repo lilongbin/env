@@ -15,6 +15,7 @@
 
 #include "comm.h"
 #include "msgqueue.h"
+#include "log.h"
 
 /*-----------MsgQueueBase--begin-----------*/
 MsgQueueBase::MsgQueueBase()

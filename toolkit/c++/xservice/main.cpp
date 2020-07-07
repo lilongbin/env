@@ -1,15 +1,10 @@
 /*****************************************
 * Copyright (C) 2020 * Ltd. All rights reserved.
-* 
 * File name   : main.cpp
 * Author      : longbin
-* Created date: 2020-01-03 13:44:56
-* Description : 
-*
 *******************************************/
 
 #include <iostream>
-
 #include <string>
 #include <map>
 #include <vector>
@@ -19,6 +14,8 @@
 #include "service.h"
 #include "eventcallback.h"
 
+#include "log.h"
+
 class CallBack:public EventCallback
 {
 public:
@@ -27,9 +24,8 @@ public:
 	void onResponse(MsgQueueType msg)
 	{
         std::string str(msg.vpayload.begin(), msg.vpayload.end());
-        printf("%s %s msg.header.seqId=%d\n", __FILE__,  __func__, msg.header.seqId);
-		printf("%s %s msg.header.cmdId=%d\n", __FILE__,  __func__, msg.header.cmdId);
-        printf("%s %s msg.vpayload str=%s\n", __FILE__,  __func__, str.c_str());
+        printf("%s %s seqId=%d, cmdId=%d, payload=%s\n",
+                __FILE__,  __func__, msg.header.seqId, msg.header.cmdId, str.c_str());
 		printf("%s %s put your callback func here\n", __FILE__,  __func__);
 	}
 };
@@ -59,13 +55,12 @@ void service_run_test()
 {
 	service_init();
 	std::string line;
-	while (1)
-	{
+	while (1) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
 		std::cout << "please input your words: ";// << std::endl;
 		std::getline(std::cin, line);
 		service_request(line);
-		if (line.length() == 0)
-		{
+		if (line.length() == 0) {
 			break;
 		}
 	}

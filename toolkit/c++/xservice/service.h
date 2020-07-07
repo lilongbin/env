@@ -1,11 +1,7 @@
 /*****************************************
  * Copyright (C) 2020 * Ltd. All rights reserved.
- * 
  * File name   : service.h
  * Author      : longbin
- * Created date: 2020-01-03 14:49:26
- * Description : 
- *
  *******************************************/
 
 #ifndef __SERVICE_H__
@@ -36,7 +32,7 @@
 struct MsgManager;
 
 /* class Service */
-class Service:public      Singleton<Service>
+class Service:public Singleton<Service>
 {
 	friend class Singleton<Service>;
 public:

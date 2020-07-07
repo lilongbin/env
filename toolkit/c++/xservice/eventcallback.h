@@ -1,11 +1,7 @@
 /*****************************************
 * Copyright (C) 2020 * Ltd. All rights reserved.
-* 
 * File name   : eventcallback.h
 * Author      : longbin
-* Created date: 2020-01-03 16:43:42
-* Description : 
-*
 *******************************************/
 
 #ifndef __EVENTCALLBACK_H__
