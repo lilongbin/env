@@ -24,9 +24,8 @@ public:
 	void onResponse(MsgQueueType msg)
 	{
         std::string str(msg.vpayload.begin(), msg.vpayload.end());
-        printf("%s %s seqId=%d, cmdId=%d, payload=%s\n",
-                __FILE__,  __func__, msg.header.seqId, msg.header.cmdId, str.c_str());
-		printf("%s %s put your callback func here\n", __FILE__,  __func__);
+        ALOGI("%s seqId=%d, cmdId=%d, payload=(%s)", __func__, msg.header.seqId, msg.header.cmdId, str.c_str());
+        printf("%s put your callback func here\n", __func__);
 	}
 };
 
@@ -47,7 +46,7 @@ void service_request(std::string &line)
 	msg.header.seqId = msgSequence->getSequenceID();
 	msg.header.cmdId = msgSequence->getSequenceID();
 	msg.vpayload = std::move(vc);
-	msg.header.payloadLength = msg.vpayload.size();
+	msg.header.plLength = msg.vpayload.size();
 	m_service->onRequest(msg);
 }
 
@@ -67,6 +66,7 @@ void service_run_test()
 }
 
 int main() {
+    set_log_level(LOG_DEBUG);
 	service_run_test();
 	m_service->stop();
 }

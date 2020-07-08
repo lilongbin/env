@@ -26,7 +26,7 @@ typedef struct MsgHeaderType {
 	uint32_t seqId;
 	uint16_t funId;
 	uint32_t cmdId;
-	uint16_t payloadLength;
+	uint16_t plLength;
 } MsgHeaderType;
 
 typedef struct MsgQueueType

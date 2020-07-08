@@ -8,30 +8,43 @@
 *
 *******************************************/
 
-// #include "comm.h"
+#include <cstdarg>
 
-#define LOG_LEVEL 4
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-# if DEBUG
+void set_log_level(int level);
+int __print_log(int prio, const char* tag, const char* fmt, ...);
+
+typedef enum LogPriority {
+    LOG_UNKNOWN = 0,
+    LOG_DEFAULT,    /* only for SetMinPriority() */
+    LOG_VERBOSE,
+    LOG_DEBUG,
+    LOG_INFO,
+    LOG_WARN,
+    LOG_ERROR,
+    LOG_FATAL,
+    LOG_SILENT,     /* only for SetMinPriority(); must be last */
+} LogPriority;
+
+#define LOG_STR(x) #x
+#define LOG_XSTR(s) LOG_STR(s)
 
 #ifndef LOG_TAG
-#define LOG_TAG __FILE__
+#define LOG_TAG __FILE__ ":" LOG_XSTR(__LINE__)
 #endif
-#define LOG_PRI(pri, pri_str, tag, fmt,...) if(LOG_LEVEL>=pri)printf(pri_str tag fmt"\r\n",##__VA_ARGS__)
 
-#define ALOGE(fmt,...) LOG_PRI(1, "E ", LOG_TAG": ", fmt, ##__VA_ARGS__)
-#define ALOGW(fmt,...) LOG_PRI(2, "W ", LOG_TAG": ", fmt, ##__VA_ARGS__)
-#define ALOGI(fmt,...) LOG_PRI(3, "I ", LOG_TAG": ", fmt, ##__VA_ARGS__)
-#define ALOGD(fmt,...) LOG_PRI(4, "D ", LOG_TAG": ", fmt, ##__VA_ARGS__)
-#define ALOGV(fmt,...) LOG_PRI(5, "V ", LOG_TAG": ", fmt, ##__VA_ARGS__)
+#define LOG_PRI(pri, tag, ...) ((void)__print_log(pri, tag, __VA_ARGS__))
 
-# else
+#define ALOGE(...) (LOG_PRI(LOG_ERROR,   LOG_TAG, __VA_ARGS__))
+#define ALOGW(...) (LOG_PRI(LOG_WARN,    LOG_TAG, __VA_ARGS__))
+#define ALOGI(...) (LOG_PRI(LOG_INFO,    LOG_TAG, __VA_ARGS__))
+#define ALOGD(...) (LOG_PRI(LOG_DEBUG,   LOG_TAG, __VA_ARGS__))
+#define ALOGV(...) (LOG_PRI(LOG_VERBOSE, LOG_TAG, __VA_ARGS__))
 
-#define ALOGI(fmt,...)
-#define ALOGW(fmt,...)
-#define ALOGE(fmt,...)
-#define ALOGD(fmt,...)
-#define ALOGV(fmt,...)
-
-# endif
+#ifdef __cplusplus
+}  // extern "C"
+#endif
 

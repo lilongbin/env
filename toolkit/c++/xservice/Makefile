@@ -5,6 +5,7 @@ SRC = msgqueue.cpp \
 	  msgsequence.cpp \
 	  msgmanager.cpp \
 	  service.cpp \
+	  log.cpp \
 	  main.cpp
 
 service: $(SRC)

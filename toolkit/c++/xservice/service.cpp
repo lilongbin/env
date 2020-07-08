@@ -21,7 +21,8 @@
 #ifdef LOG_TAG
 #undef LOG_TAG
 #endif
-#define LOG_TAG "Service"
+// #define LOG_TAG "Service"
+#define LOG_TAG __FILE__ ":" LOG_XSTR(__LINE__)
 
 /*-----------Service--begin-----------*/
 Service::Service()

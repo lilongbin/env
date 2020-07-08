@@ -35,8 +35,8 @@ void MsgQueueBase::setTagName(std::string &tagName)
 
 void MsgQueueBase::write(MsgQueueType &msg)
 {
-    ALOGV("%s::write seqId=%u, cmdId=%u, payloadLength=%hu", m_tagName.c_str(),
-            msg.header.seqId, msg.header.cmdId, msg.header.payloadLength);
+    ALOGV("%s::write seqId=%u, cmdId=%u, plLength=%hu", m_tagName.c_str(),
+            msg.header.seqId, msg.header.cmdId, msg.header.plLength);
     /* msgs cannot be used any more after push */
     m_Queue->push(std::move(msg));
 }
@@ -53,8 +53,8 @@ bool MsgQueueBase::read(MsgQueueType &msg)
     ret = m_Queue->pull(msg);
     if (ret == true)
     {
-        ALOGD("%s::read seqId=%u, cmdId=%u, payloadLength=%hu", m_tagName.c_str(),
-                msg.header.seqId, msg.header.cmdId, msg.header.payloadLength);
+        ALOGD("%s::read seqId=%u, cmdId=%u, plLength=%hu", m_tagName.c_str(),
+                msg.header.seqId, msg.header.cmdId, msg.header.plLength);
     }
     return ret;
 }
