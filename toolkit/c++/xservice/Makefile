@@ -8,10 +8,10 @@ SRC = msgqueue.cpp \
 	  log.cpp \
 	  main.cpp
 
+all: clean $(OBJS)
+
 service: $(SRC)
 	$(CC) $(SRC) $(CFLAGS) -o service
-
-all: clean $(OBJS)
 
 clean:
 	-rm -rv $(OBJS)

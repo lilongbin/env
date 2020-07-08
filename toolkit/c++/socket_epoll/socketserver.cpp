@@ -1,5 +1,5 @@
 /*
- * socket
+ * socket server
  * */
 #include <cstdio>
 #include <iostream>

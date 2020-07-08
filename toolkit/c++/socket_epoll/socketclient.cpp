@@ -1,5 +1,5 @@
 /*
- * socket
+ * socket client
  * */
 #include <cstdio>
 #include <iostream>
@@ -83,7 +83,7 @@ int SocketClient::send(int sfd, char const * const buf, int size)
 void SocketClient::stop()
 {
 	close(sockfd);
-	printf("service is going down...\n");
+	printf("socket is going down...\n");
 }
 
 SocketClient::~SocketClient()
