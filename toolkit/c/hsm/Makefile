@@ -10,7 +10,7 @@ XX = g++
 CFLAGS_STATIC_LIB = 
 
 target := myhsm
-user_dir = ./
+user_dir = .
 includes =  -I ./libhsm/include
 lib = -lhsm
 lib_path =  -L ./libhsm/
