@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <termios.h>
 
+#include "xservice_hsm_mgr_comm.h"
 #include "xservice_hsm_mgr_event.h"
 #include "xservice_hsm_mgr_impl.h"
 
@@ -42,36 +43,28 @@ char getch()
     return ch;
 }
 
-const char * event2str(int event_id) {
-    switch (event_id) {
-        EVENT2STRS
-        default:
-            return "unkown";
-    }
-}
-
 int main()
 {
     XService_HSM_Start();
     char ch = 0;
-    int evt = eTypedKeyOther;
+    int evt = EVT_TypedKeyOther;
     //int i = 0;
     //for (i = 0; i < 100; i++) {
     for (;;) {
         ch = getch();
         if ((ch == '+')
             ||(ch == '-') ) {
-            evt = eTypedKeySign;
+            evt = EVT_TypedKeySign;
         } else if (ch == '0') {
-            evt = eTypedKeyNumber0;
+            evt = EVT_TypedKeyNumber0;
         } else if ((ch >= '1') && (ch <= '9')) {
-            evt = eTypedKeyNumber1_9;
+            evt = EVT_TypedKeyNumber1_9;
         } else if (ch == '.') {
-            evt = eTypedKeyDot;
+            evt = EVT_TypedKeyDot;
         } else if ((ch == '\n')||(ch == '\r')) {
-            evt = eTypedKeyEnter;
+            evt = EVT_TypedKeyEnter;
         } else {
-            evt = eTypedKeyOther;
+            evt = EVT_TypedKeyOther;
         }
         //printf("send evt: %d-%s, data:%d-%c\n", evt, event2str(evt), ch, ch);
         XService_SendMsgToHSM(evt, &ch, 1);

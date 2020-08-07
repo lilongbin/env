@@ -15,7 +15,7 @@ class EventCallback
 public:
 	EventCallback() {}
 	virtual ~EventCallback() {}
-	virtual void onResponse(MsgQueueType msg) {}
+	virtual void onResponse(MsgQueueType msg) = 0;
 };
 
 #endif

@@ -106,7 +106,6 @@ void * MsgManager::receiver(void * mstruct)
 
     MsgQueueType msg {};
     bool msgret = false;
-    uint16_t bufflength = 0;
 
     while (g_MainThreadIsAlive == true)
     {

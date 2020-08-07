@@ -1,27 +1,32 @@
 /*****************************************
 * Copyright (C) 2020 * Ltd. All rights reserved.
 * 
-* File name   : xservice_hsm_mgr.h
+* File name   : xservice_hsm_mgr_comm.h
 * Author      : longbin
-* Created date: 2020-08-05 14:14:45
+* Created date: 2020-08-07 10:09:08
 * Description : 
 *
 *******************************************/
-#ifndef __XSERVICE_HSM_MGR_IMPL_H__
-#define __XSERVICE_HSM_MGR_IMPL_H__
 
-#include "xservice_hsm_mgr_comm.h"
-#include "hsm_engine.h"
+#ifndef __XSERVICE_HSM_MGR_COMM_H__
+#define __XSERVICE_HSM_MGR_COMM_H__
+
+#  if 0
+#    define XSERVICE_DEBUG_STATE_CHART 1
+#    define DBG_ASSERT(x) assert((x))
+#  else
+#    ifdef XSERVICE_DEBUG_STATE_CHART
+#      undef XSERVICE_DEBUG_STATE_CHART
+#    endif
+#    define DBG_ASSERT(x)
+#  endif
 
 #   ifdef __cplusplus
 extern "C"
 { /* ! Inclusion of header files should NOT be inside the extern "C" block */
 #   endif /* __cplusplus */
 
-void XService_HSM_Shutdown(void);
-void XService_HSM_Start(void);
-HSM_Statechart_T * XService_HSM_Get(void);
-bool_t XService_SendMsgToHSM(int event_id, const void * pdata, const size_t data_size);
+const char * event2str(const int event_id);
 
 #   ifdef __cplusplus
 }         /* extern "C" */

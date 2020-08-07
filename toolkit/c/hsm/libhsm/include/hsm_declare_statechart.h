@@ -14,8 +14,8 @@
  *
  *------------------------------------------------------------------------------
  *
- * Copyright 2007 Delphi Technologies, Inc., All Rights Reserved.
- * Delphi Confidential
+ * Copyright 2007 Technologies, Inc., All Rights Reserved.
+ * Confidential
  *
  *------------------------------------------------------------------------------
  *
@@ -45,7 +45,7 @@
  *
  *   - Applicable Standards (in order of precedence: highest first):
  *     - <a href="http://kogespw1.delcoelect.com:8508/passthru/consumer?name=SW%20REF%20264.15D&doctype=K8DBSDoc">
- *       SW REF 264.15D "Delphi C Coding Standards" [12-Mar-2006]</a>
+ *       SW REF 264.15D "C Coding Standards" [12-Mar-2006]</a>
  *
  * @section DFS DEVIATIONS FROM STANDARDS:
  *   - None
