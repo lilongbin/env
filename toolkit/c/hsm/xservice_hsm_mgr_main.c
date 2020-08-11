@@ -63,6 +63,8 @@ int main()
             evt = EVT_TypedKeyDot;
         } else if ((ch == '\n')||(ch == '\r')) {
             evt = EVT_TypedKeyEnter;
+        } else if (ch == '#') {
+            evt = EVT_TypedKeyPound;
         } else {
             evt = EVT_TypedKeyOther;
         }

@@ -199,14 +199,14 @@ STATECHART_DEFN9()
 #define HSM_DEEP_HISTORY_STATE(state_name,parent,default_state)\
   HSM_State_Id_T state_name##_History=default_state;\
   const HSM_Transition_T state_name##_Transitions[]=\
-     {{HSM_NO_EVENT,HSM_NO_GUARD,HSM_NO_ACTION,default_state,&state_name##_History, ""}};
+     {{HSM_NO_EVENT,HSM_NO_GUARD,HSM_NO_ACTION,default_state,&state_name##_History, "", ""}};
 
 #define HSM_FINAL_STATE(state_name,parent)
 
 #define HSM_SHALLOW_HISTORY_STATE(state_name,parent,default_state)\
   HSM_State_Id_T state_name##_History=default_state;\
   const HSM_Transition_T state_name##_Transitions[]=\
-     {{HSM_NO_EVENT,HSM_NO_GUARD,HSM_NO_ACTION,default_state,&state_name##_History, ""}};
+     {{HSM_NO_EVENT,HSM_NO_GUARD,HSM_NO_ACTION,default_state,&state_name##_History, "", ""}};
 
 #ifdef HSM_GENERATE_ACTION_NAMES
 #   define HSM_INITIAL_STATE(state_name,parent,action,next_state)\

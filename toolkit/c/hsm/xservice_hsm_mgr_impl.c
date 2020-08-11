@@ -18,7 +18,8 @@
 
 typedef struct XServiceHsmObject_T {
     HSM_Statechart_T statechart;
-    char user_input[1024];
+    char working_data[1024];
+    char extra_data[1024];
 } XServiceHsmObject_T;
 static XServiceHsmObject_T gs_xservice_hsm_object;
 
@@ -31,6 +32,12 @@ static void proc_dot(const HSM_Statechart_T* pstatechart);
 static void proc_decimal(const HSM_Statechart_T* pstatechart);
 static void prompt_none(const HSM_Statechart_T* pstatechart);
 static void prompt_reset(const HSM_Statechart_T* pstatechart);
+
+static void onInterupt1(const HSM_Statechart_T* pstatechart);
+static void onInterupt2(const HSM_Statechart_T* pstatechart);
+static void proc_open(const HSM_Statechart_T* pstatechart);
+static void proc_reading(const HSM_Statechart_T* pstatechart);
+static void proc_close(const HSM_Statechart_T* pstatechart);
 
 static void debugger(const HSM_Statechart_T* pstatechart);
 
@@ -95,7 +102,7 @@ static void onError(const HSM_Statechart_T* pstatechart) {
             pstatechart->current_state, current_state_name,
             __func__, pevt_data[0], pevt_data[0]);
     printf("\t\thas ignored, please continue input\n");
-    printf("%s", pobj->user_input); fflush(stdout);
+    printf("%s", pobj->working_data); fflush(stdout);
 }
 
 static void resulted(const HSM_Statechart_T* pstatechart) {
@@ -107,8 +114,8 @@ static void resulted(const HSM_Statechart_T* pstatechart) {
     const char *current_state_name = HSM_Get_State_Name(pstatechart, pstatechart->current_state);
     printf("\r[%d-%s] [%s]: %s\n",
             pstatechart->current_state, current_state_name,
-            __func__, pobj->user_input);
-    memset(pobj->user_input, 0, sizeof(pobj->user_input));
+            __func__, pobj->working_data);
+    memset(pobj->working_data, 0, sizeof(pobj->working_data));
 }
 
 static void proc_signed(const HSM_Statechart_T* pstatechart) {
@@ -119,12 +126,12 @@ static void proc_signed(const HSM_Statechart_T* pstatechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)pstatechart->this_ptr;
     const char *current_state_name = HSM_Get_State_Name(pstatechart, pstatechart->current_state);
     char const* pevt_data = (char const *)(pstatechart->event_data);
-    strncat(pobj->user_input, pevt_data, 1);
+    strncat(pobj->working_data, pevt_data, 1);
     printf("\r[%d-%s] [%s]: %d(%c) (%s)\n",
             pstatechart->current_state, current_state_name,
-            __func__, pevt_data[0], pevt_data[0], pobj->user_input);
+            __func__, pevt_data[0], pevt_data[0], pobj->working_data);
     printf("\tuncompleted, you can continue type 0123456789\n");
-    printf("%s", pobj->user_input); fflush(stdout);
+    printf("%s", pobj->working_data); fflush(stdout);
 }
 
 static void proc_lead0(const HSM_Statechart_T* pstatechart) {
@@ -135,12 +142,12 @@ static void proc_lead0(const HSM_Statechart_T* pstatechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)pstatechart->this_ptr;
     const char *current_state_name = HSM_Get_State_Name(pstatechart, pstatechart->current_state);
     char const* pevt_data = (char const *)(pstatechart->event_data);
-    strncat(pobj->user_input, pevt_data, 1);
+    strncat(pobj->working_data, pevt_data, 1);
     printf("\r[%d-%s] [%s]: %d(%c) (%s)\n",
             pstatechart->current_state, current_state_name,
-            __func__, pevt_data[0], pevt_data[0], pobj->user_input);
+            __func__, pevt_data[0], pevt_data[0], pobj->working_data);
     printf("\tvalidity, you can continue type .\n");
-    printf("%s", pobj->user_input); fflush(stdout);
+    printf("%s", pobj->working_data); fflush(stdout);
 }
 
 static void proc_int(const HSM_Statechart_T* pstatechart) {
@@ -151,12 +158,12 @@ static void proc_int(const HSM_Statechart_T* pstatechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)pstatechart->this_ptr;
     const char *current_state_name = HSM_Get_State_Name(pstatechart, pstatechart->current_state);
     char const* pevt_data = (char const *)(pstatechart->event_data);
-    strncat(pobj->user_input, pevt_data, 1);
+    strncat(pobj->working_data, pevt_data, 1);
     printf("\r[%d-%s] [%s]: %d(%c) (%s)\n",
             pstatechart->current_state, current_state_name,
-            __func__, pevt_data[0], pevt_data[0], pobj->user_input);
+            __func__, pevt_data[0], pevt_data[0], pobj->working_data);
     printf("\tvalidity, you can continue type 0123456789.\n");
-    printf("%s", pobj->user_input); fflush(stdout);
+    printf("%s", pobj->working_data); fflush(stdout);
 }
 
 static void proc_dot(const HSM_Statechart_T* pstatechart) {
@@ -167,12 +174,12 @@ static void proc_dot(const HSM_Statechart_T* pstatechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)pstatechart->this_ptr;
     const char *current_state_name = HSM_Get_State_Name(pstatechart, pstatechart->current_state);
     char const* pevt_data = (char const *)(pstatechart->event_data);
-    strncat(pobj->user_input, pevt_data, 1);
+    strncat(pobj->working_data, pevt_data, 1);
     printf("\r[%d-%s] [%s]: %d(%c) (%s)\n",
             pstatechart->current_state, current_state_name,
-            __func__, pevt_data[0], pevt_data[0], pobj->user_input);
+            __func__, pevt_data[0], pevt_data[0], pobj->working_data);
     printf("\tuncompleted, you can continue type 0123456789\n");
-    printf("%s", pobj->user_input); fflush(stdout);
+    printf("%s", pobj->working_data); fflush(stdout);
 }
 
 static void proc_decimal(const HSM_Statechart_T* pstatechart) {
@@ -183,12 +190,64 @@ static void proc_decimal(const HSM_Statechart_T* pstatechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)pstatechart->this_ptr;
     const char *current_state_name = HSM_Get_State_Name(pstatechart, pstatechart->current_state);
     char const* pevt_data = (char const *)(pstatechart->event_data);
-    strncat(pobj->user_input, pevt_data, 1);
+    strncat(pobj->working_data, pevt_data, 1);
     printf("\r[%d-%s] [%s]: %d(%c) (%s)\n",
             pstatechart->current_state, current_state_name,
-            __func__, pevt_data[0], pevt_data[0], pobj->user_input);
+            __func__, pevt_data[0], pevt_data[0], pobj->working_data);
     printf("\tvalidity, you can continue type 0123456789\n");
-    printf("%s", pobj->user_input); fflush(stdout);
+    printf("%s", pobj->working_data); fflush(stdout);
+}
+
+static void onInterupt1(const HSM_Statechart_T* pstatechart) {
+    if (pstatechart == NULL) {
+        DBG_ASSERT(0);
+        return;
+    }
+    XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)pstatechart->this_ptr;
+    printf("\n%s entry reading dec:%s, str:%s\n", __func__, pobj->working_data, pobj->extra_data);
+}
+
+static void onInterupt2(const HSM_Statechart_T* pstatechart) {
+    if (pstatechart == NULL) {
+        DBG_ASSERT(0);
+        return;
+    }
+    XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)pstatechart->this_ptr;
+    printf("\n%s exit reading dec:%s, str:%s\n", __func__, pobj->working_data, pobj->extra_data);
+}
+
+static void proc_open(const HSM_Statechart_T* pstatechart) {
+    if (pstatechart == NULL) {
+        DBG_ASSERT(0);
+        return;
+    }
+    XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)pstatechart->this_ptr;
+    memset(pobj->extra_data, 0, sizeof(pobj->extra_data));
+    printf("%s please input your string\n", __func__);
+}
+
+static void proc_reading(const HSM_Statechart_T* pstatechart) {
+    if (pstatechart == NULL) {
+        DBG_ASSERT(0);
+        return;
+    }
+    XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)pstatechart->this_ptr;
+    const char *current_state_name = HSM_Get_State_Name(pstatechart, pstatechart->current_state);
+    char const* pevt_data = (char const *)(pstatechart->event_data);
+    strncat(pobj->extra_data, pevt_data, 1);
+    printf("\r[%d-%s] [%s]: %d(%c) (%s)\n",
+            pstatechart->current_state, current_state_name,
+            __func__, pevt_data[0], pevt_data[0], pobj->extra_data);
+    printf("%s", pobj->extra_data); fflush(stdout);
+}
+
+static void proc_close(const HSM_Statechart_T* pstatechart) {
+    if (pstatechart == NULL) {
+        DBG_ASSERT(0);
+        return;
+    }
+    XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)pstatechart->this_ptr;
+    printf("\n%s %s has been cleared\n", __func__, pobj->extra_data);
 }
 
 static void prompt_none(const HSM_Statechart_T* pstatechart) {

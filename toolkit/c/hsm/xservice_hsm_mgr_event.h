@@ -17,6 +17,7 @@ enum __xservice_hsm_event_tag {
     EVT_TypedKeyNumber1_9,
     EVT_TypedKeyDot,
     EVT_TypedKeyEnter,
+    EVT_TypedKeyPound,
     EVT_TypedKeyOther,
 } XServiceHsmEvent;
 
@@ -27,6 +28,7 @@ enum __xservice_hsm_event_tag {
     EVENT2STR(EVT_TypedKeyNumber1_9) \
     EVENT2STR(EVT_TypedKeyDot) \
     EVENT2STR(EVT_TypedKeyEnter) \
+    EVENT2STR(EVT_TypedKeyPound) \
     EVENT2STR(EVT_TypedKeyOther) \
 /* XServiceHsmEvent end */
 
