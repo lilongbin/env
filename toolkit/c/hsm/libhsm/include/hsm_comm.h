@@ -54,6 +54,16 @@ typedef uint8_t bool_t;
 #   define HSM_MAX_TRANSITION_CHAIN 25
 typedef int16_t HSM_Event_T;
 
+#ifndef LOG_TAG
+#define LOG_STR(x) #x
+#define LOG_XSTR(s) LOG_STR(s)
+#define LOG_TAG __FILE__ ":" LOG_XSTR(__LINE__)
+#endif
+
+extern int __hsm_log_func(int prio, const char *tag, const char *fmt, ...);
+#define hsm_log_func(...) __hsm_log_func(0, LOG_TAG, __VA_ARGS__)
+//#define hsm_log_func(fmt,...) printf(fmt, __VA_ARGS__)
+
 #if 0
 #      define Tr_Fault(msg)
 #      define Tr_Fault_1(msg,a1)
@@ -91,47 +101,47 @@ typedef int16_t HSM_Event_T;
 #      define Tr_Info_Lo_3(msg,a1,a2,a3)
 #      define Tr_Info_Lo_4(msg,a1,a2,a3,a4)
 #else
-#      define Tr_Fault printf
-#      define Tr_Fault_1 printf
-#      define Tr_Fault_2 printf
-#      define Tr_Fault_3 printf
-#      define Tr_Fault_4 printf
+#      define Tr_Fault hsm_log_func
+#      define Tr_Fault_1 hsm_log_func
+#      define Tr_Fault_2 hsm_log_func
+#      define Tr_Fault_3 hsm_log_func
+#      define Tr_Fault_4 hsm_log_func
 
-#      define Tr_Warn printf
-#      define Tr_Warn_1 printf
-#      define Tr_Warn_2 printf
-#      define Tr_Warn_3 printf
-#      define Tr_Warn_4 printf
+#      define Tr_Warn hsm_log_func
+#      define Tr_Warn_1 hsm_log_func
+#      define Tr_Warn_2 hsm_log_func
+#      define Tr_Warn_3 hsm_log_func
+#      define Tr_Warn_4 hsm_log_func
 
-#      define Tr_Notify printf
-#      define Tr_Notify_1 printf
-#      define Tr_Notify_2 printf
-#      define Tr_Notify_3 printf
-#      define Tr_Notify_4 printf
+#      define Tr_Notify hsm_log_func
+#      define Tr_Notify_1 hsm_log_func
+#      define Tr_Notify_2 hsm_log_func
+#      define Tr_Notify_3 hsm_log_func
+#      define Tr_Notify_4 hsm_log_func
 
-#      define Tr_Info_Hi printf
-#      define Tr_Info_Hi_1 printf
-#      define Tr_Info_Hi_2 printf
-#      define Tr_Info_Hi_3 printf
-#      define Tr_Info_Hi_4 printf
+#      define Tr_Info_Hi hsm_log_func
+#      define Tr_Info_Hi_1 hsm_log_func
+#      define Tr_Info_Hi_2 hsm_log_func
+#      define Tr_Info_Hi_3 hsm_log_func
+#      define Tr_Info_Hi_4 hsm_log_func
 
-#      define Tr_Info_Mid printf
-#      define Tr_Info_Mid_1 printf
-#      define Tr_Info_Mid_2 printf
-#      define Tr_Info_Mid_3 printf
-#      define Tr_Info_Mid_4 printf
+#      define Tr_Info_Mid hsm_log_func
+#      define Tr_Info_Mid_1 hsm_log_func
+#      define Tr_Info_Mid_2 hsm_log_func
+#      define Tr_Info_Mid_3 hsm_log_func
+#      define Tr_Info_Mid_4 hsm_log_func
 
-#      define Tr_Info_Lo printf
-#      define Tr_Info_Lo_1 printf
-#      define Tr_Info_Lo_2 printf
-#      define Tr_Info_Lo_3 printf
-#      define Tr_Info_Lo_4 printf
+#      define Tr_Info_Lo hsm_log_func
+#      define Tr_Info_Lo_1 hsm_log_func
+#      define Tr_Info_Lo_2 hsm_log_func
+#      define Tr_Info_Lo_3 hsm_log_func
+#      define Tr_Info_Lo_4 hsm_log_func
 #endif
 
 #   define PBC_Require(expr_, ...) \
 if(expr_){}                        \
 else {                             \
-   printf(__VA_ARGS__ );           \
+   hsm_log_func(__VA_ARGS__);            \
 }
 #   define PBC_Require_1 PBC_Require
 #   define PBC_Require_2 PBC_Require
@@ -153,7 +163,6 @@ else {                             \
 #   define PBC_Failed_3    PBC_Require
 #   define PBC_Failed_4    PBC_Require
 
-#define TR_MODULE_UNKNOWN 0
 #define  TR_LVL_SILENT   -1
 #define  TR_LVL_FAULT     0
 #define  TR_LVL_WARN      1

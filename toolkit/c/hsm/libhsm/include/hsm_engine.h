@@ -339,6 +339,9 @@ extern "C"
 #   define HSM_COMPLETION_TRANSITION(action, next_state)\
         HSM_TRANSITION(HSM_COMPLETION_EVENT, HSM_NO_GUARD, action, next_state)
 
+#   define HSM_COMPOSITE_COMPLETION_TRANSITION(current_state,action,next_state)\
+        HSM_COMPLETION_TRANSITION(action,next_state)
+
 /**
  * This MACRO defines a composite state - a state containing other states.
  *
@@ -757,6 +760,8 @@ extern "C"
  */
 #   define HSM_TRANSITION(event,guard,action,next_state)
 
+#   define HSM_EXTERNAL_TRANSITION(event,guard,current_state,action,next_state)\
+        HSM_TRANSITION(event,guard,action,next_state)
 
 /*===========================================================================*
  * Exported Type Declarations
@@ -798,7 +803,7 @@ typedef void (*HSM_Action_T)(struct HSM_Statechart_Tag const *statechart);
 /**
  * Type of pointer to function used for debug callback.
  */
-typedef void (*HSM_Callback_T)(struct HSM_Statechart_Tag const *statechart);
+typedef void (*HSM_DbgFunc_T)(struct HSM_Statechart_Tag const *statechart);
 
 /**
  * Type of pointer to guard function.
@@ -885,7 +890,7 @@ HSM_State_Defn_T;
  * Function pointer that can optionally be provided by a module to translate
  * its event values into names for dbg_trace.
  */
-typedef char const *(*HSM_Event_Name_Func_T)(HSM_Event_T event);
+typedef char const *(*HSM_Event_Name_Func_T)(const HSM_Event_T event);
 
 /**
  * This structure controls the debug trace facility for a statechart instance.
@@ -907,8 +912,8 @@ typedef struct HSM_Debug_Control_Tag
 {
    char const *chart_id;       /**< Unique identifier place in trace messages. */
    int dbg_module_id; /**< Module whose trace level controls this statechart. */
-   int dbg_level; /**< Trace level to use (if dbg_module_id not used). */
-   HSM_Callback_T debug_func;  /**< Optional callback function for advanced debugging */
+   int log_level; /**< Trace level to use (if dbg_module_id not used). */
+   HSM_DbgFunc_T debug_func;  /**< Optional callback function for advanced debugging */
    bool_t perform_check;       /**< If true in HSM_Begin, check for legal UML statechart */
    /**
      * If non-NULL, get_event_name is called to obtain event names for trace
@@ -1024,7 +1029,7 @@ void HSM_Control_Debug(HSM_Statechart_T *statechart,
 /**
  * Returns the statechart's debug callback function.
  *
- * @return The HSM_Callback_T for the statechart.
+ * @return The HSM_DbgFunc_T for the statechart.
  *
  * @param [in] statechart
  *   HSM_Statechart_T object that is used to hold the statechart data.
@@ -1032,7 +1037,7 @@ void HSM_Control_Debug(HSM_Statechart_T *statechart,
  * @pre
  *   - statechart != NULL
  */
-HSM_Callback_T HSM_Get_Callback(HSM_Statechart_T const *statechart);
+HSM_DbgFunc_T HSM_Get_Callback(HSM_Statechart_T const *statechart);
 
 /**
  * Returns the name of the specified state in the statechart.
@@ -1269,7 +1274,7 @@ size_t HSM_Save(HSM_Statechart_T *statechart, uint8_t *buffer, size_t space_avai
 /**
  * Sets the statechart's debug callback function.
  *
- * @return The previously set HSM_Callback_T for the statechart.
+ * @return The previously set HSM_DbgFunc_T for the statechart.
  *
  * @param [in,out] statechart
  *   HSM_Statechart_T object that is used to hold the statechart data.
@@ -1283,8 +1288,8 @@ size_t HSM_Save(HSM_Statechart_T *statechart, uint8_t *buffer, size_t space_avai
  * @pre
  *   - statechart != NULL
  */
-HSM_Callback_T HSM_Set_Callback(HSM_Statechart_T * statechart,
-                                HSM_Callback_T debug_func);
+HSM_DbgFunc_T HSM_Set_Callback(HSM_Statechart_T * statechart,
+                                HSM_DbgFunc_T debug_func);
 
 /**
  * Initializes the statechart, checks the its states' definitions (optional),
@@ -1332,8 +1337,7 @@ HSM_Callback_T HSM_Set_Callback(HSM_Statechart_T * statechart,
 void HSM_Start(HSM_Statechart_T *statechart,
                HSM_State_Defn_T const *state_defn,
                void *this_ptr,
-               bool_t perform_check,
-               HSM_Callback_T debug_func);
+               const HSM_Debug_Control_T *dbg_ctrl);
 
 
 /*===========================================================================*

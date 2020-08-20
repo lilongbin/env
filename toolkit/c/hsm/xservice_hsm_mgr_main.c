@@ -69,7 +69,7 @@ int main()
             evt = EVT_TypedKeyOther;
         }
         //printf("send evt: %d-%s, data:%d-%c\n", evt, event2str(evt), ch, ch);
-        XService_SendMsgToHSM(evt, &ch, 1);
+        XService_HSM_ProcMessage(evt, &ch, sizeof(ch));
     }
     XService_HSM_Shutdown();
     return 0;

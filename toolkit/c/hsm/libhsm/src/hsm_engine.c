@@ -905,7 +905,7 @@ static void Initialize_Debug_Control(HSM_Statechart_T *statechart, HSM_Debug_Con
    {
       memset(&statechart->dbg, 0, sizeof(statechart->dbg));
       statechart->dbg.chart_id = statechart->states.statechart_name;
-      statechart->dbg.dbg_level = TR_LVL_WARN;
+      statechart->dbg.log_level = TR_LVL_WARN;
    }
 }
 
@@ -973,7 +973,7 @@ static void Initialize_Statechart_Object(HSM_Statechart_T *statechart, HSM_State
 static void Output_Trace_For_Guard(HSM_Statechart_T const *statechart, HSM_Transition_T const *p_trans,
    bool_t guard_was_true)
 {
-   if (statechart->dbg.dbg_level >= TR_LVL_INFO_MID)
+   if (statechart->dbg.log_level >= TR_LVL_INFO_MID)
    {
       char const *event_name = Get_Valid_Event_Name(statechart, statechart->event);
 
@@ -1025,7 +1025,7 @@ static void Take_Transitions(HSM_Statechart_T *statechart)
 {
    uint16_t trans_index;
    HSM_State_Id_T src_state;
-   HSM_Callback_T debug_func;
+   HSM_DbgFunc_T debug_func;
 
    PBC_Internal(statechart != NULL, "NULL statechart");
    src_state = statechart->current_state;
@@ -1047,11 +1047,13 @@ static void Take_Transitions(HSM_Statechart_T *statechart)
          PBC_Internal_1(1 == statechart->chain_length, "(%s) Chained internal transition",
             (char*)statechart->states.statechart_name);
 
-         if (statechart->dbg.dbg_level >= TR_LVL_INFO_HI)
+         if (statechart->dbg.log_level >= TR_LVL_INFO_HI)
          {
-            Tr_Info_Hi_4( "%s handling internal transition in state %s due to event %s (%d)",
-               (char*)statechart->dbg.chart_id, HSM_Get_State_Name(statechart, src_state),
-               Get_Valid_Event_Name(statechart, statechart->event), (int)statechart->event);
+            Tr_Info_Hi_4( "%s handling internal transition in state %s for event %d(%s)",
+               (char*)statechart->dbg.chart_id,
+               HSM_Get_State_Name(statechart, src_state),
+               (int)statechart->event,
+               Get_Valid_Event_Name(statechart, statechart->event));
          }
 
          /* Skip exit and entry action */
@@ -1068,11 +1070,13 @@ static void Take_Transitions(HSM_Statechart_T *statechart)
 
          lca = Get_LCA(statechart, src_state, target_state);
 
-         if (statechart->dbg.dbg_level >= TR_LVL_INFO_HI)
+         if (statechart->dbg.log_level >= TR_LVL_INFO_HI)
          {
-            Tr_Info_Hi_4("%s transitioning into state %s due to event %s (%d)", (char*)statechart->dbg.chart_id,
-               HSM_Get_State_Name(statechart, target_state), Get_Valid_Event_Name(statechart, statechart->event),
-               (int)statechart->event);
+            Tr_Info_Hi_4("%s transitioning into state %s for event %d(%s)",
+                (char*)statechart->dbg.chart_id,
+                HSM_Get_State_Name(statechart, target_state),
+                (int)statechart->event,
+                Get_Valid_Event_Name(statechart, statechart->event));
          }
 
          Execute_Exit_Actions(statechart, src_state, lca);
@@ -1104,7 +1108,7 @@ static void Take_Transitions(HSM_Statechart_T *statechart)
  */
 static void Trace_Action(HSM_Statechart_T const *statechart, char const *name)
 {
-   if ((name != NULL) && (*name != '\0') && (statechart->dbg.dbg_level >= TR_LVL_INFO_LO))
+   if ((name != NULL) && (*name != '\0') && (statechart->dbg.log_level >= TR_LVL_INFO_LO))
    {
       Tr_Info_Lo_1("Executing action '%s'", name);
    }
@@ -1125,10 +1129,9 @@ static void Update_Dbg_Trace_Level(HSM_Statechart_T *statechart)
 {
    PBC_Internal(statechart != NULL, "NULL statechart");
 
-   if ((statechart->dbg.dbg_module_id > TR_MODULE_UNKNOWN)
-           /*&& (statechart->dbg.dbg_module_id < TR_NUM_MODULE_IDS)*/)
+   if ((statechart->dbg.dbg_module_id == 0))
    {
-      statechart->dbg.dbg_level = 0;//Tr_Get_Module_Info_Trace_Level(statechart->dbg.dbg_module_id);
+      statechart->dbg.log_level = 0;
    }
 }
 
@@ -1144,7 +1147,7 @@ void HSM_Begin(HSM_Statechart_T *statechart)
 
    Update_Dbg_Trace_Level(statechart);
 
-   if (statechart->dbg.dbg_level >= TR_LVL_INFO_HI)
+   if (statechart->dbg.log_level >= TR_LVL_INFO_HI)
    {
       Tr_Info_Hi_1("%s starting", (char*)statechart->dbg.chart_id);
    }
@@ -1174,9 +1177,9 @@ void HSM_Control_Debug(HSM_Statechart_T *statechart, HSM_Debug_Control_T const *
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-HSM_Callback_T HSM_Get_Callback(HSM_Statechart_T const *statechart)
+HSM_DbgFunc_T HSM_Get_Callback(HSM_Statechart_T const *statechart)
 {
-   HSM_Callback_T current_callback;
+   HSM_DbgFunc_T current_callback;
 
    PBC_Require(statechart != NULL, "NULL statechart");
    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
@@ -1338,7 +1341,7 @@ bool_t HSM_Is_In_State(HSM_Statechart_T const *statechart, HSM_State_Id_T state)
  *===========================================================================*/
 bool_t HSM_Process_Event(HSM_Statechart_T *statechart, HSM_Event_T event, void const *event_data)
 {
-   HSM_Callback_T debug_func;
+   HSM_DbgFunc_T debug_func;
    bool_t event_handled = false;
 
    PBC_Require(statechart != NULL, "NULL statechart");
@@ -1388,11 +1391,12 @@ bool_t HSM_Process_Event(HSM_Statechart_T *statechart, HSM_Event_T event, void c
             debug_func(statechart);
          }
 
-         if (statechart->dbg.dbg_level >= TR_LVL_INFO_LO)
+         if (statechart->dbg.log_level >= TR_LVL_INFO_LO)
          {
-            Tr_Info_Lo_4("%s discarded event %s (%d) in state %s", (char*)statechart->dbg.chart_id,
-               Get_Valid_Event_Name(statechart, statechart->event), (int)statechart->event,
-               HSM_Get_State_Name(statechart, statechart->current_state));
+            Tr_Info_Lo_4("%s discarded event %s (%d) in state %s",
+                (char*)statechart->dbg.chart_id,
+                Get_Valid_Event_Name(statechart, statechart->event), (int)statechart->event,
+                    HSM_Get_State_Name(statechart, statechart->current_state));
          }
       }
       statechart->processing_event = false;
@@ -1589,9 +1593,9 @@ size_t HSM_Save(HSM_Statechart_T *statechart, uint8_t *buffer, size_t space_avai
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-HSM_Callback_T HSM_Set_Callback(HSM_Statechart_T *statechart, HSM_Callback_T debug_func)
+HSM_DbgFunc_T HSM_Set_Callback(HSM_Statechart_T *statechart, HSM_DbgFunc_T debug_func)
 {
-   HSM_Callback_T current_callback;
+   HSM_DbgFunc_T current_callback;
 
    PBC_Require(statechart != NULL, "NULL statechart");
    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
@@ -1607,22 +1611,24 @@ HSM_Callback_T HSM_Set_Callback(HSM_Statechart_T *statechart, HSM_Callback_T deb
  *
  *===========================================================================*/
 void HSM_Start(HSM_Statechart_T *statechart, HSM_State_Defn_T const *state_defn,
-               void *this_ptr, bool_t perform_check, HSM_Callback_T debug_func)
+               void *this_ptr, const HSM_Debug_Control_T *dbg_ctrl)
 {
-   HSM_Debug_Control_T hsm_start_dbg =
-   { 0 };
+    PBC_Require(state_defn != NULL, "NULL state definition");
+#if 0
+    HSM_Debug_Control_T hsm_start_dbg = { 0 };
 
-   PBC_Require(state_defn != NULL, "NULL state definition");
-   hsm_start_dbg.chart_id = state_defn->statechart_name;
-   hsm_start_dbg.dbg_level = TR_LVL_WARN;
-   hsm_start_dbg.debug_func = debug_func;
-   hsm_start_dbg.perform_check = perform_check;
+    PBC_Require(state_defn != NULL, "NULL state definition");
+    hsm_start_dbg.chart_id = state_defn->statechart_name;
+    hsm_start_dbg.log_level = dbg_ctrl->log_level;
+    hsm_start_dbg.debug_func = dbg_ctrl->debug_func;
+    hsm_start_dbg.perform_check = dbg_ctrl->perform_check;
+#endif
 
 #ifdef HSM_START_DEPRECATED
-   Tr_Warn("HSM_Start() has been deprecated. Replace with HSM_Init() and HSM_Begin().");
+    Tr_Warn("HSM_Start() has been deprecated. Replace with HSM_Init() and HSM_Begin().");
 #endif
-   HSM_Init(statechart, state_defn, this_ptr, &hsm_start_dbg);
-   HSM_Begin(statechart);
+    HSM_Init(statechart, state_defn, this_ptr, dbg_ctrl);
+    HSM_Begin(statechart);
 }
 
 /*===========================================================================*/

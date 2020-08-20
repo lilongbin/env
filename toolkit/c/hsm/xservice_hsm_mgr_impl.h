@@ -21,7 +21,7 @@ extern "C"
 void XService_HSM_Shutdown(void);
 void XService_HSM_Start(void);
 HSM_Statechart_T * XService_HSM_Get(void);
-bool_t XService_SendMsgToHSM(int event_id, const void * pdata, const size_t data_size);
+bool_t XService_HSM_ProcMessage(int event_id, const void * pdata, const size_t data_size);
 
 #   ifdef __cplusplus
 }         /* extern "C" */

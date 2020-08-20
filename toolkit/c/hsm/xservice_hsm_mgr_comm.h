@@ -11,6 +11,8 @@
 #ifndef __XSERVICE_HSM_MGR_COMM_H__
 #define __XSERVICE_HSM_MGR_COMM_H__
 
+#include <stdarg.h>
+
 #  if 0
 #    define XSERVICE_DEBUG_STATE_CHART 1
 #    define DBG_ASSERT(x) assert((x))
@@ -26,7 +28,8 @@ extern "C"
 { /* ! Inclusion of header files should NOT be inside the extern "C" block */
 #   endif /* __cplusplus */
 
-const char * event2str(const int event_id);
+int __hsm_log_func(int prio, const char* tag, const char* fmt, ...);
+const char * getEventName(const int event_id);
 
 #   ifdef __cplusplus
 }         /* extern "C" */
