@@ -250,7 +250,7 @@ void debugger(const HSM_Statechart_T* pstatechart) {
     const char *current_state_name = HSM_Get_State_Name(pstatechart, pstatechart->current_state);
     const char *event_name = getEventName(pstatechart->event);
     printf("\r[%s][%d-%s] [%s] evt:%d-%s\n",
-            pstatechart->dbg.chart_id,
+            pstatechart->dbg.chart_label,
             pstatechart->current_state, current_state_name,
             __func__,
             pstatechart->event, event_name);
@@ -270,9 +270,9 @@ void XService_HSM_Start(void) {
     printf("%s\n", __func__);
     HSM_Debug_Control_T dbg_ctrl = {0};
 
-    dbg_ctrl.chart_id = "XServiceMgrHsm";
-    dbg_ctrl.dbg_module_id = 1;
+    dbg_ctrl.chart_label = "XServiceMgrHsm";
 #if XSERVICE_DEBUG_STATE_CHART
+    dbg_ctrl.dbg_module_id = 1;
     dbg_ctrl.debug_func = debugger;
 #else
     dbg_ctrl.debug_func = debugger;

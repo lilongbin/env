@@ -77,61 +77,61 @@
  * Local Function Prototypes
  *===========================================================================*/
 static void Check_Composite_State_Defn(HSM_State_Defn_T const *state_defn,
-                                       HSM_State_Id_T state);
+        HSM_State_Id_T state);
 
 static void Check_Default_History_State(HSM_State_Defn_T const *state_defn,
-                                        HSM_State_Id_T src_state,
-                                        HSM_State_Kind_T src_type,
-                                        const HSM_Transition_T *trans);
+        HSM_State_Id_T src_state,
+        HSM_State_Kind_T src_type,
+        const HSM_Transition_T *trans);
 
 static void Check_Final_State_Defn(HSM_State_Defn_T const *state_defn,
-                                   HSM_State_Id_T state);
+        HSM_State_Id_T state);
 
 static void Check_For_Valid_Parent(HSM_State_Defn_T const *state_defn,
-                                   HSM_State_Id_T state);
+        HSM_State_Id_T state);
 
 static void Check_History_State_Defn(HSM_State_Defn_T const *state_defn,
-                                     HSM_State_Id_T state);
+        HSM_State_Id_T state);
 
 static void Check_Incoming_Transitions(HSM_State_Defn_T const *state_defn,
-                                       HSM_State_Id_T state);
+        HSM_State_Id_T state);
 
 static void Check_Initial_State_Defn(HSM_State_Defn_T const *state_defn,
-                                     HSM_State_Id_T state);
+        HSM_State_Id_T state);
 
 static void Check_Initial_Target(HSM_State_Defn_T const *state_defn,
-                                 HSM_State_Id_T src_state,
-                                 const HSM_Transition_T *trans);
+        HSM_State_Id_T src_state,
+        const HSM_Transition_T *trans);
 
 static void Check_Junction_State_Defn(HSM_State_Defn_T const *state_defn,
-                                      HSM_State_Id_T state);
+        HSM_State_Id_T state);
 
 static void Check_Nesting_Constraint(HSM_State_Defn_T const *state_defn,
-                                     HSM_State_Id_T state);
+        HSM_State_Id_T state);
 
 static void Check_Outgoing_Transitions(HSM_State_Defn_T const *state_defn,
-                                       HSM_State_Id_T state);
+        HSM_State_Id_T state);
 
 static void Check_Simple_State_Defn(HSM_State_Defn_T const *state_defn,
-                                    HSM_State_Id_T state);
+        HSM_State_Id_T state);
 
 static void Check_Target(HSM_State_Defn_T const *state_defn,
-                         HSM_State_Id_T src_state,
-                         const HSM_Transition_T *trans);
+        HSM_State_Id_T src_state,
+        const HSM_Transition_T *trans);
 
 static void Check_Targeted_Composite(HSM_State_Defn_T const *state_defn,
-                                     const HSM_Transition_T *trans);
+        const HSM_Transition_T *trans);
 
 static void Check_Targeted_Final(HSM_State_Defn_T const *state_defn,
-                                 HSM_State_Id_T src_state,
-                                 const HSM_Transition_T *trans);
+        HSM_State_Id_T src_state,
+        const HSM_Transition_T *trans);
 
 static void Check_Targeted_History(HSM_State_Defn_T const *state_defn,
-                                   HSM_State_Id_T src_state,
-                                   const HSM_Transition_T *trans);
+        HSM_State_Id_T src_state,
+        const HSM_Transition_T *trans);
 
 static uint16_t Get_Nesting_Level(HSM_State_Defn_T const *state_defn,
-                                  HSM_State_Id_T state);
+        HSM_State_Id_T state);
 
 /*===========================================================================*
  * Local Inline Function Definitions and Function-Like Macros
@@ -149,7 +149,7 @@ static uint16_t Get_Nesting_Level(HSM_State_Defn_T const *state_defn,
  * @param [in] state Index to the state's position in the state_table.
  */
 static void Check_Composite_State_Defn(HSM_State_Defn_T const *state_defn,
-                                       HSM_State_Id_T state)
+        HSM_State_Id_T state)
 {
     const HSM_State_T *ptr_st = &state_defn->state_table[state];
     HSM_State_Id_T history_state = ptr_st->history_state;
@@ -161,60 +161,60 @@ static void Check_Composite_State_Defn(HSM_State_Defn_T const *state_defn,
      * Make sure the composite's initial state is legal value.
      */
     PBC_Require_3((HSM_NO_INITIAL_STATE == initial_state) || 
-                 ((initial_state > 0) && (initial_state < state_defn->state_count)),
-                 "(%s) Illegal initial state for composite state '%s' (%d)",
-                 (char*)state_defn->statechart_name,
-                 (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                 );
+            ((initial_state > 0) && (initial_state < state_defn->state_count)),
+            "(%s) Illegal initial state for composite state '%s' (%d)",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+            );
 
     if (initial_state != HSM_NO_INITIAL_STATE)
     {
-       /*
-        * Make sure any state designated the initial state of this composite
-        * state is in fact an initial state and has this composite as its
-        * parent.
-        */
+        /*
+         * Make sure any state designated the initial state of this composite
+         * state is in fact an initial state and has this composite as its
+         * parent.
+         */
         HSM_State_Kind_T initial_type =
-                state_defn->state_table[initial_state].state_type;
+            state_defn->state_table[initial_state].state_type;
         PBC_Require_3(HSM_INITIAL_ID == initial_type,
-                     "(%s) Initial state for composite state '%s' (%d) is of wrong type",
-                     (char*)state_defn->statechart_name,
-                     (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                    );
+                "(%s) Initial state for composite state '%s' (%d) is of wrong type",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
         PBC_Require_3(state_defn->state_table[initial_state].parent_state == state,
-                     "(%s) Parent of initial state '%s' (%d) conflicts with its usage",
-                     (char*)state_defn->statechart_name,
-                     (char*)hsm_Get_State_Name_From_Defn(state_defn, initial_state),
-                     (int)initial_state
-                     );
+                "(%s) Parent of initial state '%s' (%d) conflicts with its usage",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, initial_state),
+                (int)initial_state
+                );
     }
     else if (parent_state != HSM_TOP)
     {
-       /*
-        * If a composite state does not have an initial state, then its parent
-        * cannot have a shallow history state, because this would be an
-        * implied transition to the composite state.
-        */
-       HSM_State_Id_T parent_hist =
-               state_defn->state_table[parent_state].history_state;
+        /*
+         * If a composite state does not have an initial state, then its parent
+         * cannot have a shallow history state, because this would be an
+         * implied transition to the composite state.
+         */
+        HSM_State_Id_T parent_hist =
+            state_defn->state_table[parent_state].history_state;
 
-       PBC_Require_3((HSM_NO_HISTORY_STATE == parent_hist) ||
-                     (HSM_DEEP_HISTORY_ID == 
-                      state_defn->state_table[parent_hist].state_type),
-                     "(%s) Composite state '%s' (%d) has no initial state, but its parent has shallow history",
-                     (char*)state_defn->statechart_name,
-                     (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                    );
+        PBC_Require_3((HSM_NO_HISTORY_STATE == parent_hist) ||
+                (HSM_DEEP_HISTORY_ID == 
+                 state_defn->state_table[parent_hist].state_type),
+                "(%s) Composite state '%s' (%d) has no initial state, but its parent has shallow history",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
     }
     /*
      * Make sure history state is legal value.
      */
     PBC_Require_3((HSM_NO_HISTORY_STATE == history_state) || 
-                  ((history_state > 0) && (history_state < state_defn->state_count)),
-                  "(%s) Illegal history state value for state %s (%d)",
-                  (char*)state_defn->statechart_name,
-                  (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                 );
+            ((history_state > 0) && (history_state < state_defn->state_count)),
+            "(%s) Illegal history state value for state %s (%d)",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+            );
     /*
      * Make sure any state designated the history state of this composite state
      * is in fact a history state and has this composite as its parent.
@@ -222,18 +222,18 @@ static void Check_Composite_State_Defn(HSM_State_Defn_T const *state_defn,
     if (history_state != HSM_NO_HISTORY_STATE)
     {
         HSM_State_Kind_T history_type =
-                state_defn->state_table[history_state].state_type;
+            state_defn->state_table[history_state].state_type;
         PBC_Require_3((HSM_DEEP_HISTORY_ID == history_type) ||
-                      (HSM_SHALLOW_HISTORY_ID == history_type),
-                      "(%s) Composite state '%s' (%d) has history state with wrong type",
-                      (char*)state_defn->statechart_name,
-                      (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                    );
+                (HSM_SHALLOW_HISTORY_ID == history_type),
+                "(%s) Composite state '%s' (%d) has history state with wrong type",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
         PBC_Require_3(state_defn->state_table[history_state].parent_state == state,
-                      "(%s) The history state for composite state '%s' (%d) specifies a different parent",
-                      (char*)state_defn->statechart_name,
-                      (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                    );
+                "(%s) The history state for composite state '%s' (%d) specifies a different parent",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
     }
 }
 
@@ -249,39 +249,39 @@ static void Check_Composite_State_Defn(HSM_State_Defn_T const *state_defn,
  * @param [in] trans The transition whose target state is to be checked.
  */
 static void Check_Default_History_State(HSM_State_Defn_T const *state_defn,
-                                        HSM_State_Id_T src_state,
-                                        HSM_State_Kind_T src_type,
-                                        const HSM_Transition_T *trans)
+        HSM_State_Id_T src_state,
+        HSM_State_Kind_T src_type,
+        const HSM_Transition_T *trans)
 {
-   HSM_State_Id_T parent_of_hist;
-   parent_of_hist = state_defn->state_table[src_state].parent_state;
+    HSM_State_Id_T parent_of_hist;
+    parent_of_hist = state_defn->state_table[src_state].parent_state;
 
-   /*
-    * A history state's default target must be inside its parent state.
-    */
-   PBC_Require_3(hsm_Is_Ancestor_State(state_defn,
-                                      trans->target_state, parent_of_hist),
-                "(%s) Default target of history state '%s' (%d) is outside its parent state",
+    /*
+     * A history state's default target must be inside its parent state.
+     */
+    PBC_Require_3(hsm_Is_Ancestor_State(state_defn,
+                trans->target_state, parent_of_hist),
+            "(%s) Default target of history state '%s' (%d) is outside its parent state",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
+            );
+
+    if (HSM_SHALLOW_HISTORY_ID == src_type)
+    {
+        HSM_State_Id_T parent_of_target;
+
+        parent_of_target =
+            state_defn->state_table[trans->target_state].parent_state;
+        /*
+         * Because a shallow history state targets another state at its level,
+         * so should its default transition.
+         */
+        PBC_Require_3(parent_of_hist == parent_of_target,
+                "(%s) Default target of history state '%s' (%d) is at wrong level",
                 (char*)state_defn->statechart_name,
                 (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
-               );
-
-   if (HSM_SHALLOW_HISTORY_ID == src_type)
-   {
-       HSM_State_Id_T parent_of_target;
-
-       parent_of_target =
-               state_defn->state_table[trans->target_state].parent_state;
-       /*
-        * Because a shallow history state targets another state at its level,
-        * so should its default transition.
-        */
-       PBC_Require_3(parent_of_hist == parent_of_target,
-                     "(%s) Default target of history state '%s' (%d) is at wrong level",
-                     (char*)state_defn->statechart_name,
-                     (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
-                   );
-   }
+                );
+    }
 }
 
 /**
@@ -292,7 +292,7 @@ static void Check_Default_History_State(HSM_State_Defn_T const *state_defn,
  * @param [in] state Index to the state's position in the state_defn->state_table.
  */
 static void Check_Final_State_Defn(HSM_State_Defn_T const *state_defn,
-                                   HSM_State_Id_T state)
+        HSM_State_Id_T state)
 {
     const HSM_State_T *ptr_st = &state_defn->state_table[state];
     HSM_State_Id_T parent = ptr_st->parent_state;
@@ -301,10 +301,10 @@ static void Check_Final_State_Defn(HSM_State_Defn_T const *state_defn,
 
     /* Currently, a final state is not allowed at the top of a statechart. */
     PBC_Require_3(parent != HSM_TOP,
-                  "(%s) Final state '%s' (%d) not allowed at top of statechart",
-                  (char*)state_defn->statechart_name,
-                  (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                );
+            "(%s) Final state '%s' (%d) not allowed at top of statechart",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+            );
     /*
      * The parent of the final state is required to have a completion transition
      * as its first transition.
@@ -316,18 +316,18 @@ static void Check_Final_State_Defn(HSM_State_Defn_T const *state_defn,
 
         transitions = state_defn->state_table[parent].transition_table;
         PBC_Require_3(transitions != NULL,
-                      "(%s) State '%s' (%d) must have a completion transition",
-                      (char*)state_defn->statechart_name,
-                      (char*)hsm_Get_State_Name_From_Defn(state_defn, parent), (int)parent
-                    );
+                "(%s) State '%s' (%d) must have a completion transition",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, parent), (int)parent
+                );
 
         event = transitions->event;
 
         PBC_Require_3(HSM_COMPLETION_EVENT == event,
-                      "(%s) First transition from state '%s' (%d) must be a completion transition",
-                      (char*)state_defn->statechart_name,
-                      (char*)hsm_Get_State_Name_From_Defn(state_defn, parent), (int)parent
-                     );
+                "(%s) First transition from state '%s' (%d) must be a completion transition",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, parent), (int)parent
+                );
     }
 }
 
@@ -339,7 +339,7 @@ static void Check_Final_State_Defn(HSM_State_Defn_T const *state_defn,
  * @param [in] state Index to the state's position in the state_defn->state_table.
  */
 static void Check_For_Valid_Parent(HSM_State_Defn_T const *state_defn,
-                                   HSM_State_Id_T state)
+        HSM_State_Id_T state)
 {
     const HSM_State_T *ptr_st = &state_defn->state_table[state];
     HSM_State_Id_T parent = ptr_st->parent_state;
@@ -349,17 +349,17 @@ static void Check_For_Valid_Parent(HSM_State_Defn_T const *state_defn,
         HSM_State_Kind_T parent_type;
 
         PBC_Require_3((parent > 0) && (parent < state_defn->state_count),
-                      "(%s) Illegal parent for state '%s' (%d)",
-                      (char*)state_defn->statechart_name,
-                      (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                     );
+                "(%s) Illegal parent for state '%s' (%d)",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
         parent_type = state_defn->state_table[ptr_st->parent_state].state_type;
 
         PBC_Require_3(HSM_COMPOSITE_ID == parent_type,
-                      "(%s) Type of parent specified for '%s' (%d) conflicts with usage",
-                      (char*)state_defn->statechart_name,
-                      (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                     );
+                "(%s) Type of parent specified for '%s' (%d) conflicts with usage",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
     }
 }
 
@@ -371,7 +371,7 @@ static void Check_For_Valid_Parent(HSM_State_Defn_T const *state_defn,
  * @param [in] state Index to the state's position in the state_defn->state_table.
  */
 static void Check_History_State_Defn(HSM_State_Defn_T const *state_defn,
-                                     HSM_State_Id_T state)
+        HSM_State_Id_T state)
 {
     const HSM_State_T *ptr_st = &state_defn->state_table[state];
 
@@ -380,19 +380,19 @@ static void Check_History_State_Defn(HSM_State_Defn_T const *state_defn,
      * The top state cannot have a history state.
      */
     PBC_Require_3(ptr_st->parent_state != HSM_TOP,
-                  "(%s) History state '%s' (%d) not allowed at top of chart",
-                  (char*)state_defn->statechart_name,
-                  (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                 );
+            "(%s) History state '%s' (%d) not allowed at top of chart",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+            );
     /*
      * Make sure the parent has this state listed as its history state.
      */
     PBC_Require_3(state == 
-                  state_defn->state_table[ptr_st->parent_state].history_state,   
-                  "(%s) Parent of history state '%s' (%d) does not reference it",
-                  (char*)state_defn->statechart_name,
-                  (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                 );
+            state_defn->state_table[ptr_st->parent_state].history_state,   
+            "(%s) Parent of history state '%s' (%d) does not reference it",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+            );
 }
 
 /**
@@ -403,33 +403,33 @@ static void Check_History_State_Defn(HSM_State_Defn_T const *state_defn,
  * @param [in] state The state whose incoming transitions are to be checked.
  */
 static void Check_Incoming_Transitions(HSM_State_Defn_T const *state_defn,
-                                       HSM_State_Id_T state)
+        HSM_State_Id_T state)
 {
-   HSM_State_Id_T src_state;
-   const HSM_State_T *ptr_st;
-   bool_t was_targeted = false;
-   /*
-    * Every state should be the explicit target of at least one transition with
-    * the following exceptions: 1) Initial states, 2) Composite states that a) do
-    * not have an initial state or b) whose parents don't have shallow history.
-    */
+    HSM_State_Id_T src_state;
+    const HSM_State_T *ptr_st;
+    bool_t was_targeted = false;
+    /*
+     * Every state should be the explicit target of at least one transition with
+     * the following exceptions: 1) Initial states, 2) Composite states that a) do
+     * not have an initial state or b) whose parents don't have shallow history.
+     */
     for (src_state = 0;
-         (!was_targeted) && (src_state < state_defn->state_count);
-         src_state++)
+            (!was_targeted) && (src_state < state_defn->state_count);
+            src_state++)
     {
-       uint16_t i;
-       
-       ptr_st = &state_defn->state_table[src_state];
+        uint16_t i;
 
-       for (i = 0; (!was_targeted) && (i < ptr_st->transition_count); i++)
-       {
-          const HSM_Transition_T *trans = &ptr_st->transition_table[i];
+        ptr_st = &state_defn->state_table[src_state];
 
-          if (state == trans->target_state)
-          {
-             was_targeted = true;
-          }
-       }
+        for (i = 0; (!was_targeted) && (i < ptr_st->transition_count); i++)
+        {
+            const HSM_Transition_T *trans = &ptr_st->transition_table[i];
+
+            if (state == trans->target_state)
+            {
+                was_targeted = true;
+            }
+        }
 
     } /* for (src_state = 0 ... )                                             */
 
@@ -438,51 +438,51 @@ static void Check_Incoming_Transitions(HSM_State_Defn_T const *state_defn,
         ptr_st = &state_defn->state_table[state];
 
         if ((HSM_INITIAL_ID != ptr_st->state_type) &&
-            (HSM_COMPOSITE_ID != ptr_st->state_type))
+                (HSM_COMPOSITE_ID != ptr_st->state_type))
         {
-           /*
-            * Any non-initial, non-composite state should have an incoming
-            * transition. This is issued as a "warning", not an error since
-            * it will not necessarily lead to incorrect behavior. It is possible
-            * that the state is simply a "place holder" for behavior to be
-            * implemented in the future.
-            */
-           Tr_Warn_3("(%s) No incoming transition for state '%s' (%d)",
-                     (char*)state_defn->statechart_name,
-                     (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+            /*
+             * Any non-initial, non-composite state should have an incoming
+             * transition. This is issued as a "warning", not an error since
+             * it will not necessarily lead to incorrect behavior. It is possible
+             * that the state is simply a "place holder" for behavior to be
+             * implemented in the future.
+             */
+            Tr_Warn_3("(%s) No incoming transition for state '%s' (%d)",
+                    (char*)state_defn->statechart_name,
+                    (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
                     );
         }
         else if (HSM_COMPOSITE_ID == ptr_st->state_type)
         {
-           HSM_State_Id_T init_state = ptr_st->initial_state;
-           HSM_State_Id_T parent_hist = HSM_NO_HISTORY_STATE;
-           /*
-            * A composite should have an incoming transition if:
-            *   1) It has an initial state  - AND -
-            *   2) Its parent does NOT have a shallow history state.
-            * Instead of treating this as an "error", a trace message is
-            * issued since the initial state may be there by convention
-            * and is causing no harm.
-            */
-           if (ptr_st->parent_state != HSM_TOP)
-           {
-              parent_hist =
-                      state_defn->state_table[ptr_st->parent_state].history_state;
-           }
+            HSM_State_Id_T init_state = ptr_st->initial_state;
+            HSM_State_Id_T parent_hist = HSM_NO_HISTORY_STATE;
+            /*
+             * A composite should have an incoming transition if:
+             *   1) It has an initial state  - AND -
+             *   2) Its parent does NOT have a shallow history state.
+             * Instead of treating this as an "error", a trace message is
+             * issued since the initial state may be there by convention
+             * and is causing no harm.
+             */
+            if (ptr_st->parent_state != HSM_TOP)
+            {
+                parent_hist =
+                    state_defn->state_table[ptr_st->parent_state].history_state;
+            }
 
-           if ((init_state != HSM_NO_INITIAL_STATE) &&
-               ((HSM_NO_HISTORY_STATE == parent_hist) ||
-                (HSM_SHALLOW_HISTORY_ID !=
-                 state_defn->state_table[parent_hist].state_type)))
-           {
-               Tr_Warn_3("(%s) Unnecessary initial state for composite state '%s' (%d)",
-                         (char*)state_defn->statechart_name,
-                         (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+            if ((init_state != HSM_NO_INITIAL_STATE) &&
+                    ((HSM_NO_HISTORY_STATE == parent_hist) ||
+                     (HSM_SHALLOW_HISTORY_ID !=
+                      state_defn->state_table[parent_hist].state_type)))
+            {
+                Tr_Warn_3("(%s) Unnecessary initial state for composite state '%s' (%d)",
+                        (char*)state_defn->statechart_name,
+                        (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
                         );
-           }
+            }
         }
     }
-   /* PRQA S 4700 1 */ /* Suppress QAC STAV3 metric message. */
+    /* PRQA S 4700 1 */ /* Suppress QAC STAV3 metric message. */
 }
 
 /**
@@ -493,7 +493,7 @@ static void Check_Incoming_Transitions(HSM_State_Defn_T const *state_defn,
  * @param [in] state Index to the state's position in the state_defn->state_table.
  */
 static void Check_Initial_State_Defn(HSM_State_Defn_T const *state_defn,
-                                     HSM_State_Id_T state)
+        HSM_State_Id_T state)
 {
     const HSM_State_T *ptr_st = &state_defn->state_table[state];
 
@@ -506,8 +506,8 @@ static void Check_Initial_State_Defn(HSM_State_Defn_T const *state_defn,
          * entire statechart; its parent must be HSM_TOP.
          */
         PBC_Require_1(HSM_TOP == ptr_st->parent_state,
-                      "(%s) First state must be initial state for chart",
-                      (char*)state_defn->statechart_name);
+                "(%s) First state must be initial state for chart",
+                (char*)state_defn->statechart_name);
     }
     else
     {
@@ -515,16 +515,16 @@ static void Check_Initial_State_Defn(HSM_State_Defn_T const *state_defn,
          * Make sure the parent has this state listed as its initial state.
          */
         PBC_Require_3(HSM_TOP != ptr_st->parent_state,
-                      "(%s) Initial state '%s' (%d) cannot be for top of statechart",
-                      (char*)state_defn->statechart_name,
-                      (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                    );
+                "(%s) Initial state '%s' (%d) cannot be for top of statechart",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
         PBC_Require_3(state == 
-                      state_defn->state_table[ptr_st->parent_state].initial_state, 
-                      "(%s) Parent specified for initial state '%s' (%d) does not reference it",
-                      (char*)state_defn->statechart_name,
-                      (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                    ); 
+                state_defn->state_table[ptr_st->parent_state].initial_state, 
+                "(%s) Parent specified for initial state '%s' (%d) does not reference it",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                ); 
     }
 }
 
@@ -538,21 +538,21 @@ static void Check_Initial_State_Defn(HSM_State_Defn_T const *state_defn,
  * @param [in] trans The transition whose target state is to be checked.
  */
 static void Check_Initial_Target(HSM_State_Defn_T const *state_defn,
-                                 HSM_State_Id_T src_state,
-                                 const HSM_Transition_T *trans)
+        HSM_State_Id_T src_state,
+        const HSM_Transition_T *trans)
 {
-   HSM_State_Id_T parent_of_init;
-   parent_of_init = state_defn->state_table[src_state].parent_state;
-   /*
-    * An initial state should not target its parent or a state not within
-    * its parent.
-    */
-   PBC_Require_3(hsm_Is_Ancestor_State(state_defn,
-                                      trans->target_state, parent_of_init),
-                 "(%s) Illegal target for initial state '%s' (%d)",
-                 (char*)state_defn->statechart_name,
-                 (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
-               );
+    HSM_State_Id_T parent_of_init;
+    parent_of_init = state_defn->state_table[src_state].parent_state;
+    /*
+     * An initial state should not target its parent or a state not within
+     * its parent.
+     */
+    PBC_Require_3(hsm_Is_Ancestor_State(state_defn,
+                trans->target_state, parent_of_init),
+            "(%s) Illegal target for initial state '%s' (%d)",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
+            );
 }
 
 /**
@@ -563,7 +563,7 @@ static void Check_Initial_Target(HSM_State_Defn_T const *state_defn,
  * @param [in] state Index to the state's position in the state_defn->state_table.
  */
 static void Check_Junction_State_Defn(HSM_State_Defn_T const *state_defn,
-                                      HSM_State_Id_T state)
+        HSM_State_Id_T state)
 {
     Check_For_Valid_Parent(state_defn, state);
 }
@@ -577,31 +577,31 @@ static void Check_Junction_State_Defn(HSM_State_Defn_T const *state_defn,
  * @param [in] state The state whose nesting level is to be checked.
  */
 static void Check_Nesting_Constraint(HSM_State_Defn_T const *state_defn,
-                                     HSM_State_Id_T state)
+        HSM_State_Id_T state)
 {
     uint16_t max_nesting_level = 0;
     const HSM_State_T *ptr_st = &state_defn->state_table[state];
-    
+
     if (HSM_COMPOSITE_ID == ptr_st->state_type)
     {
-       uint16_t nesting_level;
-       
-       nesting_level = Get_Nesting_Level(state_defn, state);    
-       /*
-        * Only the composite states have to be checked as long as the
-        * most deeply nested composite state's level is less than
-        * HSM_MAX_NESTING_LEVELS.
-        */
-       PBC_Require_3(nesting_level < HSM_MAX_NESTING_LEVELS,
-                     "(%s) State '%s' (%d) exceeds maximum nesting level",
-                     (char*)state_defn->statechart_name,
-                     (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                   );
-       
-       if (nesting_level > max_nesting_level)
-       {
-           max_nesting_level = nesting_level;
-       }
+        uint16_t nesting_level;
+
+        nesting_level = Get_Nesting_Level(state_defn, state);    
+        /*
+         * Only the composite states have to be checked as long as the
+         * most deeply nested composite state's level is less than
+         * HSM_MAX_NESTING_LEVELS.
+         */
+        PBC_Require_3(nesting_level < HSM_MAX_NESTING_LEVELS,
+                "(%s) State '%s' (%d) exceeds maximum nesting level",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
+
+        if (nesting_level > max_nesting_level)
+        {
+            max_nesting_level = nesting_level;
+        }
     }
 }
 
@@ -613,138 +613,138 @@ static void Check_Nesting_Constraint(HSM_State_Defn_T const *state_defn,
  * @param [in] state The state whose outgoing transitions are to be checked.
  */
 static void Check_Outgoing_Transitions(HSM_State_Defn_T const *state_defn,
-                                       HSM_State_Id_T state)
+        HSM_State_Id_T state)
 {
-   uint16_t i;
-   uint16_t j;
-   const HSM_State_T *ptr_st = &state_defn->state_table[state];
-   HSM_State_Kind_T state_type = ptr_st->state_type;
-   uint16_t duplicates;
-   /*
-    * All states except final states must have at least one outgoing
-    * transition.
-    */
-   if (HSM_FINAL_ID == ptr_st->state_type)
-   {
-       /* PRQA S 0306 1 */ /* Suppress QAC cast message. */
-      PBC_Require_3(NULL == ptr_st->transition_table,
-                    "(%s) Final state '%s' (%d) can't have outgoing transitions",
-                    (char*)state_defn->statechart_name,
-                    (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                  );
-      PBC_Require_3(0 == ptr_st->transition_count,
-                    "(%s) Final state '%s' (%d) must have zero outgoing transitions",
-                    (char*)state_defn->statechart_name,
-                    (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                  );
-   }
-   else
-   {
-      PBC_Require_3(NULL != ptr_st->transition_table,
-                    "(%s) State '%s' (%d) must have outgoing transitions",
-                    (char*)state_defn->statechart_name,
-                    (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                  );
-      PBC_Require_3(ptr_st->transition_count > 0,
-                    "(%s) State '%s' (%d) must have at least one outgoing transition",
-                    (char*)state_defn->statechart_name,
-                    (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                  );
-   }
+    uint16_t i;
+    uint16_t j;
+    const HSM_State_T *ptr_st = &state_defn->state_table[state];
+    HSM_State_Kind_T state_type = ptr_st->state_type;
+    uint16_t duplicates;
+    /*
+     * All states except final states must have at least one outgoing
+     * transition.
+     */
+    if (HSM_FINAL_ID == ptr_st->state_type)
+    {
+        /* PRQA S 0306 1 */ /* Suppress QAC cast message. */
+        PBC_Require_3(NULL == ptr_st->transition_table,
+                "(%s) Final state '%s' (%d) can't have outgoing transitions",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
+        PBC_Require_3(0 == ptr_st->transition_count,
+                "(%s) Final state '%s' (%d) must have zero outgoing transitions",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
+    }
+    else
+    {
+        PBC_Require_3(NULL != ptr_st->transition_table,
+                "(%s) State '%s' (%d) must have outgoing transitions",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
+        PBC_Require_3(ptr_st->transition_count > 0,
+                "(%s) State '%s' (%d) must have at least one outgoing transition",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
+    }
 
-   for (i = 0; i < ptr_st->transition_count; i++)
-   {
-      const HSM_Transition_T *trans = &ptr_st->transition_table[i];
-           
-      if (HSM_COMPLETION_EVENT == trans->event)
-      {
-         Check_Target(state_defn, state, trans);
-         /* Completion transitions are only supported for composite states.*/
-         PBC_Require_3(state_type == HSM_COMPOSITE_ID,
-                       "(%s) State '%s' (%d) not allowed to have a completion transition",
-                       (char*)state_defn->statechart_name,
-                       (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                     );
-         /* Completion transitions are required to be first in the list */
-         PBC_Require_3(0 == i,
-                       "(%s) Completion transition fo state '%s' (%d) must be the first transition",
-                       (char*)state_defn->statechart_name,
-                       (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                     );
-      }
-      else if (trans->event != HSM_NO_EVENT)
-      {
-         Check_Target(state_defn, state, trans);
-         /*
-          * Only transitions from "real" states can be triggered by a "real"
-          * event.
-          */
-         PBC_Require_3((state_type == HSM_COMPOSITE_ID) || (state_type == HSM_SIMPLE_ID),
-                       "(%s) Transitions from state '%s' (%d) cannot be triggered by events",
-                       (char*)state_defn->statechart_name,
-                       (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                     );
-      }
-      else /* trans->event == HSM_NO_EVENT */
-      {
-         if (HSM_NO_STATE == trans->target_state)
-         {
-             /*
-              * HSM_NULL_TRANSITION is only for use to satisfy the
-              * requirement that every state have at least one entry
-              * in its transition_table.
-              */
-             /* PRQA S 0305 1 */ /* Suppress QAC cast message. */
-             PBC_Require_3(HSM_NO_GUARD == trans->guard,
-                           "(%s) No guard allowed for dummy transition from state '%s' (%d)",
-                           (char*)state_defn->statechart_name,
-                           (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                         );
-             PBC_Require_3(1 == ptr_st->transition_count,
-                           "(%s) Only one dummy transition allowed from state '%s' (%d)",
-                           (char*)state_defn->statechart_name,
-                           (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                         );
-         }
-         else
-         {
+    for (i = 0; i < ptr_st->transition_count; i++)
+    {
+        const HSM_Transition_T *trans = &ptr_st->transition_table[i];
+
+        if (HSM_COMPLETION_EVENT == trans->event)
+        {
+            Check_Target(state_defn, state, trans);
+            /* Completion transitions are only supported for composite states.*/
+            PBC_Require_3(state_type == HSM_COMPOSITE_ID,
+                    "(%s) State '%s' (%d) not allowed to have a completion transition",
+                    (char*)state_defn->statechart_name,
+                    (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                    );
+            /* Completion transitions are required to be first in the list */
+            PBC_Require_3(0 == i,
+                    "(%s) Completion transition fo state '%s' (%d) must be the first transition",
+                    (char*)state_defn->statechart_name,
+                    (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                    );
+        }
+        else if (trans->event != HSM_NO_EVENT)
+        {
+            Check_Target(state_defn, state, trans);
             /*
-             * Only transitions from pseudostates should be associated
-             * with HSM_NO_EVENT; transitions from composite and simple
-             * states must be triggered by a "real" event.
+             * Only transitions from "real" states can be triggered by a "real"
+             * event.
              */
-             PBC_Require_3((state_type != HSM_COMPOSITE_ID) && (state_type != HSM_SIMPLE_ID),
-                           "(%s) Transitions from state '%s' (%d) must be associated with an event",
-                           (char*)state_defn->statechart_name,
-                           (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                         );
-             Check_Target(state_defn, state, trans);
-         } 
-      } /* if (trans->event != HSM_NO_EVENT) */
-      /*
-       * Check for more than one transition with the same event and the
-       * same guard (which may be an ELSE).
-       */
-      duplicates = 0;
-      
-      for (j = 0; j < ptr_st->transition_count; j++)
-      {
-         if ((trans->guard == ptr_st->transition_table[j].guard) && 
-             (trans->event == ptr_st->transition_table[j].event))
-         {
-            duplicates++;
-         }
-      }
-      
-      PBC_Require_3(duplicates == 1,
-                    "(%s) Duplicate transitions from state '%s' (%d)",
+            PBC_Require_3((state_type == HSM_COMPOSITE_ID) || (state_type == HSM_SIMPLE_ID),
+                    "(%s) Transitions from state '%s' (%d) cannot be triggered by events",
                     (char*)state_defn->statechart_name,
                     (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                  );
-      
-   } /* for (i = 0; i < ptr_st->transition_count; i++) */
+                    );
+        }
+        else /* trans->event == HSM_NO_EVENT */
+        {
+            if (HSM_NO_STATE == trans->target_state)
+            {
+                /*
+                 * HSM_NULL_TRANSITION is only for use to satisfy the
+                 * requirement that every state have at least one entry
+                 * in its transition_table.
+                 */
+                /* PRQA S 0305 1 */ /* Suppress QAC cast message. */
+                PBC_Require_3(HSM_NO_GUARD == trans->guard,
+                        "(%s) No guard allowed for dummy transition from state '%s' (%d)",
+                        (char*)state_defn->statechart_name,
+                        (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                        );
+                PBC_Require_3(1 == ptr_st->transition_count,
+                        "(%s) Only one dummy transition allowed from state '%s' (%d)",
+                        (char*)state_defn->statechart_name,
+                        (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                        );
+            }
+            else
+            {
+                /*
+                 * Only transitions from pseudostates should be associated
+                 * with HSM_NO_EVENT; transitions from composite and simple
+                 * states must be triggered by a "real" event.
+                 */
+                PBC_Require_3((state_type != HSM_COMPOSITE_ID) && (state_type != HSM_SIMPLE_ID),
+                        "(%s) Transitions from state '%s' (%d) must be associated with an event",
+                        (char*)state_defn->statechart_name,
+                        (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                        );
+                Check_Target(state_defn, state, trans);
+            } 
+        } /* if (trans->event != HSM_NO_EVENT) */
+        /*
+         * Check for more than one transition with the same event and the
+         * same guard (which may be an ELSE).
+         */
+        duplicates = 0;
 
-   /* PRQA S 4700 1 */ /* Suppress QAC STMIF metric message. */
+        for (j = 0; j < ptr_st->transition_count; j++)
+        {
+            if ((trans->guard == ptr_st->transition_table[j].guard) && 
+                    (trans->event == ptr_st->transition_table[j].event))
+            {
+                duplicates++;
+            }
+        }
+
+        PBC_Require_3(duplicates == 1,
+                "(%s) Duplicate transitions from state '%s' (%d)",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+                );
+
+    } /* for (i = 0; i < ptr_st->transition_count; i++) */
+
+    /* PRQA S 4700 1 */ /* Suppress QAC STMIF metric message. */
 }
 
 /**
@@ -755,7 +755,7 @@ static void Check_Outgoing_Transitions(HSM_State_Defn_T const *state_defn,
  * @param [in] state Index to the state's position in the state_defn->state_table.
  */
 static void Check_Simple_State_Defn(HSM_State_Defn_T const *state_defn,
-                                    HSM_State_Id_T state)
+        HSM_State_Id_T state)
 {
     Check_For_Valid_Parent(state_defn, state);
 }
@@ -770,64 +770,64 @@ static void Check_Simple_State_Defn(HSM_State_Defn_T const *state_defn,
  * @param [in] trans The transition whose target state is to be checked.
  */
 static void Check_Target(HSM_State_Defn_T const *state_defn,
-                         HSM_State_Id_T src_state,
-                         const HSM_Transition_T *trans)
+        HSM_State_Id_T src_state,
+        const HSM_Transition_T *trans)
 {
     HSM_State_Kind_T src_type;
     /*
      * Transitions must target a valid state and cannot target an initial state.
      */
     PBC_Require_3((HSM_SAME_STATE == trans->target_state) ||
-                  ((trans->target_state > 0) &&
-                   (trans->target_state < state_defn->state_count)),
-                  "(%s) Illegal target for transition from state '%s' (%d)",
-                  (char*)state_defn->statechart_name,
-                  (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
-                );
+            ((trans->target_state > 0) &&
+             (trans->target_state < state_defn->state_count)),
+            "(%s) Illegal target for transition from state '%s' (%d)",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
+            );
 
     src_type = state_defn->state_table[src_state].state_type;
 
     if (HSM_INITIAL_ID == src_type)
     {
-       Check_Initial_Target(state_defn, src_state, trans);
+        Check_Initial_Target(state_defn, src_state, trans);
     }
     else if ((HSM_DEEP_HISTORY_ID == src_type) ||
-             (HSM_SHALLOW_HISTORY_ID == src_type))
+            (HSM_SHALLOW_HISTORY_ID == src_type))
     {
-       Check_Default_History_State(state_defn, src_state, src_type, trans);
+        Check_Default_History_State(state_defn, src_state, src_type, trans);
     }
 
     if (trans->target_state != HSM_SAME_STATE)
     {
-       HSM_State_Kind_T target_type;
+        HSM_State_Kind_T target_type;
 
-       target_type = state_defn->state_table[trans->target_state].state_type;
+        target_type = state_defn->state_table[trans->target_state].state_type;
 
-       PBC_Require_3(target_type != HSM_INITIAL_ID,
-                    "(%s) Initial state cannot be target for transition from state '%s' (%d)",
-                    (char*)state_defn->statechart_name,
-                    (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
-                   );
+        PBC_Require_3(target_type != HSM_INITIAL_ID,
+                "(%s) Initial state cannot be target for transition from state '%s' (%d)",
+                (char*)state_defn->statechart_name,
+                (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
+                );
 
-       switch (target_type)
-       {
-         case HSM_COMPOSITE_ID:
-           Check_Targeted_Composite(state_defn, trans);
-           break;
-           
-         case HSM_DEEP_HISTORY_ID:
-         case HSM_SHALLOW_HISTORY_ID:
-           Check_Targeted_History(state_defn, src_state, trans);
-           break;
-           
-         case HSM_FINAL_ID:
-           Check_Targeted_Final(state_defn, src_state, trans);
-           break;
- 
-         default:
-           break;
+        switch (target_type)
+        {
+            case HSM_COMPOSITE_ID:
+                Check_Targeted_Composite(state_defn, trans);
+                break;
 
-       } /* switch (trans->target_state) */
+            case HSM_DEEP_HISTORY_ID:
+            case HSM_SHALLOW_HISTORY_ID:
+                Check_Targeted_History(state_defn, src_state, trans);
+                break;
+
+            case HSM_FINAL_ID:
+                Check_Targeted_Final(state_defn, src_state, trans);
+                break;
+
+            default:
+                break;
+
+        } /* switch (trans->target_state) */
 
     } /* if (trans->target_state != HSM_SAME_STATE) */
 }
@@ -840,21 +840,21 @@ static void Check_Target(HSM_State_Defn_T const *state_defn,
  * @param [in] trans The transition whose target state is to be checked.
  */
 static void Check_Targeted_Composite(HSM_State_Defn_T const *state_defn,
-                                     const HSM_Transition_T *trans)
+        const HSM_Transition_T *trans)
 {
-   /*
-    * A targeted composite state must have an initial state.
-    */
-   HSM_State_Id_T target = trans->target_state;
-   HSM_State_Id_T initial;
+    /*
+     * A targeted composite state must have an initial state.
+     */
+    HSM_State_Id_T target = trans->target_state;
+    HSM_State_Id_T initial;
 
-   initial = state_defn->state_table[target].initial_state;
+    initial = state_defn->state_table[target].initial_state;
 
-   PBC_Require_3(initial > 0,
-                 "(%s) Targeted composite state '%s' (%d) must have an initial state",
-                 (char*)state_defn->statechart_name,
-                 (char*)hsm_Get_State_Name_From_Defn(state_defn, target), (int)target
-               );
+    PBC_Require_3(initial > 0,
+            "(%s) Targeted composite state '%s' (%d) must have an initial state",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, target), (int)target
+            );
 }
 
 /**
@@ -867,43 +867,43 @@ static void Check_Targeted_Composite(HSM_State_Defn_T const *state_defn,
  * @param [in] trans The transition whose target state is to be checked.
  */
 static void Check_Targeted_Final(HSM_State_Defn_T const *state_defn,
-                                 HSM_State_Id_T src_state,
-                                 const HSM_Transition_T *trans)
+        HSM_State_Id_T src_state,
+        const HSM_Transition_T *trans)
 {
-   /*
-    * The source of a transition to a final state cannot be outside
-    * the composite state containing the final state.
-    */
-   HSM_State_Id_T parent_of_target;
-   parent_of_target = state_defn->state_table[trans->target_state].parent_state;
-   /* PRQA S 3415 1 */ /* Suppress QAC right hand side effects message. */
-   PBC_Require_3((src_state == parent_of_target) ||
-                (hsm_Is_Ancestor_State(state_defn,
-                                       src_state, parent_of_target)),
-                "(%s) A transition from state '%s' (%d) targets a final state outside its scope",
-                (char*)state_defn->statechart_name,
-                (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
-               );
-   /*
-    * A completion transition for a composite state cannot target that
-    * same composite state's final state because that creates an infinite
-    * loop.
-    */
-   PBC_Require_3((src_state != parent_of_target) || (trans->event != HSM_COMPLETION_EVENT),
-                "(%s) Completion transition from state '%s' (%d) targets its final state",
-                (char*)state_defn->statechart_name,
-                (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
-               );
-   /*
-    * The first transition from a composite state containing a final
-    * state must be a completion transition.
-    */
-   PBC_Require_3(HSM_COMPLETION_EVENT ==
-                 state_defn->state_table[parent_of_target].transition_table[0].event,
-                 "(%s) First transition from state '%s' (%d) must be a completion transition",
-                 (char*)state_defn->statechart_name,
-                 (char*)hsm_Get_State_Name_From_Defn(state_defn, parent_of_target), (int)parent_of_target
-               );
+    /*
+     * The source of a transition to a final state cannot be outside
+     * the composite state containing the final state.
+     */
+    HSM_State_Id_T parent_of_target;
+    parent_of_target = state_defn->state_table[trans->target_state].parent_state;
+    /* PRQA S 3415 1 */ /* Suppress QAC right hand side effects message. */
+    PBC_Require_3((src_state == parent_of_target) ||
+            (hsm_Is_Ancestor_State(state_defn,
+                                   src_state, parent_of_target)),
+            "(%s) A transition from state '%s' (%d) targets a final state outside its scope",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
+            );
+    /*
+     * A completion transition for a composite state cannot target that
+     * same composite state's final state because that creates an infinite
+     * loop.
+     */
+    PBC_Require_3((src_state != parent_of_target) || (trans->event != HSM_COMPLETION_EVENT),
+            "(%s) Completion transition from state '%s' (%d) targets its final state",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
+            );
+    /*
+     * The first transition from a composite state containing a final
+     * state must be a completion transition.
+     */
+    PBC_Require_3(HSM_COMPLETION_EVENT ==
+            state_defn->state_table[parent_of_target].transition_table[0].event,
+            "(%s) First transition from state '%s' (%d) must be a completion transition",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, parent_of_target), (int)parent_of_target
+            );
 }
 
 /**
@@ -916,31 +916,31 @@ static void Check_Targeted_Final(HSM_State_Defn_T const *state_defn,
  * @param [in] trans The transition whose target state is to be checked.
  */
 static void Check_Targeted_History(HSM_State_Defn_T const *state_defn,
-                                   HSM_State_Id_T src_state,
-                                   const HSM_Transition_T *trans)
+        HSM_State_Id_T src_state,
+        const HSM_Transition_T *trans)
 {
-   HSM_State_Id_T parent_of_hist;
+    HSM_State_Id_T parent_of_hist;
 
-   parent_of_hist = state_defn->state_table[trans->target_state].parent_state;
-   /*
-    * The source of the transition to a history state cannot be the
-    * composite state enclosing the history state or within it (unless it
-    * is the composite's initial state).
-    */
-   PBC_Require_3(parent_of_hist != src_state,
-                "(%s) Transitions from composite state '%s' (%d) cannot target its history state",
+    parent_of_hist = state_defn->state_table[trans->target_state].parent_state;
+    /*
+     * The source of the transition to a history state cannot be the
+     * composite state enclosing the history state or within it (unless it
+     * is the composite's initial state).
+     */
+    PBC_Require_3(parent_of_hist != src_state,
+            "(%s) Transitions from composite state '%s' (%d) cannot target its history state",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
+            );
+    if (hsm_Is_Ancestor_State(state_defn, src_state, parent_of_hist))
+    {
+        PBC_Require_3(src_state == 
+                state_defn->state_table[parent_of_hist].initial_state,
+                "(%s) State '%s' (%d) cannot target the history state that tracks it",
                 (char*)state_defn->statechart_name,
                 (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
-               );
-   if (hsm_Is_Ancestor_State(state_defn, src_state, parent_of_hist))
-   {
-       PBC_Require_3(src_state == 
-                     state_defn->state_table[parent_of_hist].initial_state,
-                     "(%s) State '%s' (%d) cannot target the history state that tracks it",
-                     (char*)state_defn->statechart_name,
-                     (char*)hsm_Get_State_Name_From_Defn(state_defn, src_state), (int)src_state
-                   );
-   }
+                );
+    }
 }
 
 /**
@@ -959,22 +959,22 @@ static void Check_Targeted_History(HSM_State_Defn_T const *state_defn,
  *   - nesting level <= HSM_MAX_NESTING_LEVELS
  */
 static uint16_t Get_Nesting_Level(HSM_State_Defn_T const *state_defn,
-                                  HSM_State_Id_T state)
+        HSM_State_Id_T state)
 {
     uint16_t nesting_level = 1;
     HSM_State_Id_T parent_state = state_defn->state_table[state].parent_state;
 
     while (parent_state != HSM_TOP)
     {
-       parent_state = state_defn->state_table[parent_state].parent_state;
-       nesting_level++;
+        parent_state = state_defn->state_table[parent_state].parent_state;
+        nesting_level++;
     }
 
     PBC_Require_3(nesting_level <= HSM_MAX_NESTING_LEVELS,
-                 "(%s) State '%s' (%d) exceeds maximum nesting level",
-                 (char*)state_defn->statechart_name,
-                 (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
-                );
+            "(%s) State '%s' (%d) exceeds maximum nesting level",
+            (char*)state_defn->statechart_name,
+            (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state
+            );
 
     return nesting_level;
 }
@@ -986,64 +986,64 @@ static uint16_t Get_Nesting_Level(HSM_State_Defn_T const *state_defn,
  *===========================================================================*/
 void HSM_Check_Statechart_Defn(HSM_State_Defn_T const *state_defn)
 {
-   HSM_State_Id_T state;
+    HSM_State_Id_T state;
 
-   /* PRQA S 0306 2 */ /* Suppress QAC cast message. */
-   PBC_Require(state_defn != NULL, "NULL state definition");
-   /* PRQA S 0505 2 */ /* Suppress QAC NULL ptr message (checked above). */
-   PBC_Require(state_defn->state_table != NULL, "NULL state table");
-   PBC_Require_1(state_defn->state_count > 1, "(%s) Invalid state count",
-                 (char*)state_defn->statechart_name);
-   PBC_Require_1(HSM_INITIAL_ID == state_defn->state_table[0].state_type,
-                 "(%s) First state in table not an initial state",
-                 (char*)state_defn->statechart_name);
+    /* PRQA S 0306 2 */ /* Suppress QAC cast message. */
+    PBC_Require(state_defn != NULL, "NULL state definition");
+    /* PRQA S 0505 2 */ /* Suppress QAC NULL ptr message (checked above). */
+    PBC_Require(state_defn->state_table != NULL, "NULL state table");
+    PBC_Require_1(state_defn->state_count > 1, "(%s) Invalid state count",
+            (char*)state_defn->statechart_name);
+    PBC_Require_1(HSM_INITIAL_ID == state_defn->state_table[0].state_type,
+            "(%s) First state in table not an initial state",
+            (char*)state_defn->statechart_name);
 
-   for (state = 0; state < state_defn->state_count; state++)
-   {
-       switch (state_defn->state_table[state].state_type)
-       {
-         case HSM_COMPOSITE_ID:
-           Check_Composite_State_Defn(state_defn, state);
-           break;
-           
-         case HSM_DEEP_HISTORY_ID:
-         case HSM_SHALLOW_HISTORY_ID:
-           Check_History_State_Defn(state_defn, state);
-           break;
-           
-         case HSM_FINAL_ID:
-           Check_Final_State_Defn(state_defn, state);
-           break;
-           
-         case HSM_INITIAL_ID:
-           Check_Initial_State_Defn(state_defn, state);
-           break;
-           
-         case HSM_JUNCTION_ID:
-           Check_Junction_State_Defn(state_defn, state);
-           break;
-           
-         case HSM_SIMPLE_ID:
-           Check_Simple_State_Defn(state_defn, state);
-           break;
-           
-         default:
-           /* illegal state_type */
-           PBC_Failed_3("(%s) State '%s' (%d) has an illegal type",
+    for (state = 0; state < state_defn->state_count; state++)
+    {
+        switch (state_defn->state_table[state].state_type)
+        {
+            case HSM_COMPOSITE_ID:
+                Check_Composite_State_Defn(state_defn, state);
+                break;
+
+            case HSM_DEEP_HISTORY_ID:
+            case HSM_SHALLOW_HISTORY_ID:
+                Check_History_State_Defn(state_defn, state);
+                break;
+
+            case HSM_FINAL_ID:
+                Check_Final_State_Defn(state_defn, state);
+                break;
+
+            case HSM_INITIAL_ID:
+                Check_Initial_State_Defn(state_defn, state);
+                break;
+
+            case HSM_JUNCTION_ID:
+                Check_Junction_State_Defn(state_defn, state);
+                break;
+
+            case HSM_SIMPLE_ID:
+                Check_Simple_State_Defn(state_defn, state);
+                break;
+
+            default:
+                /* illegal state_type */
+                PBC_Failed_3("(%s) State '%s' (%d) has an illegal type",
                         (char*)state_defn->statechart_name,
                         (char*)hsm_Get_State_Name_From_Defn(state_defn, state), (int)state);
-           break;
-       } /* switch (state_defn->state_type) */
-       
-       Check_Outgoing_Transitions(state_defn, state);
-       
-       Check_Incoming_Transitions(state_defn, state);
-       
-       Check_Nesting_Constraint(state_defn, state);
-       
-   } /* for (state = 0; state < state_defn->state_count; state++)         */
+                break;
+        } /* switch (state_defn->state_type) */
 
-   /* PRQA S 4700 1 */ /* Suppress QAC STCALL metric message. */
+        Check_Outgoing_Transitions(state_defn, state);
+
+        Check_Incoming_Transitions(state_defn, state);
+
+        Check_Nesting_Constraint(state_defn, state);
+
+    } /* for (state = 0; state < state_defn->state_count; state++)         */
+
+    /* PRQA S 4700 1 */ /* Suppress QAC STCALL metric message. */
 }
 
 /*===========================================================================*/

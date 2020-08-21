@@ -900,21 +900,21 @@ typedef char const *(*HSM_Event_Name_Func_T)(const HSM_Event_T event);
  * trace messages to be associated with the instance, even when there are
  * multiple instances being driven by the same statechart declaration.
  *
- * @note The lifetime of the string pointed to by chart_id must be greater
+ * @note The lifetime of the string pointed to by chart_label must be greater
  *       than the lifetime of the statechart object it controls since the
  *       HSM engine will reference the string for trace messages. A NULL
- *       is allowed for chart_id, but will mean that the trace messages
+ *       is allowed for chart_label, but will mean that the trace messages
  *       for the statechart will instead use the statechart name (which
  *       is sufficient unless there are multiple instances that you need
  *       to differentiate).
  */
 typedef struct HSM_Debug_Control_Tag
 {
-   char const *chart_id;       /**< Unique identifier place in trace messages. */
+   char const *chart_label;   /**< Unique identifier place in trace messages. */
    int dbg_module_id; /**< Module whose trace level controls this statechart. */
    int log_level; /**< Trace level to use (if dbg_module_id not used). */
    HSM_DbgFunc_T debug_func;  /**< Optional callback function for advanced debugging */
-   bool_t perform_check;       /**< If true in HSM_Begin, check for legal UML statechart */
+   bool_t perform_check;      /**< If true in HSM_Begin, check for legal UML statechart */
    /**
      * If non-NULL, get_event_name is called to obtain event names for trace
      * output instead of the global callback function HSM_Get_Event_Name. This
@@ -1012,7 +1012,7 @@ HSM_Statechart_T;
  *     dbg_ctrl structure will not affect the statechart object. To
  *     alter the statechart object's settings, see HSM_Control_Debug().
  *
- *   - The lifetime of the string pointed to by dbg_ctrl->chart_id must
+ *   - The lifetime of the string pointed to by dbg_ctrl->chart_label must
  *     be greater than the lifetime of the statechart object it controls
  *     since the HSM engine will reference the string for trace messages.
  *
@@ -1290,7 +1290,7 @@ size_t HSM_Save(HSM_Statechart_T *statechart, uint8_t *buffer, size_t space_avai
  *
  *  @note
  *
- *   - The lifetime of the string pointed to by dbg_ctrl->chart_id must
+ *   - The lifetime of the string pointed to by dbg_ctrl->chart_label must
  *     be greater than the lifetime of the statechart object it controls
  *     since the HSM engine will reference the string for trace messages.
  *

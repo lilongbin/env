@@ -12,6 +12,7 @@
 #define __HSM_COMM_H__
 
 #include <stdio.h>
+#include <assert.h>
 #include <sys/types.h>
 
 #   define false  (0)
@@ -141,7 +142,8 @@ extern int __hsm_log_func(int prio, const char *tag, const char *fmt, ...);
 #   define PBC_Require(expr_, ...) \
 if(expr_){}                        \
 else {                             \
-   hsm_log_func(__VA_ARGS__);            \
+   hsm_log_func(__VA_ARGS__);      \
+   assert(0);                      \
 }
 #   define PBC_Require_1 PBC_Require
 #   define PBC_Require_2 PBC_Require
