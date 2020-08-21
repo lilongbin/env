@@ -1140,7 +1140,7 @@ static void Update_Dbg_Trace_Level(HSM_Statechart_T *statechart)
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-void HSM_Begin(HSM_Statechart_T *statechart)
+static void HSM_Begin(HSM_Statechart_T *statechart)
 {
    PBC_Require( (0 == statechart->current_state) && (0 == statechart->previous_state),
       "Illegal attempt call to HSM_Begin() for an active statechar");
@@ -1177,13 +1177,31 @@ void HSM_Control_Debug(HSM_Statechart_T *statechart, HSM_Debug_Control_T const *
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-HSM_DbgFunc_T HSM_Get_Callback(HSM_Statechart_T const *statechart)
+HSM_DbgFunc_T HSM_Get_DbgFunc(HSM_Statechart_T const *statechart)
 {
    HSM_DbgFunc_T current_callback;
 
    PBC_Require(statechart != NULL, "NULL statechart");
    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
    current_callback = statechart->dbg.debug_func;
+
+   return current_callback;
+}
+
+
+/*===========================================================================*
+ *
+ * Please refer to the detailed description in hsm_engine.h
+ *
+ *===========================================================================*/
+HSM_DbgFunc_T HSM_Set_DbgFunc(HSM_Statechart_T *statechart, HSM_DbgFunc_T debug_func)
+{
+   HSM_DbgFunc_T current_callback;
+
+   PBC_Require(statechart != NULL, "NULL statechart");
+   /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+   current_callback = statechart->dbg.debug_func;
+   statechart->dbg.debug_func = debug_func;
 
    return current_callback;
 }
@@ -1230,7 +1248,7 @@ char const *hsm_Get_State_Name_From_Defn(HSM_State_Defn_T const *state_defn, HSM
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-void HSM_Init(HSM_Statechart_T *statechart, HSM_State_Defn_T const *state_defn, void *this_ptr,
+static void HSM_Init(HSM_Statechart_T *statechart, HSM_State_Defn_T const *state_defn, void *this_ptr,
    HSM_Debug_Control_T const *dbg_ctrl)
 {
    HSM_State_Id_T state;
@@ -1359,11 +1377,13 @@ bool_t HSM_Process_Event(HSM_Statechart_T *statechart, HSM_Event_T event, void c
 
    if (statechart->processing_event)
    {
-      Tr_Fault_3( "Illegal recursive call to HSM_Process_Event() for %s while processing %s (%d)",
-         (char*)statechart->dbg.chart_id, Get_Valid_Event_Name(statechart, statechart->event), (int)statechart->event);
+      Tr_Fault_3( "Illegal recursive call to HSM_Process_Event() for %s while processing %d(%s)",
+         (char*)statechart->dbg.chart_id,
+         (int)statechart->event, Get_Valid_Event_Name(statechart, statechart->event));
 
-      Tr_Fault_3("%s will ignore recursive delivery of %s (%d)", (char*)statechart->dbg.chart_id,
-         Get_Valid_Event_Name(statechart, event), (int)event);
+      Tr_Fault_3("%s will ignore recursive delivery of %d(%s)",
+         (char*)statechart->dbg.chart_id,
+         (int)event, Get_Valid_Event_Name(statechart, event));
    }
    else
    {
@@ -1393,10 +1413,10 @@ bool_t HSM_Process_Event(HSM_Statechart_T *statechart, HSM_Event_T event, void c
 
          if (statechart->dbg.log_level >= TR_LVL_INFO_LO)
          {
-            Tr_Info_Lo_4("%s discarded event %s (%d) in state %s",
+            Tr_Info_Lo_4("%s discarded event %d(%s) in state %s",
                 (char*)statechart->dbg.chart_id,
-                Get_Valid_Event_Name(statechart, statechart->event), (int)statechart->event,
-                    HSM_Get_State_Name(statechart, statechart->current_state));
+                (int)statechart->event, Get_Valid_Event_Name(statechart, statechart->event),
+                HSM_Get_State_Name(statechart, statechart->current_state));
          }
       }
       statechart->processing_event = false;
@@ -1586,23 +1606,6 @@ size_t HSM_Save(HSM_Statechart_T *statechart, uint8_t *buffer, size_t space_avai
    }
 
    return (size_t) (buffer - buffer_start);
-}
-
-/*===========================================================================*
- *
- * Please refer to the detailed description in hsm_engine.h
- *
- *===========================================================================*/
-HSM_DbgFunc_T HSM_Set_Callback(HSM_Statechart_T *statechart, HSM_DbgFunc_T debug_func)
-{
-   HSM_DbgFunc_T current_callback;
-
-   PBC_Require(statechart != NULL, "NULL statechart");
-   /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-   current_callback = statechart->dbg.debug_func;
-   statechart->dbg.debug_func = debug_func;
-
-   return current_callback;
 }
 
 /*===========================================================================*

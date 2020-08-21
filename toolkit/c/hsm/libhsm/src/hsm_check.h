@@ -76,6 +76,16 @@
  *===========================================================================*/
 
 /**
+ * Checks the statechart definition to make sure it is well-formed (legal).
+ * Illegal statechart definitions trigger Error Management (EM) asserts,
+ * which would typically (depending on system configuration) mean that
+ * the function would not return.
+ *
+ * @param [in] state_defn The list and number of states in the statechart.
+ */
+void HSM_Check_Statechart_Defn(HSM_State_Defn_T const *state_defn);
+
+/**
  * Returns the name of the specified state in the statechart.
  *
  * @return A pointer to a string containing the state's name.

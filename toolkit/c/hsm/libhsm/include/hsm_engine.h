@@ -981,93 +981,6 @@ HSM_Statechart_T;
  *===========================================================================*/
 
 /**
- * Starts a statechart, causing it to enter its initial state.
- *
- * @param [in,out] statechart
- *   HSM_Statechart_T object that is used to hold the statechart data.
- *
- * @pre
- *   - statechart != NULL
- *   - A call to HSM_Begin() must be preceded by a call to HSM_Init().
- */
-void HSM_Begin(HSM_Statechart_T *statechart);
-
-/**
- * Checks the statechart definition to make sure it is well-formed (legal).
- * Illegal statechart definitions trigger Error Management (EM) asserts,
- * which would typically (depending on system configuration) mean that
- * the function would not return.
- *
- * @param [in] state_defn The list and number of states in the statechart.
- */
-void HSM_Check_Statechart_Defn(HSM_State_Defn_T const *state_defn);
-
-/**
- * Configures the debug settings for the specified statechart. This call sets
- * up the future debug trace settings for the statechart instance.
- *
- * @param [in,out] statechart
- *   HSM_Statechart_T object that is used to hold the statechart data.
- *
- * @param [in] dbg_ctrl
- *   HSM_Debug_Control_T object that specifies the new settings for the
- *   statechart's debug trace activity. A NULL is allowed and has the
- *   effect of disabling any further debug trace for the statechart.
- *
- *  @note
- *
- *   - The lifetime of the string pointed to by dbg_ctrl->chart_id must
- *     be greater than the lifetime of the statechart object it controls
- *     since the HSM engine will reference the string for trace messages.
- *
- * @pre
- *   - statechart != NULL
- */
-void HSM_Control_Debug(HSM_Statechart_T *statechart,
-                       HSM_Debug_Control_T const *dbg_ctrl);
-
-/**
- * Returns the statechart's debug callback function.
- *
- * @return The HSM_DbgFunc_T for the statechart.
- *
- * @param [in] statechart
- *   HSM_Statechart_T object that is used to hold the statechart data.
- *
- * @pre
- *   - statechart != NULL
- */
-HSM_DbgFunc_T HSM_Get_Callback(HSM_Statechart_T const *statechart);
-
-/**
- * Returns the name of the specified state in the statechart.
- *
- * @return A pointer to a string containing the state's name.
- *
- * @note
- *   State names are only available for a statechart if it is compiled with
- *   the appropriate option (HSM_GENERATE_STATE_NAMES); otherwise, the
- *   names returned for its states will be the string "unknown".
- *
- * @param [in] statechart
- *   HSM_Statechart_T object that is used to hold the statechart data.
- *
- * @param [in] state
- *   The state index (from the statechart's enumeration of states) of
- *   the state whose name is to be returned.
- *
- * @pre
- *   - statechart != NULL
- *   - state >= 0
- *   - state < number of states in statechart
- *
- * @post
- *   - pointer returned != NULL
-*/
-char const *HSM_Get_State_Name(HSM_Statechart_T const *statechart,
-                               HSM_State_Id_T state);
-
-/**
  * Initializes the statechart structure without starting the statechart; this
  * call must precede a call to HSM_Begin().
  *
@@ -1110,10 +1023,102 @@ char const *HSM_Get_State_Name(HSM_Statechart_T const *statechart,
  *   - state_defn->state_count > 1 (minimum statechart is an initial state
  *                                and a simple state)
  */
-void HSM_Init(HSM_Statechart_T *statechart,
+#if 0
+static void HSM_Init(HSM_Statechart_T *statechart,
               HSM_State_Defn_T const *state_defn,
               void *this_ptr,
               HSM_Debug_Control_T const *dbg_ctrl);
+#endif
+
+/**
+ * Starts a statechart, causing it to enter its initial state.
+ *
+ * @param [in,out] statechart
+ *   HSM_Statechart_T object that is used to hold the statechart data.
+ *
+ * @pre
+ *   - statechart != NULL
+ *   - A call to HSM_Begin() must be preceded by a call to HSM_Init().
+ */
+#if 0
+static void HSM_Begin(HSM_Statechart_T *statechart);
+#endif
+
+/**
+ * Initializes the statechart, checks the its states' definitions (optional),
+ * enters its initial state, and prepares it for receiving events.
+ *
+ * @note Use of HSM_Init() and HSM_Begin is now the recommended replacement
+ *       for this function.
+ *
+ * @param [in,out] statechart
+ *   The caller provides the HSM_Statechart_T object that is used to
+ *   hold the statechart data. This structure is initialized and updated
+ *   to reflect the initial state of the statechart.
+ * 
+ * @param [in] state_defn
+ *   The list and number of states in the statechart. The information is
+ *   copied from this structure into the statechart structure, which allows
+ *   the object pointed to to have a temporary lifetime (it can be a local
+ *   variable on the stack).
+ *
+ * @param [in] this_ptr
+ *   A pointer that can be used to point to a data structure representing the
+ *   object which is controlled by the statechart. This can be used to provide
+ *   access to the object to the action and guard functions which otherwise
+ *   would have to access static or global variables.
+ *
+ * @param [in] perform_check
+ *   If true, checks are performed on the state_table to check for a well-formed
+ *   statechart. Any problems will result in an assert being triggered.
+ *   Such checks need only be performed when a statechart's definition has
+ *   been modified from a previously checked definition.
+ *
+ * @param [in] debug_func
+ *   Optional callback function pointer (can be NULL) that allows the caller
+ *   to specify a callback that will be made whenever an event is processed
+ *   for the statechart. This can be used to debug or log the statechart's
+ *   activity.
+ *
+ * @pre
+ *   - statechart != NULL
+ *   - state_defn != NULL
+ *   - state_defn->state_table !- NULL
+ *   - state_defn->state_count > 1 (minimum statechart is an initial state
+ *                                and a simple state)
+ */
+void HSM_Start(HSM_Statechart_T *statechart,
+               HSM_State_Defn_T const *state_defn,
+               void *this_ptr,
+               const HSM_Debug_Control_T *dbg_ctrl);
+
+/**
+ * Returns the name of the specified state in the statechart.
+ *
+ * @return A pointer to a string containing the state's name.
+ *
+ * @note
+ *   State names are only available for a statechart if it is compiled with
+ *   the appropriate option (HSM_GENERATE_STATE_NAMES); otherwise, the
+ *   names returned for its states will be the string "unknown".
+ *
+ * @param [in] statechart
+ *   HSM_Statechart_T object that is used to hold the statechart data.
+ *
+ * @param [in] state
+ *   The state index (from the statechart's enumeration of states) of
+ *   the state whose name is to be returned.
+ *
+ * @pre
+ *   - statechart != NULL
+ *   - state >= 0
+ *   - state < number of states in statechart
+ *
+ * @post
+ *   - pointer returned != NULL
+*/
+char const *HSM_Get_State_Name(HSM_Statechart_T const *statechart,
+                               HSM_State_Id_T state);
 
 /**
  * Returns an indication of whether the statechart is in the specified state.
@@ -1272,6 +1277,43 @@ size_t HSM_Restore(HSM_Statechart_T *statechart,
 size_t HSM_Save(HSM_Statechart_T *statechart, uint8_t *buffer, size_t space_available);
 
 /**
+ * Configures the debug settings for the specified statechart. This call sets
+ * up the future debug trace settings for the statechart instance.
+ *
+ * @param [in,out] statechart
+ *   HSM_Statechart_T object that is used to hold the statechart data.
+ *
+ * @param [in] dbg_ctrl
+ *   HSM_Debug_Control_T object that specifies the new settings for the
+ *   statechart's debug trace activity. A NULL is allowed and has the
+ *   effect of disabling any further debug trace for the statechart.
+ *
+ *  @note
+ *
+ *   - The lifetime of the string pointed to by dbg_ctrl->chart_id must
+ *     be greater than the lifetime of the statechart object it controls
+ *     since the HSM engine will reference the string for trace messages.
+ *
+ * @pre
+ *   - statechart != NULL
+ */
+void HSM_Control_Debug(HSM_Statechart_T *statechart,
+                       HSM_Debug_Control_T const *dbg_ctrl);
+
+/**
+ * Returns the statechart's debug callback function.
+ *
+ * @return The HSM_DbgFunc_T for the statechart.
+ *
+ * @param [in] statechart
+ *   HSM_Statechart_T object that is used to hold the statechart data.
+ *
+ * @pre
+ *   - statechart != NULL
+ */
+HSM_DbgFunc_T HSM_Get_DbgFunc(HSM_Statechart_T const *statechart);
+
+/**
  * Sets the statechart's debug callback function.
  *
  * @return The previously set HSM_DbgFunc_T for the statechart.
@@ -1288,56 +1330,8 @@ size_t HSM_Save(HSM_Statechart_T *statechart, uint8_t *buffer, size_t space_avai
  * @pre
  *   - statechart != NULL
  */
-HSM_DbgFunc_T HSM_Set_Callback(HSM_Statechart_T * statechart,
+HSM_DbgFunc_T HSM_Set_DbgFunc(HSM_Statechart_T * statechart,
                                 HSM_DbgFunc_T debug_func);
-
-/**
- * Initializes the statechart, checks the its states' definitions (optional),
- * enters its initial state, and prepares it for receiving events.
- *
- * @note Use of HSM_Init() and HSM_Begin is now the recommended replacement
- *       for this function.
- *
- * @param [in,out] statechart
- *   The caller provides the HSM_Statechart_T object that is used to
- *   hold the statechart data. This structure is initialized and updated
- *   to reflect the initial state of the statechart.
- * 
- * @param [in] state_defn
- *   The list and number of states in the statechart. The information is
- *   copied from this structure into the statechart structure, which allows
- *   the object pointed to to have a temporary lifetime (it can be a local
- *   variable on the stack).
- *
- * @param [in] this_ptr
- *   A pointer that can be used to point to a data structure representing the
- *   object which is controlled by the statechart. This can be used to provide
- *   access to the object to the action and guard functions which otherwise
- *   would have to access static or global variables.
- *
- * @param [in] perform_check
- *   If true, checks are performed on the state_table to check for a well-formed
- *   statechart. Any problems will result in an assert being triggered.
- *   Such checks need only be performed when a statechart's definition has
- *   been modified from a previously checked definition.
- *
- * @param [in] debug_func
- *   Optional callback function pointer (can be NULL) that allows the caller
- *   to specify a callback that will be made whenever an event is processed
- *   for the statechart. This can be used to debug or log the statechart's
- *   activity.
- *
- * @pre
- *   - statechart != NULL
- *   - state_defn != NULL
- *   - state_defn->state_table !- NULL
- *   - state_defn->state_count > 1 (minimum statechart is an initial state
- *                                and a simple state)
- */
-void HSM_Start(HSM_Statechart_T *statechart,
-               HSM_State_Defn_T const *state_defn,
-               void *this_ptr,
-               const HSM_Debug_Control_T *dbg_ctrl);
 
 
 /*===========================================================================*
