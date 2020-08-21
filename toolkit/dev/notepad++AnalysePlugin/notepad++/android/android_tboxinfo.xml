@@ -8,22 +8,25 @@
     <SearchText doSearch="false" select="text" bgColor="yellow">denied </SearchText>
     <SearchText doSearch="false" select="text" bgColor="offWhite">F DEBUG  </SearchText>
     <SearchText doSearch="false" select="text" bgColor="darkYellow">backtrace:</SearchText>
-    <SearchText bgColor="darkYellow">anr</SearchText>
+    <SearchText bgColor="darkYellow">anr </SearchText>
     <SearchText doSearch="false" bgColor="darkYellow">RemoteException</SearchText>
+    <SearchText bgColor="yellow">java.lang.RuntimeException</SearchText>
+    <SearchText select="text" bgColor="litePink">vendor.aptiv.tbox.TBoxService</SearchText>
     <SearchText bgColor="darkGreen">AptivTBoxHal service</SearchText>
     <SearchText select="text" bgColor="yellow">onServiceStatusCheck</SearchText>
-    <SearchText doSearch="false" bgColor="offWhite">TBoxGps</SearchText>
+    <SearchText doSearch="false" select="text" bgColor="offWhite">notifyTBoxHeartbeatCheck</SearchText>
+    <SearchText doSearch="false" bgColor="offWhite">TBoxGnss</SearchText>
     <SearchText bgColor="veryLitePurple">registerOnTBox</SearchText>
-    <SearchText bgColor="veryLiteBlue">TBoxSomeipManager</SearchText>
+    <SearchText bgColor="liteRed">TBoxSomeipManager</SearchText>
     <SearchText doSearch="false" bgColor="offWhite">TBoxMsgMgr</SearchText>
     <SearchText select="text" bgColor="liteGrey">TBoxModuleTSPCom</SearchText>
-    <SearchText select="text" bgColor="liteGrey">tboxStatusChangedCb</SearchText>
-    <SearchText select="text" bgColor="liteGrey">tboxResponseMsgCb</SearchText>
+    <SearchText select="text" bgColor="liteGrey">doTBoxStatusChangedCb</SearchText>
+    <SearchText select="text" bgColor="liteGrey">doTBoxResponseMsgCb</SearchText>
     <SearchText>TBoxModuleSystemFunctions</SearchText>
     <SearchText select="text" bgColor="#f768f7">TBoxModuleTelephony</SearchText>
     <SearchText bgColor="offWhite">TBoxConnection_aa</SearchText>
     <SearchText select="text" bgColor="liteBeige">TBoxServiceManager</SearchText>
     <SearchText doSearch="false" select="text" bgColor="#adebb1">onTServiceResponse</SearchText>
     <SearchText doSearch="false" select="text" bgColor="#8ae688">TBoxServiceCallbackHandler</SearchText>
-    <SearchText select="text" bgColor="liteGrey">gwmv3.engineermode.screen</SearchText>
+    <SearchText select="text" bgColor="liteRed">onTBoxStateChanged</SearchText>
 </AnalyseDoc>

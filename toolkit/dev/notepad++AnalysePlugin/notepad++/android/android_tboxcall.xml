@@ -8,28 +8,28 @@
     <SearchText doSearch="false" select="text" bgColor="yellow">denied </SearchText>
     <SearchText doSearch="false" select="text" bgColor="offWhite">F DEBUG  </SearchText>
     <SearchText doSearch="false" select="text" bgColor="darkYellow">backtrace:</SearchText>
-    <SearchText bgColor="darkYellow">anr</SearchText>
+    <SearchText bgColor="darkYellow">anr </SearchText>
     <SearchText bgColor="darkYellow">lowmemorykiller</SearchText>
     <SearchText doSearch="false" bgColor="darkYellow">RemoteException</SearchText>
     <SearchText doSearch="false" bgColor="liteBeige">AptivGnssHal</SearchText>
     <SearchText matchCase="true" bgColor="darkGreen">AptivTBoxHal service</SearchText>
     <SearchText select="text" bgColor="yellow">onServiceStatusCheck</SearchText>
-    <SearchText doSearch="false" bgColor="offWhite">TBoxGps</SearchText>
+    <SearchText doSearch="false" select="text" bgColor="offWhite">notifyTBoxHeartbeatCheck</SearchText>
+    <SearchText doSearch="false" bgColor="offWhite">TBoxGnss</SearchText>
     <SearchText bgColor="veryLitePurple">registerOnTBox</SearchText>
-    <SearchText bgColor="veryLiteBlue">TBoxSomeipManager</SearchText>
+    <SearchText bgColor="liteRed">TBoxSomeipManager</SearchText>
     <SearchText bgColor="offWhite">TBoxMsgMgr</SearchText>
     <SearchText select="text" bgColor="liteGrey">TBoxModuleTSPCom</SearchText>
-    <SearchText select="text" bgColor="liteGrey">tboxStatusChangedCb</SearchText>
+    <SearchText select="text" bgColor="liteGrey">doTBoxStatusChangedCb</SearchText>
     <SearchText doSearch="false">TBoxModuleSystemFunctions</SearchText>
     <SearchText>TBoxRtpManager</SearchText>
     <SearchText bgColor="veryLitePurple">TBoxRtpReceiver</SearchText>
-    <SearchText select="text" bgColor="liteRed">TBoxModuleTelephony</SearchText>
+    <SearchText select="text" bgColor="green">TBoxModuleTelephony</SearchText>
     <SearchText select="text" bgColor="liteGreen">notifyTBoxCallState TBox</SearchText>
     <SearchText select="text" bgColor="cyan">notifyTBoxCallState joStr</SearchText>
     <SearchText select="text" bgColor="cyan">PhoneStatus</SearchText>
     <SearchText select="text" bgColor="pink">requestTBoxCallOperation</SearchText>
     <SearchText doSearch="false" bgColor="offWhite">BaseInfoTService</SearchText>
-    <SearchText select="text" bgColor="veryLiteBlue">gwmv3.bluetooth.PhoneApp</SearchText>
     <SearchText bgColor="offWhite">TBoxConnection_aa</SearchText>
     <SearchText select="text" bgColor="liteBeige">TBoxServiceManager</SearchText>
     <SearchText select="text" bgColor="offWhite">TBoxAudioSourceService</SearchText>
@@ -40,4 +40,5 @@
     <SearchText select="text" bgColor="#da9952">AudioBus: bus:4</SearchText>
     <SearchText select="text" bgColor="offWhite">CallManagerTService</SearchText>
     <SearchText select="text" bgColor="offWhite">CallBase</SearchText>
+    <SearchText doSearch="false" select="text" bgColor="veryLiteBlue">gwmv3.bluetooth.PhoneApp</SearchText>
 </AnalyseDoc>
