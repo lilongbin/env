@@ -127,6 +127,7 @@ class Calculator(object):
         self.n2 = '0b0'
         self.n2 = str(bin(int(self.n16, 16)))
     def isprime(self, n10):
+        if n10 < 0: return False
         if not n10 % 2: return False
         import math
         for i in range(2, int(math.sqrt(n10))):
