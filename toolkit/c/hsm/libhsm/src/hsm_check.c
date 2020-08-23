@@ -144,7 +144,7 @@ static uint16_t Get_Nesting_Level(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the definition of a composite state.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] state Index to the state's position in the state_table.
  */
@@ -240,7 +240,7 @@ static void Check_Composite_State_Defn(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the default target of a history state to make sure it is valid.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] src_state The (history) state that is the source transition.
  *
@@ -287,7 +287,7 @@ static void Check_Default_History_State(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the definition of a final state.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] state Index to the state's position in the state_defn->state_table.
  */
@@ -334,7 +334,7 @@ static void Check_Final_State_Defn(HSM_State_Defn_T const *state_defn,
 /**
  * Makes sure a parent state is a composite state.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] state Index to the state's position in the state_defn->state_table.
  */
@@ -366,7 +366,7 @@ static void Check_For_Valid_Parent(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the definition of a history state.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] state Index to the state's position in the state_defn->state_table.
  */
@@ -398,7 +398,7 @@ static void Check_History_State_Defn(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the incoming transitions of a state.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] state The state whose incoming transitions are to be checked.
  */
@@ -488,7 +488,7 @@ static void Check_Incoming_Transitions(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the definition of an initial state.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] state Index to the state's position in the state_defn->state_table.
  */
@@ -531,7 +531,7 @@ static void Check_Initial_State_Defn(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the target of an initial state to make sure it is valid.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] src_state The initial state that is the source transition.
  *
@@ -558,7 +558,7 @@ static void Check_Initial_Target(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the definition of a junction state.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] state Index to the state's position in the state_defn->state_table.
  */
@@ -572,7 +572,7 @@ static void Check_Junction_State_Defn(HSM_State_Defn_T const *state_defn,
  * Makes sure that the nesting level of states does not exceed
  * HSM_MAX_NESTING_LEVELS.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] state The state whose nesting level is to be checked.
  */
@@ -608,7 +608,7 @@ static void Check_Nesting_Constraint(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the outgoing transitions of a state.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] state The state whose outgoing transitions are to be checked.
  */
@@ -750,7 +750,7 @@ static void Check_Outgoing_Transitions(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the definition of a simple state.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] state Index to the state's position in the state_defn->state_table.
  */
@@ -763,7 +763,7 @@ static void Check_Simple_State_Defn(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the target of a transition to make sure it is valid.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] src_state The state that is the source transition.
  *
@@ -835,7 +835,7 @@ static void Check_Target(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the composite state that is the target of a transition.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] trans The transition whose target state is to be checked.
  */
@@ -860,7 +860,7 @@ static void Check_Targeted_Composite(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the final state that is the target of a transition.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] src_state The state that is the source transition.
  *
@@ -909,7 +909,7 @@ static void Check_Targeted_Final(HSM_State_Defn_T const *state_defn,
 /**
  * Checks the history state that is the target of a transition.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] src_state The state that is the source transition.
  *
@@ -950,7 +950,7 @@ static void Check_Targeted_History(HSM_State_Defn_T const *state_defn,
  *
  * @return the nesting level (1..HSM_MAX_NESTING_LEVELS) of the state.
  *
- * @param [in] state_defn Points to structure defining states of the statechart.
+ * @param [in] state_defn Points to structure defining def_states of the statechart.
  *
  * @param [in] state
  *    State within the statechart for which to calculate the nesting level.

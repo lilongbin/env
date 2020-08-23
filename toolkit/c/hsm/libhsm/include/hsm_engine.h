@@ -960,7 +960,7 @@ typedef struct HSM_Statechart_Tag
    /** Can be used to point to the object whose state is being represented. */
    void *this_ptr;
    /** The list and number of states in the statechart. */
-   HSM_State_Defn_T states;
+   HSM_State_Defn_T def_states;
    /** Controls debug trace for this statechart instance. */
    HSM_Debug_Control_T dbg;
    /** List of transitions last taken. */
