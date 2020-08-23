@@ -85,54 +85,6 @@
  */
 void HSM_Check_Statechart_Defn(HSM_State_Defn_T const *state_defn);
 
-/**
- * Returns the name of the specified state in the statechart.
- *
- * @return A pointer to a string containing the state's name.
- *
- * @note
- *   State names are only available for a statechart if it is compiled with
- *   the appropriate option (HSM_GENERATE_STATE_NAMES); otherwise, the
- *   names returned for its states will be the string "unknown".
- *
- * @param [in] state_defn
- *   HSM_State_Defn_T that contains the definitions of the states..
- *
- * @param [in] state
- *   The state index (from the statechart's enumeration of states) of
- *   the state whose name is to be returned.
- *
- * @pre
- *   - state_defn != NULL
- *   - state >= 0
- *   - state < number of states in statechart
- *
- * @post
- *   - pointer returned != NULL
- */
-char const *hsm_Get_State_Name_From_Defn(HSM_State_Defn_T const *state_defn,
-                                         HSM_State_Id_T state);
-
-/**
- * This function determines whether s2 is an ancestor of the s1.
- *
- * @return true if s2 is an ancestor of s1; otherwise false.
- *
- * @param [in] p_states The list and number of states in the statechart.
- *
- * @param [in] s1 the state being checked for being a descendent of s2.
- *
- * @param [in] s2 the state being checked for being an ancestor of s1.
- *
- * @pre
- *   - p_states != NULL
- *   - 0 <= s1 < p_states->state_count
- *   - (HSM_TOP == s2) || (0 <= s2 < p_states->state_count)
- */
-bool_t hsm_Is_Ancestor_State(HSM_State_Defn_T const *p_states,
-                           HSM_State_Id_T s1, HSM_State_Id_T s2);
-
-
 /*===========================================================================*
  * Exported Inline Function Definitions and #define Function-Like Macros
  *===========================================================================*/
@@ -150,7 +102,7 @@ bool_t hsm_Is_Ancestor_State(HSM_State_Defn_T const *p_states,
  *   - Moved hsm_Check_Statechart_Defn to public API.
  *
  * - 15-nov-2007 kirk bailey
- *   - Changed preconditions for hsm_Is_Ancestor_State to support HSM_TOP.
+ *   - Changed preconditions for Check_Is_Ancestor_State to support HSM_TOP.
  *   - Converted to new Doyxgen format.
  *
  * - 04-apr-2007 kirk bailey

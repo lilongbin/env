@@ -49,7 +49,7 @@
  * Header Files
  *===========================================================================*/
 #include "hsm_check.h"
-//#include "hsm_engine_cbk.h"
+#include "hsm_engine.h"
 #include "hsm_engine_cfg.h"
 #include "hsm_comm.h"
 //#include "pbc_trace.h"
@@ -94,6 +94,8 @@ static void Execute_Exit_Actions(HSM_Statechart_T *statechart, HSM_State_Id_T sr
 
 static const HSM_Transition_T *Find_Enabled_Transition(HSM_Statechart_T *statechart, HSM_State_T const *ptr_st,
         const HSM_Event_T event);
+
+static bool_t Is_State_Ancestor(HSM_Statechart_T const *statechart, HSM_State_Id_T ref_st, HSM_State_Id_T confirming_st);
 
 static HSM_State_Id_T Get_LeastCommonAncestor(HSM_Statechart_T const *statechart, HSM_State_Id_T s1, HSM_State_Id_T s2);
 
@@ -677,6 +679,66 @@ static HSM_Transition_T const *Find_Enabled_Transition(HSM_Statechart_T *statech
 }
 
 /**
+ * This function verify whether confirming_st is an ancestor of the ref_st.
+ *
+ * @return true if confirming_st is an ancestor of ref_st; otherwise false.
+ *
+ * @param [in] p_states The list and number of states in the statechart.
+ *
+ * @param [in] ref_st the state being checked for being a descendent of confirming_st.
+ *
+ * @param [in] confirming_st the state being checked for being an ancestor of ref_st.
+ *
+ * @pre
+ *   - p_states != NULL
+ *   - 0 <= ref_st < p_states->state_count
+ *   - (HSM_TOP == confirming_st) || (0 <= confirming_st < p_states->state_count)
+ */
+static bool_t Is_State_Ancestor(HSM_Statechart_T const *statechart, HSM_State_Id_T ref_st, HSM_State_Id_T confirming_st)
+{
+    bool_t is_ancestor = false;
+    PBC_Internal(statechart != NULL, "NULL statechart");
+    HSM_State_Defn_T const *state_defn = &statechart->def_states;
+
+    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+    PBC_Internal(state_defn->state_table != NULL, "NULL state table");
+    PBC_Internal_2((ref_st >= 0) && (ref_st < state_defn->state_count),
+            "(%s) reference state out of range: %d",
+            (char*)state_defn->statechart_name, (int)ref_st);
+
+    if (HSM_TOP == confirming_st)
+    {
+        is_ancestor = true;
+    }
+    else
+    {
+        PBC_Internal_2((confirming_st >= 0) && (confirming_st < state_defn->state_count),
+                "(%s) State out of range: %d",
+                (char*)state_defn->statechart_name, (int)confirming_st);
+        for (;;)
+        {
+            if (state_defn->state_table[ref_st].parent_state == confirming_st)
+            {
+                is_ancestor = true;
+                break; /* out of for loop, return true */
+            }
+
+            if (state_defn->state_table[ref_st].parent_state == HSM_TOP)
+            {
+                break; /* out of for loop, return false */
+            }
+
+            ref_st = state_defn->state_table[ref_st].parent_state;
+            PBC_Internal_2((ref_st >= 0) && (ref_st < state_defn->state_count),
+                    "(%s) parent of reference state out of range: %d",
+                    (char*)state_defn->statechart_name, (int)ref_st);
+        }
+    }
+
+    return is_ancestor;
+}
+
+/**
  * This function returns the least common ancestor (LCA) of states s1 and s2. 
  *
  * @param [in] statechart
@@ -739,13 +801,13 @@ static HSM_State_Id_T Get_LeastCommonAncestor(HSM_Statechart_T const *statechart
         for (;;)
         {
             /* Is s2 an ancestor of s1 ? */
-            if (hsm_Is_Ancestor_State(&statechart->def_states, s1, s2))
+            if (Is_State_Ancestor(statechart, s1, s2))
             {
                 lca = s2;
                 break; /* out of for loop, return s2 */
             }
             /* Is s1 an ancestor of s2 ? */
-            else if (hsm_Is_Ancestor_State(&statechart->def_states, s2, s1))
+            else if (Is_State_Ancestor(statechart, s2, s1))
             {
                 lca = s1;
                 break; /* out of for loop, return s1 */
@@ -1199,85 +1261,23 @@ HSM_DbgFunc_T HSM_Set_DbgFunc(HSM_Statechart_T *statechart, HSM_DbgFunc_T debug_
  *===========================================================================*/
 char const *HSM_Get_State_Name(HSM_Statechart_T const *statechart, HSM_State_Id_T state)
 {
+    char const *name = "unknown";
     PBC_Require(statechart != NULL, "NULL statechart");
     PBC_Require(state >= 0, "Negative state");
-    PBC_Require_1(state < statechart->def_states.state_count, "(%s) State out of range",
+    PBC_Require_1(state < statechart->def_states.state_count,
+            "(%s) State out of range",
             (char*)statechart->def_states.statechart_name);
 
-    return hsm_Get_State_Name_From_Defn(&statechart->def_states, state);
-}
-
-/*===========================================================================*
- *
- * Please refer to the detailed description in hsm_check.h
- *
- *===========================================================================*/
-char const *hsm_Get_State_Name_From_Defn(HSM_State_Defn_T const *state_defn, HSM_State_Id_T state)
-{
-    char const *name = "unknown";
-
-    PBC_Internal(state_defn != NULL, "NULL state definition");
-    PBC_Internal(state >= 0, "Negative state value");
-    PBC_Internal_1(state < state_defn->state_count, "(%s) State out of range", (char*)state_defn->statechart_name);
-
+    const HSM_State_Defn_T *state_defn = &statechart->def_states;
     if (state_defn->state_names != NULL)
     {
         name = state_defn->state_names[state];
-        PBC_Ensure_1(name != NULL, "(%s) NULL state name", (char*)state_defn->statechart_name);
+        PBC_Ensure_2(name != NULL,
+            "(%s) NULL state name of state (%d)",
+            (char*)state_defn->statechart_name, state);
     }
 
     return name;
-}
-
-/*===========================================================================*
- *
- * Please refer to the detailed description in hsm_check.h
- *
- *===========================================================================*/
-bool_t hsm_Is_Ancestor_State(HSM_State_Defn_T const *state_defn, HSM_State_Id_T s1, HSM_State_Id_T s2)
-{
-    bool_t is_ancestor = false;
-
-    PBC_Internal(state_defn != NULL, "NULL state definition");
-    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-    PBC_Internal(state_defn->state_table != NULL, "NULL state table");
-    PBC_Internal_2((s1 >= 0) && (s1 < state_defn->state_count),
-            "(%s) State out of range: %d",
-            (char*)state_defn->statechart_name, (int)s1
-            );
-
-    if (HSM_TOP == s2)
-    {
-        is_ancestor = true;
-    }
-    else
-    {
-        PBC_Internal_2((s2 >= 0) && (s2 < state_defn->state_count),
-                "(%s) State out of range: %d",
-                (char*)state_defn->statechart_name, (int)s2
-                );
-        for (;;)
-        {
-            if (state_defn->state_table[s1].parent_state == s2)
-            {
-                is_ancestor = true;
-                break; /* out of for loop, return true */
-            }
-
-            if (state_defn->state_table[s1].parent_state == HSM_TOP)
-            {
-                break; /* out of for loop, return false */
-            }
-
-            s1 = state_defn->state_table[s1].parent_state;
-            PBC_Internal_2((s1 >= 0) && (s1 < state_defn->state_count),
-                    "(%s) State out of range: %d",
-                    (char*)state_defn->statechart_name, (int)s1
-                    );
-        }
-    }
-
-    return is_ancestor;
 }
 
 /*===========================================================================*
@@ -1298,7 +1298,7 @@ bool_t HSM_Is_In_State(HSM_Statechart_T const *statechart, HSM_State_Id_T state)
         {
             is_in_it = true;
         }
-        else if (hsm_Is_Ancestor_State(&statechart->def_states, statechart->current_state, state))
+        else if (Is_State_Ancestor(statechart, statechart->current_state, state))
         {
             is_in_it = true;
         }
