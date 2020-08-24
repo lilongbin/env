@@ -90,24 +90,4 @@ void HSM_Check_Statechart_Defn(HSM_State_Defn_T const *state_defn);
  *===========================================================================*/
 
 /*===========================================================================*/
-/*!
- * @file hsm_check.h
- *
- * @section RH REVISION HISTORY (top to bottom: last revision to first revision)
- *
- * - 25-Jul-2010 Kirk Bailey Rev 6
- *   - Replaced "bool" with "bool_t".
- *
- * - 21-feb-2008 kirk bailey
- *   - Moved hsm_Check_Statechart_Defn to public API.
- *
- * - 15-nov-2007 kirk bailey
- *   - Changed preconditions for Check_Is_Ancestor_State to support HSM_TOP.
- *   - Converted to new Doyxgen format.
- *
- * - 04-apr-2007 kirk bailey
- *   -Created file.
- */
-/*===========================================================================*/
-/** @} doxygen end group */
 #endif /* HSM_CHECK_H */

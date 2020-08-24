@@ -292,38 +292,3 @@ STATECHART_DEFN9()
 /* *INDENT-ON* */
 
 /*===========================================================================*/
-/*!
- * @file hsm_declare_statechart.h
- *
- * @section RH REVISION HISTORY (top to bottom: last revision to first revision)
- *
- * - 07-jul-2008 kirk bailey
- *   -Added support for state names.
- *
- * - 13-mar-2008 kirk bailey
- *   -Added extra STATECHART_DEFNx() MACROs to support very big statecharts.
- *
- * - 25-feb-2008 kirk bailey
- *   -Added state definition structure.
- *
- * - 15-nov-2007 kirk bailey
- *   - Added final states and completion transitions.
- *   - Converted to new Doyxgen format.
- *
- * - 09-jul-2007 kirk bailey
- *   -Updated comments.
- *
- * - 31-mar-2007 kirk bailey
- *   -Added deep history.
- *
- * - 28-mar-2007 kirk bailey
- *   -More name changes.
- *
- * - 26-mar-2007 kirk bailey
- *   -Added SIMPLE and COMPOSITE states. Renamed some MACROs.
- *
- * - 24-mar-2007 kirk bailey
- *   -Created initial file.
- */
-/*===========================================================================*/
-/** @} doxygen end group */

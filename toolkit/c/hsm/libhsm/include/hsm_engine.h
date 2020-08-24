@@ -128,9 +128,6 @@
 /*===========================================================================*
  * Header Files
  *===========================================================================*/
-//#   include "dbg_trace.h"
-//#   include "hsm_engine_acfg.h"
-//#   include "reuse.h"
 #include "hsm_comm.h"
 
 #   ifdef __cplusplus
@@ -1342,77 +1339,4 @@ HSM_DbgFunc_T HSM_Set_DbgFunc(HSM_Statechart_T * statechart,
 }         /* extern "C" */
 #   endif /* __cplusplus */
 /*===========================================================================*/
-/*!
- * @file hsm_engine.h
- *
- * @section RH REVISION HISTORY (top to bottom: last revision to first revision)
- *
- * - 30-May-2012 Kirk Bailey Rev 28
- *   - Added logic to detect, log, and ignore recursive calls to HSM_Process_Event.
- *
- * - 30-Sep-2011 Kirk Bailey Rev 27
- *   - Added support for action function names (for debug trace).
- *
- * - 04-Mar-2011 Kirk Bailey Rev 26
- *   - Task 23873: Expanded debug level support to track another module's level.
- *
- * - 14-Jan-2011 Kirk Bailey Rev 25
- *   - Task 19973: Added support for per-statechart event naming for trace.
- *
- * - 02-Sep-2010 Kirk Bailey
- *   - Added ability to generate guard function names for debug trace.
- *
- * - 01-Sep-2010 Kirk Bailey Rev 23
- *   - Added HSM_Init() and HSM_Begin() to support debug trace for individual
- *     statechart instance.
- *
- * - 25-Jul-2010 Kirk Bailey Rev 20
- *   - Replaced "bool" with "bool_t".
- *
- * - 07-jul-2008 kirk bailey
- *   -Added support for state names.
- *
- * - 21-feb-2008 kirk bailey
- *   - Added HSM_Check_Statechart_Defn to public API.
- *   - Added HSM_State_Defn_T to API and changed HSM_Start to use it.
- *
- * - 15-nov-2007 kirk bailey
- *   - Added final states and completion transitions.
- *   - Converted to new Doyxgen format.
- *
- * - 09-aug-2007 kirk bailey
- *   - Changed type usage to be MISRA compliant.
- *   - Moved HSM_MAX_TRANSITION_CHAIN to hsm_engine_acfg.h.
- *
- * - 10-jul-2007 kirk bailey
- *   - Improved comments.
- *
- * - 05-apr-2007 kirk bailey
- *   - Added callback function and HSM_Is_In_State.
- *
- * - 02-apr-2007 kirk bailey
- *   - Added event data pointer.
- *
- * - 31-mar-2007 kirk bailey
- *   - Added this_ptr. Made statechart an argument for guard & action functions.
- *   - Added deep history.
- *
- * - 28-mar-2007 kirk bailey
- *   - Renamed hsm_engine and converted to BASA naming convention.
- *
- * - 24-mar-2007 kirk bailey
- *   - Added state_type to HSM_State_T struct to support alternate states. Added
- *   - definitions to support new types. Renamed some MACROs.
- *
- * - 19-mar-2007 kirk bailey
- *   - Added HSM_No_Guard.
- *
- * - 16-mar-2007 kirk bailey
- *   - Removed non-functional default state logic.
- *
- * - 15-mar-2007 kirk bailey
- *   - Created initial file from copy of Dave Johnson's state_engine.h.
- */
-/*===========================================================================*/
-/** @} doxygen end group */
 #endif /* HSM_ENGINE_H */

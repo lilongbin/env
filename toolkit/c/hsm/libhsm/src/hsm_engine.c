@@ -52,7 +52,6 @@
 #include "hsm_engine.h"
 #include "hsm_engine_cfg.h"
 #include "hsm_comm.h"
-//#include "pbc_trace.h"
 #include <string.h>
 
 /*===========================================================================*
@@ -80,40 +79,49 @@
 /*===========================================================================*
  * Local Function Prototypes
  *===========================================================================*/
-static void Add_Links(HSM_Statechart_T *statechart, HSM_Transition_T const *transition);
+static bool_t Is_State_Ancestor(HSM_Statechart_T const *statechart,
+        HSM_State_Id_T ref_st, HSM_State_Id_T confirming_st);
 
-static void Build_Transition_Chain(HSM_Statechart_T *statechart, HSM_Event_T event);
+static HSM_State_Id_T Get_LeastCommonAncestor(HSM_Statechart_T const *statechart,
+        HSM_State_Id_T s1, HSM_State_Id_T s2);
+
+static HSM_State_Id_T Get_Target_State(HSM_Statechart_T const *statechart,
+        HSM_Transition_T const *transition);
+
+static char const *Get_Valid_Event_Name(HSM_Statechart_T const *statechart,
+        HSM_Event_T event_id);
+
+static void Add_To_Transition_Chain(HSM_Statechart_T *statechart,
+        HSM_Transition_T const *transition);
 
 static void Complete_Transition_Chain(HSM_Statechart_T *statechart,
         HSM_State_T const *p_target,
         HSM_Transition_T const ** p_next_transition);
 
-static void Execute_Entry_Actions(HSM_Statechart_T *statechart, HSM_State_Id_T target_state, HSM_State_Id_T lca);
+static const HSM_Transition_T *Find_Enabled_Transition(HSM_Statechart_T *statechart,
+        HSM_State_T const *ptr_st, const HSM_Event_T event);
 
-static void Execute_Exit_Actions(HSM_Statechart_T *statechart, HSM_State_Id_T src_state, HSM_State_Id_T lca);
+static void Build_Transition_Chain(HSM_Statechart_T *statechart, HSM_Event_T event);
 
-static const HSM_Transition_T *Find_Enabled_Transition(HSM_Statechart_T *statechart, HSM_State_T const *ptr_st,
-        const HSM_Event_T event);
+static void Log_Trace_For_Guard(HSM_Statechart_T const *statechart,
+        HSM_Transition_T const *p_trans, bool_t guard_was_true);
 
-static bool_t Is_State_Ancestor(HSM_Statechart_T const *statechart, HSM_State_Id_T ref_st, HSM_State_Id_T confirming_st);
+static void Log_Trace_Action(HSM_Statechart_T const *statechart, char const *action_name);
 
-static HSM_State_Id_T Get_LeastCommonAncestor(HSM_Statechart_T const *statechart, HSM_State_Id_T s1, HSM_State_Id_T s2);
+static void Execute_Entry_Actions(HSM_Statechart_T *statechart,
+        HSM_State_Id_T target_state, HSM_State_Id_T lca);
 
-static HSM_State_Id_T Get_Target_State(HSM_Statechart_T const *statechart, HSM_Transition_T const *transition);
-
-static char const *Get_Valid_Event_Name(HSM_Statechart_T const *statechart, HSM_Event_T event_id);
-
-static void Initialize_Debug_Control(HSM_Statechart_T *statechart, HSM_Debug_Control_T const *dbg_ctrl);
-
-static void Initialize_Statechart_Object(HSM_Statechart_T *statechart, HSM_State_Defn_T const *state_defn,
-        void *this_ptr, HSM_Debug_Control_T const *dbg_ctrl);
-
-static void Log_Trace_For_Guard(HSM_Statechart_T const *statechart, HSM_Transition_T const *p_trans,
-        bool_t guard_was_true);
+static void Execute_Exit_Actions(HSM_Statechart_T *statechart,
+        HSM_State_Id_T src_state, HSM_State_Id_T lca);
 
 static void Take_Transitions(HSM_Statechart_T *statechart);
 
-static void Trace_Action(HSM_Statechart_T const *statechart, char const *action_name);
+static void Initialize_Debug_Control(HSM_Statechart_T *statechart,
+        HSM_Debug_Control_T const *dbg_ctrl);
+
+static void Initialize_Statechart_Object(HSM_Statechart_T *statechart,
+        HSM_State_Defn_T const *state_defn,
+        void *this_ptr, HSM_Debug_Control_T const *dbg_ctrl);
 
 static void Update_Dbg_Trace_Level(HSM_Statechart_T *statechart);
 
@@ -124,559 +132,6 @@ static void Update_Dbg_Trace_Level(HSM_Statechart_T *statechart);
 /*===========================================================================*
  * Function Definitions
  *===========================================================================*/
-
-/**
- * Adds the specified transition to the transition chain and builds the rest of
- * the chain. A completed chain ends at a simple state. If prior to that, no
- * enabled transition is found out of an intermediate state (due to a guard
- * returning false), then the chain is broken and there is no enabled
- * transition. If a complete chain is formed, then the function will return
- * with the transition sequence in statechart->trans_chain and the number of
- * transitions in statechart->chain_length. If the chain is broken, then the
- * function will return with statechart->chain_length equal to zero.
- *
- * Note that this function and Find_Enabled_Transition form a recursive loop;
- * however, the recursion is bounded by the HSM_MAX_TRANSITION_CHAIN constant.
- *
- * @param [in,out] statechart
- *    Data structure describing the statechart.
- *
- * @param [in] transition
- *    The first HSM_Transition_T to add to the chain of transitions.
- *
- * @pre
- *   - statechart != NULL
- *   - transition != NULL
- *
- * @see HSM_MAX_TRANSITION_CHAIN
- */
-static void Add_Links(HSM_Statechart_T *statechart, HSM_Transition_T const *transition)
-{
-    HSM_State_Id_T target_state;
-    bool_t done = false;
-    HSM_Transition_T const *final_trans = NULL;
-
-    PBC_Internal(statechart != NULL, "NULL statechart");
-    PBC_Internal(transition != NULL, "NULL transition");
-
-    while ((transition != NULL) && (!done))
-    {
-        /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-        PBC_Require_1(statechart->chain_length < HSM_MAX_TRANSITION_CHAIN,
-                "Maximum configured chain of transitions exceeded for %s",
-                (char*)statechart->def_states.statechart_name);
-
-        statechart->trans_chain[statechart->chain_length++] = transition;
-
-        target_state = Get_Target_State(statechart, transition);
-
-        if (HSM_SAME_STATE == target_state)
-        {
-            PBC_Require_1(statechart->chain_length == 1,
-                    "Internal transitions cannot be chained (%s)",
-                    (char*)statechart->def_states.statechart_name);
-            /*
-             * An internal transition represents a completed chain.
-             */
-            done = true;
-        }
-        else /* Not an internal transition */
-        {
-            HSM_State_T const *p_target;
-
-            PBC_Require_2((target_state > 0) &&
-                    (target_state < statechart->def_states.state_count),
-                    "(%s) Illegal target state: %d",
-                    (char*)statechart->def_states.statechart_name, (int)target_state);
-
-            p_target = &statechart->def_states.state_table[target_state];
-
-            if (HSM_FINAL_ID == p_target->state_type)
-            {
-                HSM_State_Id_T parent = statechart->def_states.state_table[target_state].parent_state;
-                PBC_Require_2((parent > 0) && (parent < statechart->def_states.state_count),
-                        "(%s) Illegal parent state: %d",
-                        (char*)statechart->def_states.statechart_name, (int)parent);
-                final_trans = transition; /* keep track that we had a final state */
-                /*
-                 * The first transition of the final state's parent is required to
-                 * be its completion transition.
-                 */
-                transition = statechart->def_states.state_table[parent].transition_table;
-                PBC_Ensure_3(HSM_COMPLETION_EVENT==transition->event,
-                        "(%s) Missing completion transition for state '%s' (%d)",
-                        (char*)statechart->def_states.statechart_name,
-                        (char*)HSM_Get_State_Name(statechart, parent), (int)parent);
-            }
-            else
-            {
-                /*
-                 * Check for end of the chain and/or get its next transition.
-                 */
-                Complete_Transition_Chain(statechart, p_target, &transition);
-                done = true;
-
-            } /* if (HSM_FINAL_ID == p_target->state_type)                       */
-
-        } /* if (HSM_SAME_STATE == target_state)                                */
-
-    } /*  while ((transition != NULL) && !done)                                */
-
-    if (NULL == transition)
-    {
-        /*
-         * A compound transition could not be completed. Invalidate the partial
-         * chain that had been built to signal that no path was found.
-         */
-        /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-        statechart->chain_length = 0;
-        /*
-         * The statechart is considered ill-formed if a transition into a final
-         * state occurred with no enabled transition out of it.
-         */
-        PBC_Ensure_3(NULL == final_trans,
-                "(%s) No path out of a final state '%s' (%d)",
-                (char*)statechart->def_states.statechart_name,
-                (char*)HSM_Get_State_Name(statechart, final_trans->target_state),
-                (int)final_trans->target_state
-                );
-    }
-}
-
-/**
- * Builds a chain (list) of transitions triggered by the specified event. The
- * list is placed in statechart->trans_chain, and the number of links in the
- * chain of transitions is written to statechart->chain_length. If the event
- * does not lead to a transition, statechart->chain_length will be zero. Note
- * that an internal transition will result in a chain of length one: the
- * transition is an internal one.
- *
- * @param [in,out] statechart
- *    Data structure describing the statechart.
- *
- * @param [in] event
- *    The event received by the statechart.
- *
- * @pre
- *   - statechart != NULL
- *   - (event == HSM_NO_EVENT) || (event >= 0)
- *
- * @note 
- *   - On exit, statechart->chain_length contains the number of transitions in
- *     the group transition triggered by this event, and these transitions are
- *     found in statechart->trans_chain.
- *   - The maximum length of the transition chain is a compile-time constant to
- *     the state engine (HSM_MAX_TRANSITION_CHAIN).
- *
- * @see HSM_MAX_TRANSITION_CHAIN
- */
-static void Build_Transition_Chain(HSM_Statechart_T *statechart, HSM_Event_T event)
-{
-    HSM_Transition_T const *transition = NULL;
-    HSM_State_Id_T src_state;
-
-    PBC_Internal(statechart != NULL, "NULL statechart");
-    PBC_Internal_2((event == HSM_NO_EVENT) || (event >= 0),
-            "(%s) Illegal event: %d",
-            (char*)statechart->def_states.statechart_name, (int)event);
-
-    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-    src_state = statechart->current_state;
-    statechart->chain_length = 0;
-
-    while ((transition == NULL) && (src_state != HSM_TOP))
-    {
-        HSM_State_T const *p_src = &statechart->def_states.state_table[src_state];
-        /*
-         * Look for an enabled internal transition or a transition from the current
-         * state that matches the event.
-         */
-        transition = Find_Enabled_Transition(statechart, p_src, event);
-
-        if (NULL == transition)
-        {
-            /*
-             * If a transition hasn't been found, then the search is repeated for the
-             * parent state and will continue until either an enabled transition is
-             * found or the top of the statechart is reached.
-             */
-            src_state = p_src->parent_state;
-            statechart->chain_length = 0; /* clear out any accumulated partial path */
-        }
-
-    } /*  while ((transition == NULL) && (src_state != HSM_TOP))              */
-}
-
-/**
- * Completes a transition chain to the specified target. A transition chain
- * always ends on a simple state; so, if the targeted state is not a simple
- * state then there are additional links in the chain.
- *
- * @param [in,out] statechart
- *    Data structure describing the statechart.
- *
- * @param [in] p_target
- *    The HSM_State_T that is the target of a transition.
- *
- * @param [in,out] p_next_transition
- *    If false is returned, the pointer to the next transition in the chain is
- *    written to *p_next_transition.
- *
- * @pre
- *   - statechart != NULL
- *   - p_target != NULL
- *   - p_next_transition != NULL
- *   - p_target->state_type != HSM_FINAL_ID
- */
-static void Complete_Transition_Chain(HSM_Statechart_T *statechart, HSM_State_T const *p_target,
-        HSM_Transition_T const **p_next_transition)
-{
-    PBC_Internal(statechart != NULL, "NULL statechart");
-    PBC_Internal_1(p_target != NULL, "(%s) NULL target",
-            (char*)statechart->def_states.statechart_name);
-    PBC_Internal_1(p_next_transition != NULL, "(%s) NULL location for next transition",
-            (char*)statechart->def_states.statechart_name);
-    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-    PBC_Internal_1(p_target->state_type != HSM_FINAL_ID, "(%s) Target is final state",
-            (char*)statechart->def_states.statechart_name);
-    /*
-     * If the target is a composite state, then the "effective" target is the
-     * composite's initial state.
-     */
-    if (HSM_COMPOSITE_ID == p_target->state_type)
-    {
-        /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-        PBC_Require_1((p_target->initial_state > 0) &&
-                (p_target->initial_state < statechart->def_states.state_count),
-                "(%s) Illegal initial state",
-                (char*)statechart->def_states.statechart_name
-                );
-        p_target = &statechart->def_states.state_table[p_target->initial_state];
-    }
-    /*
-     * A transition chain only ends on a simple state.
-     */
-    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-    if (p_target->state_type != HSM_SIMPLE_ID)
-    {
-        /*
-         * Recursively search for an enabled transition out of this intermediate
-         * target state within the compound transition. Note that the recursion
-         * is bounded by the HSM_MAX_TRANSITION_CHAIN setting.
-         */
-        /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-        *p_next_transition = Find_Enabled_Transition(statechart, p_target, HSM_NO_EVENT);
-    }
-}
-
-/**
- * Performs the entry actions starting from the target state's ancestor that is
- * a direct substate of the LCA and proceeding inward until the target state is
- * reached.
- *
- * @param [in,out] statechart
- *    Data structure describing the statechart.
- *
- * @param [in] target_state
- *    The most deeply nested state that is the destination of a transition and
- *    is therefore the last one whose entry action is to be performed.
- *
- * @param [in] lca
- *    The LCA of the source and target states; entry actions start with the
- *    ancestor of the target state contained in the common ancestor.
- *
- * @pre
- *   - statechart != NULL
- *   - target_state is a valid state
- *   - lca is a valid state and is an ancestor of target_state
- *
- * @note 
- *   - The entry action of the LCA is NOT executed.
- */
-static void Execute_Entry_Actions(HSM_Statechart_T *statechart, HSM_State_Id_T target_state, HSM_State_Id_T lca)
-{
-    HSM_State_T const *state_table;
-    HSM_State_Id_T entry_states[HSM_MAX_NESTING_LEVELS] =  { 0 };
-    HSM_State_Id_T state_index = 0;
-
-    PBC_Internal(statechart != NULL, "NULL statechart");
-    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-    PBC_Internal_2((target_state >= 0) &&
-            (target_state < statechart->def_states.state_count),
-            "(%s) Illegal target state: %d",
-            (char*)statechart->def_states.statechart_name, (int)target_state
-            );
-    PBC_Internal_2((HSM_TOP==lca)
-            || ((lca >= 0) && (lca < statechart->def_states.state_count)),
-            "(%s) Illegal LCA state: %d",
-            (char*)statechart->def_states.statechart_name, (int)lca
-            );
-
-    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-    state_table = statechart->def_states.state_table;
-
-    while (target_state != lca)
-    {
-        PBC_Require_3(state_index < HSM_MAX_NESTING_LEVELS,
-                "(%s) Maximum nesting level exceeded by state '%s' (%d)",
-                (char*)statechart->def_states.statechart_name,
-                (char*)HSM_Get_State_Name(statechart, target_state), (int)target_state
-                );
-        entry_states[state_index++] = target_state;
-        target_state = state_table[target_state].parent_state;
-    }
-
-    while (state_index > 0)
-    {
-        HSM_State_Id_T parent_of_target;
-
-        state_index--;
-        target_state = entry_states[state_index];
-
-        if (state_table[target_state].entry_action != NULL)
-        {
-            Trace_Action(statechart, state_table[target_state].entry_action_name);
-            state_table[target_state].entry_action(statechart);
-        }
-        /*
-         * Any time a new state is entered, its parent's shallow history state
-         * must be updated to reflect the new target. This is how the parent's
-         * shallow history state always has the value of the last direct substate
-         * that was active. If instead, the target is the composite's final state,
-         * then the history state must be "reset" to its default transition.
-         */
-        parent_of_target = state_table[target_state].parent_state;
-        if (parent_of_target != HSM_TOP)
-        {
-            HSM_State_Id_T parent_history;
-
-            parent_history = state_table[parent_of_target].history_state;
-
-            if ((parent_history != HSM_NO_HISTORY_STATE)
-                    && (parent_history != target_state))
-            {
-                HSM_State_Kind_T history_type;
-
-                history_type = state_table[parent_history].state_type;
-
-                PBC_Require_3((HSM_DEEP_HISTORY_ID == history_type)
-                        || (HSM_SHALLOW_HISTORY_ID == history_type),
-                        "(%s) Illegal history state type for %s (%d)",
-                        (char*)statechart->def_states.statechart_name,
-                        (char*)HSM_Get_State_Name(statechart, parent_history),
-                        (int)parent_history
-                        );
-
-                if (HSM_FINAL_ID == state_table[target_state].state_type)
-                {
-                    //reset history state to its default state
-                    *(state_table[parent_history].transition_table->history)
-                        = state_table[parent_history].transition_table->target_state;
-                }
-                else if (HSM_SHALLOW_HISTORY_ID == history_type)
-                {
-                    //update history state to current state
-                    *(state_table[parent_history].transition_table->history) = target_state;
-                }
-            }
-        }
-    }
-    /* PRQA S 4700 1 *//* Suppress QAC STMIF metric message. */
-}
-
-/**
- * Performs the exit actions for all states from src_state until the
- * lca state is reached.
- *
- * @param [in,out] statechart
- *    Data structure describing the statechart.
- *
- * @param [in] src_state
- *    The most deeply nested state that is the first one whose exit action is
- *    to be performed.
- *
- * @param [in] lca
- *    The LCA of the source and target states; once this state is reached,
- *    exit actions stop.
- *
- * @pre
- *   - statechart != NULL
- *   - src_state is a valid state
- *   - lca is a valid state and is an ancestor of src_state
- *
- * @note 
- *   - The exit action of the LCA is NOT executed.
- */
-static void Execute_Exit_Actions(HSM_Statechart_T *statechart, HSM_State_Id_T src_state, HSM_State_Id_T lca)
-{
-    HSM_State_T const *state_table;
-
-    PBC_Internal(statechart != NULL, "NULL statechart");
-    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-    PBC_Internal_2((src_state >= 0) && (src_state < statechart->def_states.state_count),
-            "(%s) Illegal source state: %d",
-            (char*)statechart->def_states.statechart_name, (int)src_state
-            );
-    PBC_Internal_2((HSM_TOP==lca)
-            || ((lca >= 0) && (lca < statechart->def_states.state_count)),
-            "(%s) Illegal LCA: %d",
-            (char*)statechart->def_states.statechart_name, (int)lca
-            );
-    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-    state_table = statechart->def_states.state_table;
-
-    while (src_state != lca)
-    {
-        /*
-         * Any time a state is exited, if the parent state has a deep history
-         * state, then that deep history state must be updated to the current
-         * state of the statechart. This is how the deep history state will
-         * always have a record of the most deeply nested substate. If the
-         * state being exited is the final state of the history state's composite
-         * state then the history state must be "reset" to its default transition.
-         */
-        HSM_State_Id_T parent_of_src = state_table[src_state].parent_state;
-        HSM_State_Kind_T src_type = state_table[src_state].state_type;
-        if (parent_of_src != HSM_TOP)
-        {
-            HSM_State_Id_T parent_history;
-
-            parent_history = state_table[parent_of_src].history_state;
-
-            if (parent_history != HSM_NO_HISTORY_STATE)
-            {
-                HSM_State_Kind_T history_type;
-
-                history_type = state_table[parent_history].state_type;
-
-                PBC_Require_3((HSM_DEEP_HISTORY_ID == history_type)
-                        || (HSM_SHALLOW_HISTORY_ID == history_type),
-                        "(%s) Illegal history state type for %s (%d)",
-                        (char*)statechart->def_states.statechart_name,
-                        (char*)HSM_Get_State_Name(statechart, parent_history),
-                        (int)parent_history
-                        );
-
-                if (HSM_FINAL_ID == state_table[src_state].state_type)
-                {
-                    //reset history state to its default state
-                    *(state_table[parent_history].transition_table->history)
-                        = state_table[parent_history].transition_table->target_state;
-                }
-                else if ((HSM_DEEP_HISTORY_ID == history_type)
-                        && ((HSM_SIMPLE_ID == src_type) || (HSM_COMPOSITE_ID == src_type)))
-                {
-                    //update history state to current state
-                    *(state_table[parent_history].transition_table->history) = statechart->current_state;
-                }
-            }
-        }
-
-        if (state_table[src_state].exit_action != NULL)
-        {
-            Trace_Action(statechart, state_table[src_state].exit_action_name);
-            state_table[src_state].exit_action(statechart);
-        }
-
-        src_state = state_table[src_state].parent_state;
-        PBC_Internal_3((HSM_TOP == lca) || (src_state != HSM_TOP),
-                "(%s) Reached top of statechart without encountering LCA '%s' (%d)",
-                (char*)statechart->def_states.statechart_name,
-                (char*)HSM_Get_State_Name(statechart, lca), (int)lca
-                );
-    }
-    /* PRQA S 4700 1 *//* Suppress QAC STMIF metric message. */
-}
-
-/**
- * Searches for an enabled transition internal to or out of the specified state
- * that is triggered by the specified event.
- *
- * @return NULL if the state has no enabled transition for the specified event;
- *         otherwise, a pointer to the HSM_Transition_T corresponding to an
- *         enabled transition.
- *
- * @param [in,out] statechart
- *    Data structure describing the statechart.
- *
- * @param [in,out] ptr_st
- *    Data structure describing the state to be considered.
- *
- * @param [in] event The event trigger.
- *
- * @pre
- *   - statechart != NULL
- *   - ptr_st != NULL
- *
- * @note 
- *   - This function will also be used to evaluate transitions out of
- *     pseudostates. In this situation, the event will be HSM_NO_EVENT and this
- *     function will simply evaluate the guard condition.
- *   - This function and Add_Links form a recursive loop; however, the
- *     recursion is bounded by the HSM_MAX_TRANSITION_CHAIN constant.
- */
-static HSM_Transition_T const *Find_Enabled_Transition(HSM_Statechart_T *statechart,
-        HSM_State_T const *ptr_st,
-        const HSM_Event_T event)
-{
-    HSM_Transition_T const *candidate = NULL;
-    HSM_Transition_T const *else_candidate = NULL;
-    size_t trans_index;
-
-    PBC_Internal(statechart != NULL, "NULL statechart");
-    PBC_Internal(ptr_st != NULL, "NULL state pointer");
-
-    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-    for (trans_index = 0; trans_index < ptr_st->transition_count; trans_index++)
-    {
-        HSM_Transition_T const *p_trans = &ptr_st->transition_table[trans_index];
-
-        if ((HSM_NO_EVENT == event) || (p_trans->event == event))
-        {
-            HSM_Guard_T guard = p_trans->guard;
-
-            if (HSM_ELSE == guard)
-            {
-                /* Remember this transition but keep looking */
-                else_candidate = p_trans;
-            }
-            else if (guard(statechart))
-            {
-                /*
-                 * Found a non-ELSE transition with a "true" guard. Need
-                 * to make sure its transition chain is not broken further on.
-                 */
-                Log_Trace_For_Guard(statechart, p_trans, true);
-                Add_Links(statechart, p_trans);
-                if (statechart->chain_length != 0) /* chain not broken */
-                {
-                    candidate = p_trans;
-                    break; /* Out of the for loop */
-                }
-            }
-            else
-            {
-                Log_Trace_For_Guard(statechart, p_trans, false);
-            }
-        } /* if ((HSM_NO_EVENT == event) ||...                                  */
-    } /* for (trans_index = 0; trans_index < ptr_st->transition_count;... */
-
-    /*
-     * If an ELSE guard was encountered and no other enabled transition was
-     * found, then try to complete a transition through the ELSE path.
-     */
-    if ((else_candidate != NULL) && (NULL == candidate))
-    {
-        candidate = else_candidate;
-        Add_Links(statechart, candidate);
-        if (0 == statechart->chain_length)
-        {
-            candidate = NULL; /* No candidate found */
-        }
-    }
-
-    return candidate;
-}
 
 /**
  * This function verify whether confirming_st is an ancestor of the ref_st.
@@ -694,7 +149,8 @@ static HSM_Transition_T const *Find_Enabled_Transition(HSM_Statechart_T *statech
  *   - 0 <= ref_st < p_states->state_count
  *   - (HSM_TOP == confirming_st) || (0 <= confirming_st < p_states->state_count)
  */
-static bool_t Is_State_Ancestor(HSM_Statechart_T const *statechart, HSM_State_Id_T ref_st, HSM_State_Id_T confirming_st)
+static bool_t Is_State_Ancestor(HSM_Statechart_T const *statechart,
+        HSM_State_Id_T ref_st, HSM_State_Id_T confirming_st)
 {
     bool_t is_ancestor = false;
     PBC_Internal(statechart != NULL, "NULL statechart");
@@ -775,7 +231,8 @@ static bool_t Is_State_Ancestor(HSM_Statechart_T const *statechart, HSM_State_Id
  *   s1 to s2 nor from s2 to s1 involve exiting s1. Because that is the
  *   context in which LCA is used, s1 (not s1's parent) is considered the LCA.
  */
-static HSM_State_Id_T Get_LeastCommonAncestor(HSM_Statechart_T const *statechart, HSM_State_Id_T s1, HSM_State_Id_T s2)
+static HSM_State_Id_T Get_LeastCommonAncestor(HSM_Statechart_T const *statechart,
+        HSM_State_Id_T s1, HSM_State_Id_T s2)
 {
     HSM_State_T const *state_table;
     HSM_State_Id_T lca = s1;
@@ -874,7 +331,8 @@ static HSM_State_Id_T Get_LeastCommonAncestor(HSM_Statechart_T const *statechart
  *   - (0 < target state (return value) < statechart->def_states.state_count) ||
  *     (HSM_SAME_STATE == target_state)
  */
-static HSM_State_Id_T Get_Target_State(HSM_Statechart_T const *statechart, HSM_Transition_T const *transition)
+static HSM_State_Id_T Get_Target_State(HSM_Statechart_T const *statechart,
+        HSM_Transition_T const *transition)
 {
     HSM_State_Id_T target_state;
 
@@ -916,27 +374,851 @@ static HSM_State_Id_T Get_Target_State(HSM_Statechart_T const *statechart, HSM_T
  * @pre
  *   - statechart != NULL
  */
-static char const *Get_Valid_Event_Name(HSM_Statechart_T const *statechart, HSM_Event_T event_id)
+static char const *Get_Valid_Event_Name(HSM_Statechart_T const *statechart,
+        HSM_Event_T event_id)
 {
     char const *event_name;
-
     PBC_Internal(statechart != NULL, "NULL statechart");
 
     if (statechart->dbg.get_event_name != NULL)
     {
         event_name = statechart->dbg.get_event_name(event_id);
+    } else {
+        event_name = "unknown"; //HSM_Get_Event_Name(event_id);
     }
-    else
-    {
-        event_name = "";//HSM_Get_Event_Name(event_id);
-    }
+
     if (NULL == event_name)
     {
         Tr_Fault_2("NULL event name provided for chart %s, event %d", statechart->dbg.chart_label, (int)event_id);
-        event_name = "UNKNOWN";
+        event_name = "unknown";
     }
 
     return event_name;
+}
+
+/**
+ * Adds the specified transition to the transition chain and builds the rest of
+ * the chain. A completed chain ends at a simple state. If prior to that, no
+ * enabled transition is found out of an intermediate state (due to a guard
+ * returning false), then the chain is broken and there is no matched valid
+ * transition. If a complete chain is formed, then the function will return
+ * with the transition sequence in statechart->trans_chain and the number of
+ * transitions in statechart->chain_length. If the chain is broken, then the
+ * function will return with statechart->chain_length equal to zero.
+ *
+ * Note that this function and Find_Enabled_Transition form a recursive loop;
+ * however, the recursion is bounded by the HSM_MAX_TRANSITION_CHAIN constant.
+ *
+ * @param [in,out] statechart
+ *    Data structure describing the statechart.
+ *
+ * @param [in] transition
+ *    The first HSM_Transition_T to add to the chain of transitions.
+ *
+ * @pre
+ *   - statechart != NULL
+ *   - transition != NULL
+ *
+ * @see HSM_MAX_TRANSITION_CHAIN
+ */
+static void Add_To_Transition_Chain(HSM_Statechart_T *statechart,
+        HSM_Transition_T const *transition)
+{
+    HSM_State_Id_T target_state;
+    bool_t done = false;
+    HSM_Transition_T const *final_trans = NULL;
+
+    PBC_Internal(statechart != NULL, "NULL statechart");
+    PBC_Internal(transition != NULL, "NULL transition");
+
+    while ((transition != NULL) && (!done))
+    {
+        /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+        PBC_Require_1(statechart->chain_length < HSM_MAX_TRANSITION_CHAIN,
+                "Maximum configured chain of transitions exceeded for %s",
+                (char*)statechart->def_states.statechart_name);
+
+        statechart->trans_chain[statechart->chain_length++] = transition;
+
+        target_state = Get_Target_State(statechart, transition);
+
+        if (HSM_SAME_STATE == target_state)
+        {
+            PBC_Require_1(statechart->chain_length == 1,
+                    "Internal transitions cannot be chained (%s)",
+                    (char*)statechart->def_states.statechart_name);
+            /*
+             * An internal transition represents a completed chain.
+             */
+            done = true;
+        }
+        else /* Not an internal transition */
+        {
+            HSM_State_T const *p_target;
+
+            PBC_Require_2((target_state > 0) &&
+                    (target_state < statechart->def_states.state_count),
+                    "(%s) Illegal target state: %d",
+                    (char*)statechart->def_states.statechart_name, (int)target_state);
+
+            p_target = &statechart->def_states.state_table[target_state];
+
+            if (HSM_FINAL_ID == p_target->state_type)
+            {
+                HSM_State_Id_T parent = statechart->def_states.state_table[target_state].parent_state;
+                PBC_Require_2((parent > 0) && (parent < statechart->def_states.state_count),
+                        "(%s) Illegal parent state: %d",
+                        (char*)statechart->def_states.statechart_name, (int)parent);
+                final_trans = transition; /* keep track that we had a final state */
+                /*
+                 * The first transition of the final state's parent is required to
+                 * be its completion transition.
+                 */
+                transition = statechart->def_states.state_table[parent].transition_table;
+                PBC_Ensure_3(HSM_COMPLETION_EVENT==transition->event,
+                        "(%s) Missing completion transition for state '%s' (%d)",
+                        (char*)statechart->def_states.statechart_name,
+                        (char*)HSM_Get_State_Name(statechart, parent), (int)parent);
+            }
+            else
+            {
+                /*
+                 * Check for end of the chain and/or get its next transition.
+                 */
+                Complete_Transition_Chain(statechart, p_target, &transition);
+                done = true;
+
+            } /* if (HSM_FINAL_ID == p_target->state_type)                       */
+
+        } /* if (HSM_SAME_STATE == target_state)                                */
+
+    } /*  while ((transition != NULL) && !done)                                */
+
+    if (NULL == transition)
+    {
+        /*
+         * A compound transition could not be completed. Invalidate the partial
+         * chain that had been built to signal that no path was found.
+         */
+        /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+        statechart->chain_length = 0;
+        /*
+         * The statechart is considered ill-formed if a transition into a final
+         * state occurred with no enabled transition out of it.
+         */
+        PBC_Ensure_3(NULL == final_trans,
+                "(%s) No path out of a final state '%s' (%d)",
+                (char*)statechart->def_states.statechart_name,
+                (char*)HSM_Get_State_Name(statechart, final_trans->target_state),
+                (int)final_trans->target_state
+                );
+    }
+}
+
+/**
+ * Completes a transition chain to the specified target. A transition chain
+ * always ends on a simple state; so, if the targeted state is not a simple
+ * state then there are additional links in the chain.
+ *
+ * @param [in,out] statechart
+ *    Data structure describing the statechart.
+ *
+ * @param [in] p_target
+ *    The HSM_State_T that is the target of a transition.
+ *
+ * @param [in,out] p_next_transition
+ *    If false is returned, the pointer to the next transition in the chain is
+ *    written to *p_next_transition.
+ *
+ * @pre
+ *   - statechart != NULL
+ *   - p_target != NULL
+ *   - p_next_transition != NULL
+ *   - p_target->state_type != HSM_FINAL_ID
+ */
+static void Complete_Transition_Chain(HSM_Statechart_T *statechart,
+        HSM_State_T const *p_target, HSM_Transition_T const **p_next_transition)
+{
+    PBC_Internal(statechart != NULL, "NULL statechart");
+    PBC_Internal_1(p_target != NULL, "(%s) NULL target",
+            (char*)statechart->def_states.statechart_name);
+    PBC_Internal_1(p_next_transition != NULL, "(%s) NULL location for next transition",
+            (char*)statechart->def_states.statechart_name);
+    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+    PBC_Internal_1(p_target->state_type != HSM_FINAL_ID, "(%s) Target is final state",
+            (char*)statechart->def_states.statechart_name);
+    /*
+     * If the target is a composite state, then the "effective" target is the
+     * composite's initial state.
+     */
+    if (HSM_COMPOSITE_ID == p_target->state_type)
+    {
+        /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+        PBC_Require_1((p_target->initial_state > 0) &&
+                (p_target->initial_state < statechart->def_states.state_count),
+                "(%s) Illegal initial state",
+                (char*)statechart->def_states.statechart_name
+                );
+        p_target = &statechart->def_states.state_table[p_target->initial_state];
+    }
+    /*
+     * A transition chain only ends on a simple state.
+     */
+    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+    if (p_target->state_type != HSM_SIMPLE_ID)
+    {
+        /*
+         * Recursively search for an enabled transition out of this intermediate
+         * target state within the compound transition. Note that the recursion
+         * is bounded by the HSM_MAX_TRANSITION_CHAIN setting.
+         */
+        /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+        *p_next_transition = Find_Enabled_Transition(statechart, p_target, HSM_NO_EVENT);
+    }
+}
+
+/**
+ * Searches for a matched valid transition internal to or out of the specified state
+ * that is triggered by the specified event.
+ *
+ * @return NULL if the state has no matched valid transition for the specified event;
+ *         otherwise, a pointer to the HSM_Transition_T corresponding to a matched
+ *         valid transition.
+ *
+ * @param [in,out] statechart
+ *    Data structure describing the statechart.
+ *
+ * @param [in,out] ptr_st
+ *    Data structure describing the state to be considered.
+ *
+ * @param [in] event The event trigger.
+ *
+ * @pre
+ *   - statechart != NULL
+ *   - ptr_st != NULL
+ *
+ * @note
+ *   - This function will also be used to evaluate transitions out of
+ *     pseudostates. In this situation, the event will be HSM_NO_EVENT and this
+ *     function will simply evaluate the guard condition.
+ *   - This function and Add_To_Transition_Chain form a recursive loop; however, the
+ *     recursion is bounded by the HSM_MAX_TRANSITION_CHAIN constant.
+ */
+static HSM_Transition_T const *Find_Enabled_Transition(HSM_Statechart_T *statechart,
+        HSM_State_T const *ptr_st, const HSM_Event_T event)
+{
+    HSM_Transition_T const *candidate = NULL;
+    HSM_Transition_T const *else_candidate = NULL;
+    size_t trans_index;
+
+    PBC_Internal(statechart != NULL, "NULL statechart");
+    PBC_Internal(ptr_st != NULL, "NULL state pointer");
+
+    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+    for (trans_index = 0; trans_index < ptr_st->transition_count; trans_index++)
+    {
+        HSM_Transition_T const *p_trans = &ptr_st->transition_table[trans_index];
+
+        if ((HSM_NO_EVENT == event) || (p_trans->event == event))
+        {
+            HSM_Guard_T guard = p_trans->guard;
+
+            if (HSM_ELSE == guard)
+            {
+                /* Remember this transition but keep looking */
+                else_candidate = p_trans;
+            }
+            else if (guard(statechart))
+            {
+                /*
+                 * Found a non-ELSE transition with a "true" guard. Need
+                 * to make sure its transition chain is not broken further on.
+                 */
+                Log_Trace_For_Guard(statechart, p_trans, true);
+                Add_To_Transition_Chain(statechart, p_trans);
+                if (statechart->chain_length != 0) /* chain not broken */
+                {
+                    candidate = p_trans;
+                    break; /* Out of the for loop */
+                }
+            }
+            else
+            {
+                Log_Trace_For_Guard(statechart, p_trans, false);
+            }
+        } /* if ((HSM_NO_EVENT == event) ||...  */
+    } /* for (trans_index = 0; trans_index < ptr_st->transition_count;... */
+
+    /*
+     * If an ELSE guard was encountered and no other matched valid transition was
+     * found, then try to complete a transition through the ELSE path.
+     */
+    if ((else_candidate != NULL) && (NULL == candidate))
+    {
+        candidate = else_candidate;
+        Add_To_Transition_Chain(statechart, candidate);
+        if (0 == statechart->chain_length)
+        {
+            candidate = NULL; /* No candidate found */
+        }
+    }
+
+    return candidate;
+}
+
+/**
+ * Builds a chain (list) of transitions triggered by the specified event. The
+ * list is placed in statechart->trans_chain, and the number of links in the
+ * chain of transitions is written to statechart->chain_length. If the event
+ * does not lead to a transition, statechart->chain_length will be zero. Note
+ * that an internal transition will result in a chain of length one: the
+ * transition is an internal one.
+ *
+ * @param [in,out] statechart
+ *    Data structure describing the statechart.
+ *
+ * @param [in] event
+ *    The event received by the statechart.
+ *
+ * @pre
+ *   - statechart != NULL
+ *   - (event == HSM_NO_EVENT) || (event >= 0)
+ *
+ * @note
+ *   - On exit, statechart->chain_length contains the number of transitions in
+ *     the group transition triggered by this event, and these transitions are
+ *     found in statechart->trans_chain.
+ *   - The maximum length of the transition chain is a compile-time constant to
+ *     the state engine (HSM_MAX_TRANSITION_CHAIN).
+ *
+ * @see HSM_MAX_TRANSITION_CHAIN
+ *
+ * main step:
+ * Build_Transition_Chain(statechart, HSM_NO_EVENT):
+ * //(Searches for an enabled transition internal to or out of the specified state by the specified event)
+ * while ((transition == NULL) && (src_state != HSM_TOP)) {
+ *   HSM_State_T const *p_src = &statechart->def_states.state_table[src_state];
+ *   transition = Find_Enabled_Transition(statechart, p_src, event) {
+ *     for (trans_index = 0; trans_index < ptr_st->transition_count; trans_index++) {
+ *         HSM_Transition_T const *p_trans = &ptr_st->transition_table[trans_index];
+ *         if ((HSM_NO_EVENT == event) || (p_trans->event == event)) {
+ *           if (guard(statechart)) {
+ *               //add detailed simple state as the target to transition chain
+ *               Add_To_Transition_Chain(statechart, p_trans) {
+ *                 statechart->trans_chain[statechart->chain_length++] = transition;
+ *                 if (target == simple_state) {
+ *                   done;
+ *                 } else {
+ *                   Complete_Transition_Chain(statechart, p_target, &transition) {
+ *                     if (target == composite) {
+ *                       target = target.intial_state;
+ *                     }
+ *                     if (target != simple_state) {
+ *                         *p_next_transition = Find_Enabled_Transition(statechart, p_target, HSM_NO_EVENT);
+ *                     }
+ *                   }
+ *                 }
+ *               } //end of Add_To_Transition_Chain
+ *           } //end of if (guard(statechart))
+ *         }
+ *     } //end of for loop
+ *   }
+ *
+ *   if (NULL == transition) {
+ *     src_state = p_src->parent_state;
+ *     statechart->chain_length = 0;
+ *   }
+ * } //end of while loop
+ *
+ */
+static void Build_Transition_Chain(HSM_Statechart_T *statechart,
+        HSM_Event_T event)
+{
+    HSM_Transition_T const *transition = NULL;
+    HSM_State_Id_T src_state;
+
+    PBC_Internal(statechart != NULL, "NULL statechart");
+    PBC_Internal_2((event == HSM_NO_EVENT) || (event >= 0),
+            "(%s) Illegal event: %d",
+            (char*)statechart->def_states.statechart_name, (int)event);
+
+    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+    src_state = statechart->current_state;
+    statechart->chain_length = 0;
+
+    while ((transition == NULL) && (src_state != HSM_TOP))
+    {
+        HSM_State_T const *p_src = &statechart->def_states.state_table[src_state];
+        /*
+         * Look for an enabled internal transition or a transition from the current
+         * state that matches the event.
+         */
+        transition = Find_Enabled_Transition(statechart, p_src, event);
+
+        if (NULL == transition)
+        {
+            /*
+             * If the transition hasn't been found, then the search is repeated for the
+             * parent state and will continue until either an matched valid transition is
+             * found or the top of the statechart is reached.
+             */
+            src_state = p_src->parent_state;
+            statechart->chain_length = 0; /* clear out any accumulated partial path */
+        }
+
+    } /*  while ((transition == NULL) && (src_state != HSM_TOP)) */
+}
+
+/**
+ * Outputs any enabled trace message for guard functions
+ *
+ * @param [in] statechart Data structure describing the statechart.
+ *
+ * @param [in] p_trans Pointer to transition structure containing the guard.
+ *
+ * @param [in] guard_was_true true if guard returned true, false otherwise.
+ */
+static void Log_Trace_For_Guard(HSM_Statechart_T const *statechart,
+        HSM_Transition_T const *p_trans, bool_t guard_was_true)
+{
+    if (statechart->dbg.log_level >= TR_LVL_INFO_MID)
+    {
+        char const *event_name = Get_Valid_Event_Name(statechart, statechart->event);
+
+        if (guard_was_true)
+        {
+            if (*event_name != '\0')
+            {
+                Tr_Info_Mid_4( "%s guard %s returned TRUE for event %s while in state %s",
+                        (char*)statechart->dbg.chart_label,
+                        (char*)p_trans->guard_name, (char*)event_name,
+                        HSM_Get_State_Name(statechart, statechart->current_state));
+            }
+            else
+            {
+                Tr_Info_Mid_4( "%s guard %s returned TRUE for event %d while in state %s",
+                        (char*)statechart->dbg.chart_label,
+                        (char*)p_trans->guard_name, (int)statechart->event,
+                        HSM_Get_State_Name(statechart, statechart->current_state));
+            }
+        }
+        else
+        {
+            if (*event_name != '\0')
+            {
+                Tr_Info_Mid_4( "%s guard %s returned FALSE for event %s while in state %s",
+                        (char*)statechart->dbg.chart_label,
+                        (char*)p_trans->guard_name, (char*)event_name,
+                        HSM_Get_State_Name(statechart, statechart->current_state));
+            }
+            else
+            {
+                Tr_Info_Mid_4( "%s guard %s returned FALSE for event %d while in state %s",
+                        (char*)statechart->dbg.chart_label,
+                        (char*)p_trans->guard_name, (int)statechart->event,
+                        HSM_Get_State_Name(statechart, statechart->current_state));
+            }
+        }
+    }
+}
+
+/**
+ * Issues a trace statement for an action function that is going to be executed.
+ *
+ * The trace message will only be issued if the name is non-NULL, not the empty
+ * string, and the debug trace level for the statechart is TR_LVL_INFO_LO.
+ *
+ * @param [in] statechart Data structure describing the statechart.
+ * @param [in] name Name of action function.
+ */
+static void Log_Trace_Action(HSM_Statechart_T const *statechart,
+        char const *action_name)
+{
+    if ((action_name != NULL) && (*action_name != '\0')
+            && (statechart->dbg.log_level >= TR_LVL_INFO_LO))
+    {
+        Tr_Info_Lo_1("Executing action (%s())", action_name);
+    }
+}
+
+/**
+ * Performs the entry actions starting from the target state's ancestor that is
+ * a direct substate of the LCA and proceeding inward until the target state is
+ * reached.
+ *
+ * @param [in,out] statechart
+ *    Data structure describing the statechart.
+ *
+ * @param [in] target_state
+ *    The most deeply nested state that is the destination of a transition and
+ *    is therefore the last one whose entry action is to be performed.
+ *
+ * @param [in] lca
+ *    The LCA of the source and target states; entry actions start with the
+ *    ancestor of the target state contained in the common ancestor.
+ *
+ * @pre
+ *   - statechart != NULL
+ *   - target_state is a valid state
+ *   - lca is a valid state and is an ancestor of target_state
+ *
+ * @note 
+ *   - The entry action of the LCA is NOT executed.
+ */
+static void Execute_Entry_Actions(HSM_Statechart_T *statechart,
+        HSM_State_Id_T target_state, HSM_State_Id_T lca)
+{
+    HSM_State_T const *state_table;
+    HSM_State_Id_T entry_states[HSM_MAX_NESTING_LEVELS] =  { 0 };
+    HSM_State_Id_T state_index = 0;
+
+    PBC_Internal(statechart != NULL, "NULL statechart");
+    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+    PBC_Internal_2((target_state >= 0) &&
+            (target_state < statechart->def_states.state_count),
+            "(%s) Illegal target state: %d",
+            (char*)statechart->def_states.statechart_name, (int)target_state
+            );
+    PBC_Internal_2((HSM_TOP==lca)
+            || ((lca >= 0) && (lca < statechart->def_states.state_count)),
+            "(%s) Illegal LCA state: %d",
+            (char*)statechart->def_states.statechart_name, (int)lca
+            );
+
+    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+    state_table = statechart->def_states.state_table;
+
+    while (target_state != lca)
+    {
+        PBC_Require_3(state_index < HSM_MAX_NESTING_LEVELS,
+                "(%s) Maximum nesting level exceeded by state '%s' (%d)",
+                (char*)statechart->def_states.statechart_name,
+                (char*)HSM_Get_State_Name(statechart, target_state), (int)target_state
+                );
+        entry_states[state_index++] = target_state;
+        target_state = state_table[target_state].parent_state;
+    }
+
+    while (state_index > 0)
+    {
+        HSM_State_Id_T parent_of_target;
+
+        state_index--;
+        target_state = entry_states[state_index];
+
+        if (state_table[target_state].entry_action != NULL)
+        {
+            Log_Trace_Action(statechart, state_table[target_state].entry_action_name);
+            state_table[target_state].entry_action(statechart);
+        }
+        /*
+         * Any time a new state is entered, its parent's shallow history state
+         * must be updated to reflect the new target. This is how the parent's
+         * shallow history state always has the value of the last direct substate
+         * that was active. If instead, the target is the composite's final state,
+         * then the history state must be "reset" to its default transition.
+         */
+        parent_of_target = state_table[target_state].parent_state;
+        if (parent_of_target != HSM_TOP)
+        {
+            HSM_State_Id_T parent_history;
+
+            parent_history = state_table[parent_of_target].history_state;
+
+            if ((parent_history != HSM_NO_HISTORY_STATE)
+                    && (parent_history != target_state))
+            {
+                HSM_State_Kind_T history_type;
+
+                history_type = state_table[parent_history].state_type;
+
+                PBC_Require_3((HSM_DEEP_HISTORY_ID == history_type)
+                        || (HSM_SHALLOW_HISTORY_ID == history_type),
+                        "(%s) Illegal history state type for %s (%d)",
+                        (char*)statechart->def_states.statechart_name,
+                        (char*)HSM_Get_State_Name(statechart, parent_history),
+                        (int)parent_history
+                        );
+
+                if (HSM_FINAL_ID == state_table[target_state].state_type)
+                {
+                    //reset history state to its default state
+                    *(state_table[parent_history].transition_table->history)
+                        = state_table[parent_history].transition_table->target_state;
+                }
+                else if (HSM_SHALLOW_HISTORY_ID == history_type)
+                {
+                    //update history state to current state
+                    *(state_table[parent_history].transition_table->history) = target_state;
+                }
+            }
+        }
+    }
+    /* PRQA S 4700 1 *//* Suppress QAC STMIF metric message. */
+}
+
+/**
+ * Performs the exit actions for all states from src_state until the
+ * lca state is reached.
+ *
+ * @param [in,out] statechart
+ *    Data structure describing the statechart.
+ *
+ * @param [in] src_state
+ *    The most deeply nested state that is the first one whose exit action is
+ *    to be performed.
+ *
+ * @param [in] lca
+ *    The LCA of the source and target states; once this state is reached,
+ *    exit actions stop.
+ *
+ * @pre
+ *   - statechart != NULL
+ *   - src_state is a valid state
+ *   - lca is a valid state and is an ancestor of src_state
+ *
+ * @note 
+ *   - The exit action of the LCA is NOT executed.
+ */
+static void Execute_Exit_Actions(HSM_Statechart_T *statechart,
+        HSM_State_Id_T src_state, HSM_State_Id_T lca)
+{
+    HSM_State_T const *state_table;
+
+    PBC_Internal(statechart != NULL, "NULL statechart");
+    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+    PBC_Internal_2((src_state >= 0) && (src_state < statechart->def_states.state_count),
+            "(%s) Illegal source state: %d",
+            (char*)statechart->def_states.statechart_name, (int)src_state
+            );
+    PBC_Internal_2((HSM_TOP==lca)
+            || ((lca >= 0) && (lca < statechart->def_states.state_count)),
+            "(%s) Illegal LCA: %d",
+            (char*)statechart->def_states.statechart_name, (int)lca
+            );
+    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+    state_table = statechart->def_states.state_table;
+
+    while (src_state != lca)
+    {
+        /*
+         * Any time a state is exited, if the parent state has a deep history
+         * state, then that deep history state must be updated to the current
+         * state of the statechart. This is how the deep history state will
+         * always have a record of the most deeply nested substate. If the
+         * state being exited is the final state of the history state's composite
+         * state then the history state must be "reset" to its default transition.
+         */
+        HSM_State_Id_T parent_of_src = state_table[src_state].parent_state;
+        HSM_State_Kind_T src_type = state_table[src_state].state_type;
+        if (parent_of_src != HSM_TOP)
+        {
+            HSM_State_Id_T parent_history;
+
+            parent_history = state_table[parent_of_src].history_state;
+
+            if (parent_history != HSM_NO_HISTORY_STATE)
+            {
+                HSM_State_Kind_T history_type;
+
+                history_type = state_table[parent_history].state_type;
+
+                PBC_Require_3((HSM_DEEP_HISTORY_ID == history_type)
+                        || (HSM_SHALLOW_HISTORY_ID == history_type),
+                        "(%s) Illegal history state type for %s (%d)",
+                        (char*)statechart->def_states.statechart_name,
+                        (char*)HSM_Get_State_Name(statechart, parent_history),
+                        (int)parent_history
+                        );
+
+                if (HSM_FINAL_ID == state_table[src_state].state_type)
+                {
+                    //reset history state to its default state
+                    *(state_table[parent_history].transition_table->history)
+                        = state_table[parent_history].transition_table->target_state;
+                }
+                else if ((HSM_DEEP_HISTORY_ID == history_type)
+                        && ((HSM_SIMPLE_ID == src_type) || (HSM_COMPOSITE_ID == src_type)))
+                {
+                    //update history state to current state
+                    *(state_table[parent_history].transition_table->history) = statechart->current_state;
+                }
+            }
+        }
+
+        if (state_table[src_state].exit_action != NULL)
+        {
+            Log_Trace_Action(statechart, state_table[src_state].exit_action_name);
+            state_table[src_state].exit_action(statechart);
+        }
+
+        src_state = state_table[src_state].parent_state;
+        PBC_Internal_3((HSM_TOP == lca) || (src_state != HSM_TOP),
+                "(%s) Reached top of statechart without encountering LCA '%s' (%d)",
+                (char*)statechart->def_states.statechart_name,
+                (char*)HSM_Get_State_Name(statechart, lca), (int)lca
+                );
+    }
+    /* PRQA S 4700 1 *//* Suppress QAC STMIF metric message. */
+}
+
+/**
+ * Performs the list transitions previously created by Build_Transition_Chain.
+ *
+ * @param [in,out] statechart
+ *    Data structure describing the statechart.
+ *
+ * @pre
+ *   - statechart != NULL
+ *
+ * @see Build_Transition_Chain()
+ *
+ * main step:
+ * Take_Transitions(statechart):
+ * for (trans_index = 0; trans_index < statechart->chain_length; trans_index++) {
+ *     if (HSM_SAME_STATE == target_state) {
+ *         if (transition->action != NULL) {
+ *             transition->action(statechart);
+ *         }
+ *     } else {
+ *         lca = Get_LeastCommonAncestor(statechart, src_state, target_state);
+ *         Execute_Exit_Actions(statechart, src_state, lca) {
+ *             while (src_state != lca) {
+ *                 if (parent_of_src != HSM_TOP) {
+ *                     if (parent_history != HSM_NO_HISTORY_STATE) {
+ *                         if (HSM_FINAL_ID == state_table[src_state].state_type)
+ *                         {
+ *                             //reset history state to its default state
+ *                             *(state_table[parent_history].transition_table->history)
+ *                                 = state_table[parent_history].transition_table->target_state;
+ *                         }
+ *                         else if ((HSM_DEEP_HISTORY_ID == history_type)
+ *                                 && ((HSM_SIMPLE_ID == src_type) || (HSM_COMPOSITE_ID == src_type)))
+ *                         {
+ *                             //update history state to current state
+ *                             *(state_table[parent_history].transition_table->history) = statechart->current_state;
+ *                         }
+ *                     }
+ *                 }
+ *                 if (state_table[src_state].exit_action != NULL) {
+ *                     state_table[src_state].exit_action(statechart);
+ *                 }
+ *                 src_state = state_table[src_state].parent_state;
+ *             } //end of while loop
+ *         }
+ *         if (transition->action != NULL) {
+ *             transition->action(statechart);
+ *         }
+ *         Execute_Entry_Actions(statechart, target_state, lca) {
+ *             reverse_target_state_list(state_table, target_state, entry_states, lca){
+ *                 while (target_state != lca) {
+ *                     entry_states[state_index++] = target_state;
+ *                     target_state = state_table[target_state].parent_state;
+ *                 }
+ *             }
+ *             while (state_index > 0) {
+ *                 state_index--;
+ *                 target_state = entry_states[state_index];
+ *                 if (state_table[target_state].entry_action != NULL) {
+ *                     state_table[target_state].entry_action(statechart);
+ *                 }
+ *                 if (parent_of_target != HSM_TOP) {
+ *                     if ((parent_history != HSM_NO_HISTORY_STATE) && (parent_history != target_state)) {
+ *                         if (HSM_FINAL_ID == state_table[target_state].state_type)
+ *                         {
+ *                             //reset history state to its default state
+ *                             *(state_table[parent_history].transition_table->history)
+ *                                 = state_table[parent_history].transition_table->target_state;
+ *                         }
+ *                         else if (HSM_SHALLOW_HISTORY_ID == history_type)
+ *                         {
+ *                             //update history state to current state
+ *                             *(state_table[parent_history].transition_table->history) = target_state;
+ *                         }
+ *                     }
+ *                 }
+ *             } //end of while loop
+ *         }
+ *         src_state = target_state;
+ *     }
+ * } //end of for loop
+ *
+ */
+static void Take_Transitions(HSM_Statechart_T *statechart)
+{
+    uint16_t trans_index;
+    HSM_State_Id_T src_state;
+    HSM_DbgFunc_T debug_func;
+
+    PBC_Internal(statechart != NULL, "NULL statechart");
+    src_state = statechart->current_state;
+    debug_func = statechart->dbg.debug_func;
+
+    if (debug_func != NULL)
+    {
+        debug_func(statechart);
+    }
+
+    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
+    for (trans_index = 0; trans_index < statechart->chain_length; trans_index++)
+    {
+        HSM_Transition_T const *transition = statechart->trans_chain[trans_index];
+        HSM_State_Id_T target_state = Get_Target_State(statechart, transition);
+
+        if (HSM_SAME_STATE == target_state) /* internal transition */
+        {
+            PBC_Internal_1(1 == statechart->chain_length,
+                    "(%s) Chained internal transition",
+                    (char*)statechart->def_states.statechart_name);
+
+            if (statechart->dbg.log_level >= TR_LVL_INFO_HI)
+            {
+                Tr_Info_Hi_4( "%s handling internal transition in state %s for event %d(%s)",
+                        (char*)statechart->dbg.chart_label,
+                        HSM_Get_State_Name(statechart, src_state),
+                        (int)statechart->event,
+                        Get_Valid_Event_Name(statechart, statechart->event));
+            }
+
+            /* Skip exit and entry action for internal transition */
+            if (transition->action != NULL)
+            {
+                Log_Trace_Action(statechart, transition->action_name);
+                transition->action(statechart);
+            }
+        }
+        else
+        {
+            /* Execute the exit actions, transition action and entry actions */
+            HSM_State_Id_T lca;
+
+            lca = Get_LeastCommonAncestor(statechart, src_state, target_state);
+
+            if (statechart->dbg.log_level >= TR_LVL_INFO_HI)
+            {
+                Tr_Info_Hi_4("%s transitioning into state %s for event %d(%s)",
+                        (char*)statechart->dbg.chart_label,
+                        HSM_Get_State_Name(statechart, target_state),
+                        (int)statechart->event,
+                        Get_Valid_Event_Name(statechart, statechart->event));
+            }
+
+            Execute_Exit_Actions(statechart, src_state, lca);
+
+            if (transition->action != NULL)
+            {
+                Log_Trace_Action(statechart, transition->action_name);
+                transition->action(statechart);
+            }
+
+            Execute_Entry_Actions(statechart, target_state, lca);
+
+            src_state = target_state;
+        }
+
+    } /* for (trans_index = 0; trans_index < statechart->chain_length;...) */
+
+    statechart->current_state = src_state;
 }
 
 /**
@@ -955,7 +1237,8 @@ static char const *Get_Valid_Event_Name(HSM_Statechart_T const *statechart, HSM_
  * @pre
  *   - statechart != NULL
  */
-static void Initialize_Debug_Control(HSM_Statechart_T *statechart, HSM_Debug_Control_T const *dbg_ctrl)
+static void Initialize_Debug_Control(HSM_Statechart_T *statechart,
+        HSM_Debug_Control_T const *dbg_ctrl)
 {
     PBC_Internal(statechart != NULL, "NULL statechart");
 
@@ -1007,7 +1290,8 @@ static void Initialize_Debug_Control(HSM_Statechart_T *statechart, HSM_Debug_Con
  *   - state_defn->state_count > 1 (minimum statechart is an initial state
  *                                and a simple state)
  */
-static void Initialize_Statechart_Object(HSM_Statechart_T *statechart, HSM_State_Defn_T const *state_defn,
+static void Initialize_Statechart_Object(HSM_Statechart_T *statechart,
+        HSM_State_Defn_T const *state_defn,
         void *this_ptr, HSM_Debug_Control_T const *dbg_ctrl)
 {
     PBC_Require(statechart != NULL, "NULL statechart");
@@ -1026,165 +1310,6 @@ static void Initialize_Statechart_Object(HSM_Statechart_T *statechart, HSM_State
     statechart->def_states = *state_defn;
 
     Initialize_Debug_Control(statechart, dbg_ctrl);
-}
-
-/**
- * Outputs any enabled trace message for guard functions
- *
- * @param [in] statechart Data structure describing the statechart.
- *
- * @param [in] p_trans Pointer to transition structure containing the guard.
- *
- * @param [in] guard_was_true true if guard returned true, false otherwise.
- */
-static void Log_Trace_For_Guard(HSM_Statechart_T const *statechart, HSM_Transition_T const *p_trans,
-        bool_t guard_was_true)
-{
-    if (statechart->dbg.log_level >= TR_LVL_INFO_MID)
-    {
-        char const *event_name = Get_Valid_Event_Name(statechart, statechart->event);
-
-        if (guard_was_true)
-        {
-            if (*event_name != '\0')
-            {
-                Tr_Info_Mid_4( "%s guard %s returned TRUE for event %s while in state %s",
-                        (char*)statechart->dbg.chart_label,
-                        (char*)p_trans->guard_name, (char*)event_name,
-                        HSM_Get_State_Name(statechart, statechart->current_state));
-            }
-            else
-            {
-                Tr_Info_Mid_4( "%s guard %s returned TRUE for event %d while in state %s",
-                        (char*)statechart->dbg.chart_label,
-                        (char*)p_trans->guard_name, (int)statechart->event,
-                        HSM_Get_State_Name(statechart, statechart->current_state));
-            }
-        }
-        else
-        {
-            if (*event_name != '\0')
-            {
-                Tr_Info_Mid_4( "%s guard %s returned FALSE for event %s while in state %s",
-                        (char*)statechart->dbg.chart_label,
-                        (char*)p_trans->guard_name, (char*)event_name,
-                        HSM_Get_State_Name(statechart, statechart->current_state));
-            }
-            else
-            {
-                Tr_Info_Mid_4( "%s guard %s returned FALSE for event %d while in state %s",
-                        (char*)statechart->dbg.chart_label,
-                        (char*)p_trans->guard_name, (int)statechart->event,
-                        HSM_Get_State_Name(statechart, statechart->current_state));
-            }
-        }
-    }
-}
-
-/**
- * Performs the list transitions previously created by Build_Transition_Chain.
- *
- * @param [in,out] statechart
- *    Data structure describing the statechart.
- *
- * @pre
- *   - statechart != NULL
- *
- * @see Build_Transition_Chain()
- */
-static void Take_Transitions(HSM_Statechart_T *statechart)
-{
-    uint16_t trans_index;
-    HSM_State_Id_T src_state;
-    HSM_DbgFunc_T debug_func;
-
-    PBC_Internal(statechart != NULL, "NULL statechart");
-    src_state = statechart->current_state;
-    debug_func = statechart->dbg.debug_func;
-
-    if (debug_func != NULL)
-    {
-        debug_func(statechart);
-    }
-
-    /* PRQA S 0505 1 *//* Suppress QAC NULL ptr message (checked above). */
-    for (trans_index = 0; trans_index < statechart->chain_length; trans_index++)
-    {
-        HSM_Transition_T const *transition = statechart->trans_chain[trans_index];
-        HSM_State_Id_T target_state = Get_Target_State(statechart, transition);
-
-        if (HSM_SAME_STATE == target_state) /* internal transition */
-        {
-            PBC_Internal_1(1 == statechart->chain_length,
-                    "(%s) Chained internal transition",
-                    (char*)statechart->def_states.statechart_name);
-
-            if (statechart->dbg.log_level >= TR_LVL_INFO_HI)
-            {
-                Tr_Info_Hi_4( "%s handling internal transition in state %s for event %d(%s)",
-                        (char*)statechart->dbg.chart_label,
-                        HSM_Get_State_Name(statechart, src_state),
-                        (int)statechart->event,
-                        Get_Valid_Event_Name(statechart, statechart->event));
-            }
-
-            /* Skip exit and entry action */
-            if (transition->action != NULL)
-            {
-                Trace_Action(statechart, transition->action_name);
-                transition->action(statechart);
-            }
-        }
-        else
-        {
-            /* Execute the exit actions, transition action and entry actions */
-            HSM_State_Id_T lca;
-
-            lca = Get_LeastCommonAncestor(statechart, src_state, target_state);
-
-            if (statechart->dbg.log_level >= TR_LVL_INFO_HI)
-            {
-                Tr_Info_Hi_4("%s transitioning into state %s for event %d(%s)",
-                        (char*)statechart->dbg.chart_label,
-                        HSM_Get_State_Name(statechart, target_state),
-                        (int)statechart->event,
-                        Get_Valid_Event_Name(statechart, statechart->event));
-            }
-
-            Execute_Exit_Actions(statechart, src_state, lca);
-
-            if (transition->action != NULL)
-            {
-                Trace_Action(statechart, transition->action_name);
-                transition->action(statechart);
-            }
-
-            Execute_Entry_Actions(statechart, target_state, lca);
-
-            src_state = target_state;
-        }
-
-    } /* for (trans_index = 0; trans_index < statechart->chain_length;...) */
-
-    statechart->current_state = src_state;
-}
-
-/**
- * Issues a trace statement for an action function that is going to be executed.
- *
- * The trace message will only be issued if the name is non-NULL, not the empty
- * string, and the debug trace level for the statechart is TR_LVL_INFO_LO.
- *
- * @param [in] statechart Data structure describing the statechart.
- * @param [in] name Name of action function.
- */
-static void Trace_Action(HSM_Statechart_T const *statechart, char const *action_name)
-{
-    if ((action_name != NULL) && (*action_name != '\0')
-            && (statechart->dbg.log_level >= TR_LVL_INFO_LO))
-    {
-        Tr_Info_Lo_1("Executing action (%s())", action_name);
-    }
 }
 
 /**
@@ -1213,7 +1338,8 @@ static void Update_Dbg_Trace_Level(HSM_Statechart_T *statechart)
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-void HSM_Control_Debug(HSM_Statechart_T *statechart, HSM_Debug_Control_T const *dbg_ctrl)
+void HSM_Control_Debug(HSM_Statechart_T *statechart,
+        HSM_Debug_Control_T const *dbg_ctrl)
 {
     PBC_Require(statechart != NULL, "NULL statechart");
 
@@ -1242,7 +1368,8 @@ HSM_DbgFunc_T HSM_Get_DbgFunc(HSM_Statechart_T const *statechart)
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-HSM_DbgFunc_T HSM_Set_DbgFunc(HSM_Statechart_T *statechart, HSM_DbgFunc_T debug_func)
+HSM_DbgFunc_T HSM_Set_DbgFunc(HSM_Statechart_T *statechart,
+        HSM_DbgFunc_T debug_func)
 {
     HSM_DbgFunc_T current_callback;
 
@@ -1259,7 +1386,8 @@ HSM_DbgFunc_T HSM_Set_DbgFunc(HSM_Statechart_T *statechart, HSM_DbgFunc_T debug_
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-char const *HSM_Get_State_Name(HSM_Statechart_T const *statechart, HSM_State_Id_T state)
+char const *HSM_Get_State_Name(HSM_Statechart_T const *statechart,
+        HSM_State_Id_T state)
 {
     char const *name = "unknown";
     PBC_Require(statechart != NULL, "NULL statechart");
@@ -1273,8 +1401,8 @@ char const *HSM_Get_State_Name(HSM_Statechart_T const *statechart, HSM_State_Id_
     {
         name = state_defn->state_names[state];
         PBC_Ensure_2(name != NULL,
-            "(%s) NULL state name of state (%d)",
-            (char*)state_defn->statechart_name, state);
+                "(%s) NULL state name of state (%d)",
+                (char*)state_defn->statechart_name, state);
     }
 
     return name;
@@ -1285,7 +1413,8 @@ char const *HSM_Get_State_Name(HSM_Statechart_T const *statechart, HSM_State_Id_
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-bool_t HSM_Is_In_State(HSM_Statechart_T const *statechart, HSM_State_Id_T state)
+bool_t HSM_Is_In_State(HSM_Statechart_T const *statechart,
+        HSM_State_Id_T state)
 {
     bool_t is_in_it = false;
 
@@ -1312,8 +1441,10 @@ bool_t HSM_Is_In_State(HSM_Statechart_T const *statechart, HSM_State_Id_T state)
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-size_t HSM_Restore(HSM_Statechart_T *statechart, uint8_t const *buffer, size_t space_available,
-        HSM_State_Defn_T const *state_defn, void *this_ptr, HSM_Debug_Control_T const *dbg_ctrl)
+size_t HSM_Restore(HSM_Statechart_T *statechart,
+        uint8_t const *buffer, size_t space_available,
+        HSM_State_Defn_T const *state_defn, void *this_ptr,
+        HSM_Debug_Control_T const *dbg_ctrl)
 {
     uint8_t const * const buffer_start = buffer;
     bool_t is_ok = true;
@@ -1326,7 +1457,7 @@ size_t HSM_Restore(HSM_Statechart_T *statechart, uint8_t const *buffer, size_t s
     Initialize_Statechart_Object(statechart, state_defn, this_ptr, dbg_ctrl);
 
     PBC_Require_1(buffer != NULL, "No buffer for restoring HSM data for %s",
-                    (char*)statechart->def_states.statechart_name);
+            (char*)statechart->def_states.statechart_name);
 
     size_needed = HSM_PERSISTENT_SIZE(statechart->def_states.history_state_count);
 
@@ -1440,7 +1571,8 @@ size_t HSM_Restore(HSM_Statechart_T *statechart, uint8_t const *buffer, size_t s
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-size_t HSM_Save(HSM_Statechart_T *statechart, uint8_t *buffer, size_t space_available)
+size_t HSM_Save(HSM_Statechart_T *statechart,
+        uint8_t *buffer, size_t space_available)
 {
     uint8_t * const buffer_start = buffer;
     size_t size_needed;
@@ -1505,7 +1637,9 @@ size_t HSM_Save(HSM_Statechart_T *statechart, uint8_t *buffer, size_t space_avai
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-static void HSM_Init(HSM_Statechart_T *statechart, HSM_State_Defn_T const *state_defn, void *this_ptr,
+static void HSM_Init(HSM_Statechart_T *statechart,
+        HSM_State_Defn_T const *state_defn,
+        void *this_ptr,
         HSM_Debug_Control_T const *dbg_ctrl)
 {
     HSM_State_Id_T state;
@@ -1535,94 +1669,7 @@ static void HSM_Init(HSM_Statechart_T *statechart, HSM_State_Defn_T const *state
 /*===========================================================================*
  *
  * Please refer to the detailed description in hsm_engine.h
- *#if 0
- *const char* debug_info_Build_Transition_Chain =
- *"Build_Transition_Chain(statechart, HSM_NO_EVENT){
- *    //(Searches for an enabled transition internal to or out of the specified state by the specified event)
- *    transition = Find_Enabled_Transition(statechart, p_src, event){
- *        //add detailed simple state as the target to link
- *		Add_Links(statechart, p_trans) {
- *            statechart->trans_chain[statechart->chain_length++] = transition;
- *            if (target == simple_state) {
- *                done;
- *    		} else {
- *                Complete_Transition_Chain(statechart, p_target, &transition){
- *                    if (target == composite) { target = target.intial_state;}
- *                    if (target != simple_state) {
- *                        *p_next_transition = Find_Enabled_Transition(statechart, p_target, HSM_NO_EVENT);
- *                    }
- *                }
- *            }
- *        }
- *    }
- *}
- *";
- *#endif
- *#if 0
- *const char * debug_info_Take_Transitions = 
- *"Take_Transitions(statechart){
- *    for (trans_index = 0; trans_index < statechart->chain_length; trans_index++) {
- *        if (HSM_SAME_STATE == target_state) {
- *            if (transition->action != NULL) {transition->action(statechart);}
- *        } else {
- *            lca = Get_LeastCommonAncestor(statechart, src_state, target_state);
- *            Execute_Exit_Actions(statechart, src_state, lca) {
- *            while (src_state != lca){
- *                if (parent_of_src != HSM_TOP) {
- *                    if (parent_history != HSM_NO_HISTORY_STATE) {
- *                        if (HSM_FINAL_ID == state_table[src_state].state_type)
- *                        {
- *                            //reset history state to its default state
- *                            *(state_table[parent_history].transition_table->history)
- *                                = state_table[parent_history].transition_table->target_state;
- *                        }
- *                        else if ((HSM_DEEP_HISTORY_ID == history_type)
- *                                && ((HSM_SIMPLE_ID == src_type) || (HSM_COMPOSITE_ID == src_type)))
- *                        {
- *                            //update history state to current state
- *                            *(state_table[parent_history].transition_table->history) = statechart->current_state;
- *                        }
- *                    }
- *                }
- *                if (state_table[src_state].exit_action != NULL) {state_table[src_state].exit_action(statechart);}
- *                src_state = state_table[src_state].parent_state;
- *            }
- *            }
- *            if (transition->action != NULL) {transition->action(statechart);}
- *            Execute_Entry_Actions(statechart, target_state, lca) {
- *                reverse_target_state_list(state_table, target_state, entry_states, lca){
- *                    while (target_state != lca) {
- *                        entry_states[state_index++] = target_state;
- *                        target_state = state_table[target_state].parent_state;
- *                    }
- *                }
- *                while (state_index > 0) {
- *                    state_index--;
- *                    target_state = entry_states[state_index];
- *                    if (state_table[target_state].entry_action != NULL) {state_table[target_state].entry_action(statechart);}
- *                    if (parent_of_target != HSM_TOP) {
- *                        if ((parent_history != HSM_NO_HISTORY_STATE) && (parent_history != target_state)) {
- *                            if (HSM_FINAL_ID == state_table[target_state].state_type)
- *                            {
- *                                //reset history state to its default state
- *                                *(state_table[parent_history].transition_table->history)
- *                                    = state_table[parent_history].transition_table->target_state;
- *                            }
- *                            else if (HSM_SHALLOW_HISTORY_ID == history_type)
- *                            {
- *                                //update history state to current state
- *                                *(state_table[parent_history].transition_table->history) = target_state;
- *                            }
- *                        }
- *                    }
- *                }
- *            }
- *            src_state = target_state;
- *        }
- *    }
- *}
- *";
- *#endif
+ *
  *===========================================================================*/
 static void HSM_Begin(HSM_Statechart_T *statechart)
 {
@@ -1639,8 +1686,8 @@ static void HSM_Begin(HSM_Statechart_T *statechart)
     Build_Transition_Chain(statechart, HSM_NO_EVENT);
 
     PBC_Require_1(statechart->chain_length > 0,
-                    "(%s) No path through initial transition",
-                    (char*)statechart->def_states.statechart_name);
+            "(%s) No path through initial transition",
+            (char*)statechart->def_states.statechart_name);
 
     Take_Transitions(statechart);
 }
@@ -1650,7 +1697,8 @@ static void HSM_Begin(HSM_Statechart_T *statechart)
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-bool_t HSM_Process_Event(HSM_Statechart_T *statechart, HSM_Event_T event, void const *event_data)
+bool_t HSM_Process_Event(HSM_Statechart_T *statechart,
+        HSM_Event_T event, void const *event_data)
 {
     HSM_DbgFunc_T debug_func;
     bool_t event_handled = false;
@@ -1672,7 +1720,8 @@ bool_t HSM_Process_Event(HSM_Statechart_T *statechart, HSM_Event_T event, void c
     {
         Tr_Fault_3( "Illegal recursive call to HSM_Process_Event() for %s while processing %d(%s)",
                 (char*)statechart->dbg.chart_label,
-                (int)statechart->event, Get_Valid_Event_Name(statechart, statechart->event));
+                (int)statechart->event,
+                Get_Valid_Event_Name(statechart, statechart->event));
 
         Tr_Fault_3("%s will ignore recursive delivery of %d(%s)",
                 (char*)statechart->dbg.chart_label,
@@ -1708,7 +1757,8 @@ bool_t HSM_Process_Event(HSM_Statechart_T *statechart, HSM_Event_T event, void c
             {
                 Tr_Info_Lo_4("%s discarded event %d(%s) in state %s",
                         (char*)statechart->dbg.chart_label,
-                        (int)statechart->event, Get_Valid_Event_Name(statechart, statechart->event),
+                        (int)statechart->event,
+                        Get_Valid_Event_Name(statechart, statechart->event),
                         HSM_Get_State_Name(statechart, statechart->current_state));
             }
         }
@@ -1723,7 +1773,8 @@ bool_t HSM_Process_Event(HSM_Statechart_T *statechart, HSM_Event_T event, void c
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-void HSM_Start(HSM_Statechart_T *statechart, HSM_State_Defn_T const *state_defn,
+void HSM_Start(HSM_Statechart_T *statechart,
+        HSM_State_Defn_T const *state_defn,
         void *this_ptr, const HSM_Debug_Control_T *dbg_ctrl)
 {
     PBC_Require(state_defn != NULL, "NULL state definition");
@@ -1745,89 +1796,3 @@ void HSM_Start(HSM_Statechart_T *statechart, HSM_State_Defn_T const *state_defn,
 }
 
 /*===========================================================================*/
-/*!
- * @file hsm_engine.c
- *
- * @section RH REVISION HISTORY (top to bottom: last revision to first revision)
- *
- * - 30-May-2012 Kirk Bailey Rev 29,30
- *   - Added logic to detect, log, and ignore recursive calls to HSM_Process_Event.
- *
- * - 06-Oct-2011 Kirk Bailey Rev 28
- *   - Fixed error in transition logic that prevented transitions from being
- *     considered if a sibling transition was found that had a true guard but
- *     didn't end up being enabled because of a false guard later in its
- *     transition sequence.
- *
- * - 30-Sep-2011 Kirk Bailey Rev 27
- *   - Added support for action function names (for debug trace).
- *
- * - 04-Mar-2011 Kirk Bailey Rev 26
- *   - Task 23873: Expanded debug level support to track another module's level.
- *
- * - 14-Jan-2011 Kirk Bailey Rev 25
- *   - Task 19973: Added support for per-statechart event naming for trace.
- *
- * - 02-Sep-2010 Kirk Bailey Rev 24
- *   - Added per-statechart trace capability.
- *
- * - 01-Sep-2010 Kirk Bailey Rev 22
- *   - Added HSM_Init() and HSM_Begin() to support debug trace for individual
- *     statechart instance.
- *
- * - 25-Jul-2010 Kirk Bailey Rev 20
- *   - Replaced "bool" with "bool_t".
- *
- * - 18-jun-2009 kirk bailey
- *   -task kok_aud_52399: Updated bb_state_eng to support persistence
- *
- * - 13-aug-2008 kirk bailey
- *   -Converted from EM to PBC usage.
- *
- * - 07-jul-2008 kirk bailey
- *   -Added support for state names.
- *
- * - 21-feb-2008 kirk bailey
- *   - Moved hsm_Check_Statechart_Defn to public API.
- *   - Added HSM_State_Defn_T to API and changed HSM_Start to use it.
- *
- * - 15-nov-2007 kirk bailey
- *   - Added final states and completion transitions.
- *   - Converted to new Doyxgen format.
- *
- * - 20-aug-2007 kirk bailey
- *   -Fixed QAC MISRA issues.
- *
- * - 08-aug-2007 kirk bailey
- *   - Got rid of recursion for building the chain of transitions and for
- *     executing entry functions.
- *   - Moved compile-time constants used to size entry/transition arrays to
- *   - configuration files.
- *   - Changed type usage to be MISRA compliant.
- *
- * - 05-apr-2007 kirk bailey
- *   - Added callback function and HSM_Is_In_State.
- *   - Fixed HSM_Start() so that a "restart" works.
- *
- * - 02-apr-2007 kirk bailey
- *   -Added event data pointer.
- *
- * - 31-mar-2007 kirk bailey
- *   - Added this_ptr.
- *   - Made statechart an argument for guard & action functions.
- *   - Added deep history.
-*
-* - 28-mar-2007 kirk bailey
-*   -Renamed hsm_engine and converted to BASA naming convention.
-*
-* - 25-mar-2007 kirk bailey
-*   -Changed type of argument to State_Init to size_t.
-*
-* - 16-mar-2007 kirk bailey
-*   -Removed non-functional default state logic.
-*
-* - 15-mar-2007 kirk bailey
-*   -Created initial file from copy of Dave Johnson's state_engine.
-*/
-/*===========================================================================*/
-/** @} doxygen end group */

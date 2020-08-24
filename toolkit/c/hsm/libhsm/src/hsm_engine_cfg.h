@@ -71,15 +71,4 @@
  *===========================================================================*/
 
 /*===========================================================================*/
-/*!
- * @file hsm_engine_cfg.h
- *
- * @section RH REVISION HISTORY (top to bottom: last revision to first revision)
- *
- * - 07-aug-2008 kirk bailey
- *   -Created initial file.
- *
- */
-/*===========================================================================*/
-/** @} doxygen end group */
 #endif /* HSM_ENGINE_CFG_H */

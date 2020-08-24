@@ -49,7 +49,6 @@
  *===========================================================================*/
 #include "hsm_check.h"
 #include "hsm_engine_cfg.h"
-//#include "pbc_trace.h"
 
 /*===========================================================================*
  * Local Preprocessor #define Constants
@@ -100,8 +99,7 @@ static void Check_Initial_State_Defn(HSM_State_Defn_T const *state_defn,
         HSM_State_Id_T state);
 
 static void Check_Initial_Target(HSM_State_Defn_T const *state_defn,
-        HSM_State_Id_T src_state,
-        const HSM_Transition_T *trans);
+        HSM_State_Id_T src_state, const HSM_Transition_T *trans);
 
 static void Check_Junction_State_Defn(HSM_State_Defn_T const *state_defn,
         HSM_State_Id_T state);
@@ -116,24 +114,22 @@ static void Check_Simple_State_Defn(HSM_State_Defn_T const *state_defn,
         HSM_State_Id_T state);
 
 static void Check_Target(HSM_State_Defn_T const *state_defn,
-        HSM_State_Id_T src_state,
-        const HSM_Transition_T *trans);
+        HSM_State_Id_T src_state, const HSM_Transition_T *trans);
 
 static void Check_Targeted_Composite(HSM_State_Defn_T const *state_defn,
         const HSM_Transition_T *trans);
 
 static void Check_Targeted_Final(HSM_State_Defn_T const *state_defn,
-        HSM_State_Id_T src_state,
-        const HSM_Transition_T *trans);
+        HSM_State_Id_T src_state, const HSM_Transition_T *trans);
 
 static void Check_Targeted_History(HSM_State_Defn_T const *state_defn,
-        HSM_State_Id_T src_state,
-        const HSM_Transition_T *trans);
+        HSM_State_Id_T src_state, const HSM_Transition_T *trans);
+
 static bool_t Check_Is_Ancestor_State(HSM_State_Defn_T const *p_states,
-                           HSM_State_Id_T ref_st, HSM_State_Id_T confirming_st);
+        HSM_State_Id_T ref_st, HSM_State_Id_T confirming_st);
 
 static char const *Get_State_Name_From_Defn(HSM_State_Defn_T const *state_defn,
-                                         HSM_State_Id_T state);
+        HSM_State_Id_T state);
 
 static uint16_t Get_Nesting_Level(HSM_State_Defn_T const *state_defn,
         HSM_State_Id_T state);
@@ -470,14 +466,13 @@ static void Check_Incoming_Transitions(HSM_State_Defn_T const *state_defn,
              */
             if (ptr_st->parent_state != HSM_TOP)
             {
-                parent_hist =
-                    state_defn->state_table[ptr_st->parent_state].history_state;
+                parent_hist = state_defn->state_table[ptr_st->parent_state].history_state;
             }
 
-            if ((init_state != HSM_NO_INITIAL_STATE) &&
-                    ((HSM_NO_HISTORY_STATE == parent_hist) ||
-                     (HSM_SHALLOW_HISTORY_ID !=
-                      state_defn->state_table[parent_hist].state_type)))
+            if ((HSM_NO_INITIAL_STATE != init_state)
+                    && ((HSM_NO_HISTORY_STATE == parent_hist)
+                        || (HSM_SHALLOW_HISTORY_ID !=
+                            state_defn->state_table[parent_hist].state_type)))
             {
                 Tr_Warn_3("(%s) Unnecessary initial state for composite state '%s' (%d)",
                         (char*)state_defn->statechart_name,
@@ -960,7 +955,8 @@ static void Check_Targeted_History(HSM_State_Defn_T const *state_defn,
  *   - 0 <= ref_st < p_states->state_count
  *   - (HSM_TOP == confirming_st) || (0 <= confirming_st < p_states->state_count)
  */
-static bool_t Check_Is_Ancestor_State(HSM_State_Defn_T const *state_defn, HSM_State_Id_T ref_st, HSM_State_Id_T confirming_st)
+static bool_t Check_Is_Ancestor_State(HSM_State_Defn_T const *state_defn,
+        HSM_State_Id_T ref_st, HSM_State_Id_T confirming_st)
 {
     bool_t is_ancestor = false;
 
@@ -1028,7 +1024,8 @@ static bool_t Check_Is_Ancestor_State(HSM_State_Defn_T const *state_defn, HSM_St
  * @post
  *   - pointer returned != NULL
  */
-static char const *Get_State_Name_From_Defn(HSM_State_Defn_T const *state_defn, HSM_State_Id_T state)
+static char const *Get_State_Name_From_Defn(HSM_State_Defn_T const *state_defn,
+        HSM_State_Id_T state)
 {
     char const *name = "unknown";
 
@@ -1149,44 +1146,3 @@ void HSM_Check_Statechart_Defn(HSM_State_Defn_T const *state_defn)
 }
 
 /*===========================================================================*/
-/*!
- * @file hsm_check.c
- *
- * @section RH REVISION HISTORY (top to bottom: last revision to first revision)
- *
- * - 25-Jul-2010 Kirk Bailey Rev 12
- *   - Replaced "bool" with "bool_t".
- *
- * - 18-jun-2009 kirk bailey
- *   -Added statechart name to trace output.
- *
- * - 13-aug-2008 kirk bailey
- *   -Converted from EM to PBC usage.
- *
- * - 21-feb-2008 kirk bailey
- *   - Renamed hsm_Check_Statechart_Defn (moved to public API).
- *   - Changed check for incoming transitions from an error to a warning.
- *
- * - 15-nov-2007 kirk bailey
- *   - Added final states and completion transitions.
- *   - Converted to new Doyxgen format.
- *
- * - 20-aug-2007 kirk bailey
- *   -Fixed QAC MISRA issues.
- *
- * - 08-aug-2007 kirk bailey
- *   - Added logic to make sure HSM_MAX_NESTING_LEVELS constraint is not
- *     violated.
- *   - Changed type usage to be MISRA compliant.
- *
- * - 26-apr-2007 kirk bailey
- *   -Added argument to EM_REQUIRE_FAILED().
- *
- * - 05-apr-2007 kirk bailey
- *   -Improved checks for composite states, transitions, and guards.
- *
- * - 04-apr-2007 kirk bailey
- *   -Created file.
- */
-/*===========================================================================*/
-/** @} doxygen end group */
