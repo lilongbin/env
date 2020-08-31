@@ -13,14 +13,10 @@
 
 #include "hsm_comm.h"
 #include "hsm_state.h"
+#include "hsm_check.h"
 #include "hsm_debug.h"
 #include "hsm_log.h"
 #include <assert.h>
-
-typedef struct {
-    std::vector<HSM_State_T> stateList;
-    std::string         statechartName;
-} HSM_State_Definition_T;
 
 typedef std::vector<HSM_Transition_T>::iterator HSM_TransChainIterator_T;
 typedef std::vector<HSM_State_T>::const_iterator HSM_StateListIterator_T;
@@ -62,6 +58,7 @@ public:
     bool start(const HSM_State_Definition_T &stateDfn, void * userObj) {
         logi("start state chart %s begin", stateDfn.statechartName.c_str());
         init();
+        checkStateDfn(stateDfn);
         //mStateDfn = stateDfn;
         mStateDfn.statechartName = stateDfn.statechartName;
         HSM_StateListIterator_T slit = stateDfn.stateList.begin();
@@ -121,6 +118,13 @@ private:
             std::cout << "construct HSM_StateChart_T failed." << std::endl;
         }
         mpStatechart->currentStateId = 0;//init
+    }
+
+    void checkStateDfn(const HSM_State_Definition_T &stateDfn) {
+        HSM_Check checker = HSM_Check(stateDfn);
+        bool res = checker.check();
+        logi("%s result:%s", __func__, res?"ok":"failure");
+        assert(res == true);
     }
 
     HSM_State_T &getStateById(const HSM_State_Id_T stateid) {

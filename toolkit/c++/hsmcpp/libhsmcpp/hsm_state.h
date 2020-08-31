@@ -16,6 +16,14 @@
 #include <string>
 #include <stdexcept>
 
+class HSM_State_T;
+
+typedef struct {
+    std::vector<HSM_State_T> stateList;
+    std::string         statechartName;
+} HSM_State_Definition_T;
+
+
 class HSM_State_T
 {
 private:
