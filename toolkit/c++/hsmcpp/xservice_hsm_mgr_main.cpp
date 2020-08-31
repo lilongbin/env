@@ -13,12 +13,16 @@
 #include <errno.h>
 #include <termios.h>
 
-#include "xservice_hsm_mgr_event.h"
 #include "xservice_hsm_mgr_impl.h"
 
 #ifndef STDIN_FILENO
 #define STDIN_FILENO 0
 #endif
+
+/* create HSM engine and state chart */
+static HSM_Engine *mHsm = new HSM_Engine();
+/* create userObj defined by user */
+static XServiceHsmObject_T gs_xservice_hsm_object {};
 
 char getch()
 {
@@ -41,6 +45,36 @@ char getch()
         perror("read");
     }
     return ch;
+}
+
+void logfunc(const std::string &logs) {
+    (void)logs;
+    //printf("%s", logs.c_str());
+}
+
+/**
+ * This function is called to start the TboxAudioMgr HSM.
+ */
+void XService_HSM_Start(void) {
+    printf("%s\n", __func__);
+    HSM_State_Definition_T xservice_mgr_hsm_defn = get_XSERVICE_MGR_HSM_Defn();
+
+    HSM_Debug debug = HSM_Debug(xservice_mgr_hsm_defn.statechartName, NULL, getEventName, 0, logfunc);
+    mHsm->setDebug(debug);
+
+    mHsm->start(xservice_mgr_hsm_defn, &gs_xservice_hsm_object);
+}
+
+bool XService_HSM_ProcMessage(int event, const void * pdata, const size_t data_size) {
+    bool event_used = true;
+    (void)data_size;
+    if (pdata == NULL) {
+        /* pdata can be empty; */
+    }
+    std::vector<uint8_t> data((uint8_t *)pdata, (uint8_t *)pdata+data_size);
+    //HSM_Log("!!!!!!!!!!!!!!%s event:%d-%s\n", __func__, event, getEventName(event).c_str());
+    mHsm->proccessMessage(event, data);
+    return event_used;
 }
 
 int main()

@@ -156,24 +156,43 @@ public:
         mTransitionTable = transTable;
     }
 
-    bool addTransition(const HSM_Transition_T &trans) {
-        mTransitionTable.push_back(trans);
-        return true;
+    bool addInternalTrans(const HSM_Transition_T &trans) {
+        HSM_Transition_T transition {};
+        /* has event, has guard, no history, do action, no next_state */
+        transition.event = trans.event;
+        transition.guard = trans.guard;
+        transition.action = trans.action;
+        transition.targetId = HSM_SAME_STATE; /* next_state */
+        transition.historyId = HSM_NO_HISTORY_STATE;
+        transition.guardName = trans.guardName;
+        transition.actionName = trans.actionName;
+        return addTransition(transition);
     }
 
-    bool addParentStateById(const HSM_State_Id_T parentid) {
-        mParentStateId = parentid;
-        return true;
+    bool addExternalTrans(const HSM_Transition_T &trans) {
+        HSM_Transition_T transition {};
+        /* has event, has guard, no history, do action, has next_state */
+        transition.event = trans.event;
+        transition.guard = trans.guard;
+        transition.action = trans.action;
+        transition.targetId = trans.targetId; /* next_state */
+        transition.historyId = HSM_NO_HISTORY_STATE;
+        transition.guardName = trans.guardName;
+        transition.actionName = trans.actionName;
+        return addTransition(transition);
     }
 
-    bool addInitialStateById(const HSM_State_Id_T initialid) {
-        mInitialStateId = initialid;
-        return true;
-    }
-
-    bool addHistoryStateById(const HSM_State_Id_T historyid) {
-        mHistoryStateId = historyid;
-        return true;
+    bool addCompleteTrans(const HSM_Transition_T &trans) {
+        HSM_Transition_T transition {};
+        /* no event, no guard, no history, do action, has next_state */
+        transition.event = HSM_COMPLETION_EVENT;
+        transition.guard = HSM_NO_GUARD;
+        transition.action = trans.action;
+        transition.targetId = trans.targetId; /* next_state */
+        transition.historyId = HSM_NO_HISTORY_STATE;
+        transition.guardName = "no guard";
+        transition.actionName = trans.actionName;
+        return addTransition(transition);
     }
 
     //virtual bool             addFinalState() {}
@@ -209,6 +228,12 @@ public:
             printf("%s failed, not history state:%s\n", __func__, mStateName.c_str());
             assert(0);
         }
+    }
+
+private:
+    bool addTransition(const HSM_Transition_T &trans) {
+        mTransitionTable.push_back(trans);
+        return true;
     }
 
 };

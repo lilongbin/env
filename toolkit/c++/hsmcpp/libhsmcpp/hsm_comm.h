@@ -52,8 +52,10 @@ typedef int32_t HSM_Event_T;
 typedef int32_t HSM_State_Id_T;
 
 typedef std::function<void (const HSM_StateChart_T &)> HSM_Action_T;
-typedef std::function<void (const HSM_StateChart_T &)> HSM_DbgFunc_T;
 typedef std::function<bool (const HSM_StateChart_T &)> HSM_Guard_T;
+typedef std::function<std::string (const HSM_Event_T &)> HSM_EventNameFunc_T;
+typedef std::function<void (const HSM_StateChart_T &)> HSM_DbgFunc_T;
+typedef std::function<void (const std::string &logs)> HSM_LogFunc_T;
 
 typedef struct {
    HSM_Event_T event;    /**< Event to respond to */
