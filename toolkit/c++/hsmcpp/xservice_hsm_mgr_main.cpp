@@ -72,7 +72,7 @@ bool XService_HSM_ProcMessage(int event, const void * pdata, const size_t data_s
         /* pdata can be empty; */
     }
     std::vector<uint8_t> data((uint8_t *)pdata, (uint8_t *)pdata+data_size);
-    //HSM_Log("!!!!!!!!!!!!!!%s event:%d-%s\n", __func__, event, getEventName(event).c_str());
+    printf("%s event:%d-%s\n", __func__, event, getEventName(event).c_str());
     mHsm->proccessMessage(event, data);
     return event_used;
 }
@@ -102,7 +102,7 @@ int main()
         } else {
             evt = EVT_TypedKeyOther;
         }
-        printf("send evt: %d-%s, data:%d-%c\n", evt, getEventName(evt).c_str(), ch, ch);
+        printf("send evt: %d-%s, data:%d(%c)\n", evt, getEventName(evt).c_str(), ch, ch);
         XService_HSM_ProcMessage(evt, &ch, sizeof(ch));
     }
     return 0;

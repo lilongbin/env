@@ -42,14 +42,14 @@ void onInterupt2(const HSM_StateChart_T& statechart) {
 void proc_close(const HSM_StateChart_T& statechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)statechart.userObj;
     pobj->extra_data.clear();
-    printf("\n%s %s has been cleared\n", __func__, pobj->extra_data.c_str());
+    printf("\n%s extra data has been cleared\n", __func__);
 }
 
 void proc_decimal(const HSM_StateChart_T& statechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)statechart.userObj;
     char data = *(char *)statechart.eventdata.data();
     pobj->working_data += (data);
-    printf("\r[%d-%s] [%s]: Invalid char %d(%c)\n",
+    printf("\r[%d-%s] [%s]: Validity char %d(%c)\n",
             statechart.currentStateId, statechart.currentStateName.c_str(),
             __func__, data, data);
     printf("\tvalidity, you can continue type 0123456789\n");
@@ -60,7 +60,7 @@ void proc_dot(const HSM_StateChart_T& statechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)statechart.userObj;
     char data = *(char *)(statechart.eventdata.data());
     pobj->working_data += (data);
-    printf("\r[%d-%s] [%s]: Invalid char %d(%c)\n",
+    printf("\r[%d-%s] [%s]: Validity char %d(%c)\n",
             statechart.currentStateId, statechart.currentStateName.c_str(),
             __func__, data, data);
     printf("\tuncompleted, you can continue type 0123456789\n");
@@ -71,7 +71,7 @@ void proc_int(const HSM_StateChart_T& statechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)statechart.userObj;
     char data = *(char *)(statechart.eventdata.data());
     pobj->working_data += (data);
-    printf("\r[%d-%s] [%s]: Invalid char %d(%c)\n",
+    printf("\r[%d-%s] [%s]: Validity char %d(%c)\n",
             statechart.currentStateId, statechart.currentStateName.c_str(),
             __func__, data, data);
     printf("\tvalidity, you can continue type 0123456789.\n");
@@ -82,7 +82,7 @@ void proc_lead0(const HSM_StateChart_T& statechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)statechart.userObj;
     char data = *(char *)(statechart.eventdata.data());
     pobj->working_data += (data);
-    printf("\r[%d-%s] [%s]: Invalid char %d(%c)\n",
+    printf("\r[%d-%s] [%s]: Validity char %d(%c)\n",
             statechart.currentStateId, statechart.currentStateName.c_str(),
             __func__, data, data);
     printf("\tvalidity, you can continue type .\n");
@@ -91,7 +91,6 @@ void proc_lead0(const HSM_StateChart_T& statechart) {
 
 void proc_open(const HSM_StateChart_T& statechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)statechart.userObj;
-    printf("%s please input your string\n", __func__);
     pobj->extra_data.clear();
     printf("%s please input your string\n", __func__);
 }
@@ -100,7 +99,7 @@ void proc_reading(const HSM_StateChart_T& statechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)statechart.userObj;
     char data = *(char *)(statechart.eventdata.data());
     pobj->extra_data += (data);
-    printf("\r[%d-%s] [%s]: Invalid char %d(%c)\n",
+    printf("\r[%d-%s] [%s]: Validity char %d(%c)\n",
             statechart.currentStateId, statechart.currentStateName.c_str(),
             __func__, data, data);
     printf("%s", pobj->extra_data.c_str()); fflush(stdout);
@@ -110,7 +109,7 @@ void proc_signed(const HSM_StateChart_T& statechart) {
     XServiceHsmObject_T * pobj = (XServiceHsmObject_T *)statechart.userObj;
     char data = *(char *)(statechart.eventdata.data());
     pobj->working_data += (data);
-    printf("\r[%d-%s] [%s]: Invalid char %d(%c)\n",
+    printf("\r[%d-%s] [%s]: Validity char %d(%c)\n",
             statechart.currentStateId, statechart.currentStateName.c_str(),
             __func__, data, data);
     printf("\tuncompleted, you can continue type 0123456789\n");

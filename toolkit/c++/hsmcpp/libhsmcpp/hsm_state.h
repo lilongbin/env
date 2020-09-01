@@ -41,7 +41,7 @@ private:
 
 public:
     HSM_State_T() {
-        mStateType = HSM_SKIND_INVALID;
+        mStateType = HSM_ST_KIND_INVALID;
         mStateId = HSM_TOP;
         mStateName = "HSM_TOP";
         mParentStateId = HSM_NO_STATE;
@@ -171,7 +171,12 @@ public:
         transition.guard = trans.guard;
         transition.action = trans.action;
         transition.targetId = HSM_SAME_STATE; /* next_state */
-        transition.historyId = HSM_NO_HISTORY_STATE;
+        if ((HSM_ST_KIND_DEEP_HISTORY == mStateType)
+            || (HSM_ST_KIND_SHALLOW_HISTORY == mStateType)) {
+            transition.historyId = trans.historyId;//only valid for history state
+        } else {
+            transition.historyId = HSM_NO_HISTORY_STATE;
+        }
         transition.guardName = trans.guardName;
         transition.actionName = trans.actionName;
         return addTransition(transition);
@@ -184,7 +189,12 @@ public:
         transition.guard = trans.guard;
         transition.action = trans.action;
         transition.targetId = trans.targetId; /* next_state */
-        transition.historyId = HSM_NO_HISTORY_STATE;
+        if ((HSM_ST_KIND_DEEP_HISTORY == mStateType)
+            || (HSM_ST_KIND_SHALLOW_HISTORY == mStateType)) {
+            transition.historyId = trans.historyId;//only valid for history state
+        } else {
+            transition.historyId = HSM_NO_HISTORY_STATE;
+        }
         transition.guardName = trans.guardName;
         transition.actionName = trans.actionName;
         return addTransition(transition);
@@ -208,8 +218,8 @@ public:
 
     HSM_State_Id_T getHistoryDefaultTargetId() {
         HSM_State_Id_T targetId;
-        if ((HSM_SKIND_DEEP_HISTORY == mStateType)
-                || (HSM_SKIND_SHALLOW_HISTORY == mStateType)) {
+        if ((HSM_ST_KIND_DEEP_HISTORY == mStateType)
+                || (HSM_ST_KIND_SHALLOW_HISTORY == mStateType)) {
             if (mTransitionTable.size() != 1) {
                 printf("%s transition size invalid of history state:%s\n", __func__, mStateName.c_str());
                 assert(0);
@@ -224,8 +234,8 @@ public:
     }
 
     void saveHistoryState(HSM_State_Id_T stateid) {
-        if ((HSM_SKIND_DEEP_HISTORY == mStateType)
-                || (HSM_SKIND_SHALLOW_HISTORY == mStateType)) {
+        if ((HSM_ST_KIND_DEEP_HISTORY == mStateType)
+                || (HSM_ST_KIND_SHALLOW_HISTORY == mStateType)) {
             if (mTransitionTable.size() != 1) {
                 printf("%s transition size invalid of history state:%s\n", __func__, mStateName.c_str());
                 assert(0);

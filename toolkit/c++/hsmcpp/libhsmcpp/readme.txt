@@ -11,10 +11,10 @@ Integrate the generated code into the project
 --Rename any existing action or guard functions that were renamed in the model
 
 1. Define the statechart's elements for the statechart engine.
-2. Define the HSM_Statechart_T object (variable) to be used by the statechart engine for the statechart.
+2. get HSM_State_Definition_T object (variable) to be used by the statechart engine for the statechart by get_STATECHARTNAME_Defn().
 3. Implement the guard and action functions used by the statechart.
-4. Call the HSM_Init() and HSM_Begin() function to initialize the HSM_Statechart_T object and to cause the statechart 
+4. create HSM_Engine object and Call its start() function to initialize the hsm engine and to cause the statechart 
    to enter its initial state.
-5. Call HSM_Process_Event() when events occur that need to be handled by the statechart engine.
+5. Call HSM_Engine object's proccessMessage() when events occur that need to be handled by the statechart engine.
 
 

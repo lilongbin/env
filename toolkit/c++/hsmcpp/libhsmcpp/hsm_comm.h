@@ -37,14 +37,14 @@
 #define HSM_SAME_STATE (-2)
 
 typedef enum {
-   HSM_SKIND_INVALID = 0,
-   HSM_SKIND_COMPOSITE,       /**< composite state (contains children) */
-   HSM_SKIND_DEEP_HISTORY,    /**< deep history pseudostate */
-   HSM_SKIND_FINAL,           /**< final state */
-   HSM_SKIND_INITIAL,         /**< initial pseudostate */
-   HSM_SKIND_JUNCTION,        /**< junction pseudostate */
-   HSM_SKIND_SHALLOW_HISTORY, /**< shallow history pseudostate */
-   HSM_SKIND_SIMPLE           /**< simple state (no children) */
+   HSM_ST_KIND_INVALID = 0,
+   HSM_ST_KIND_COMPOSITE,       /**< composite state (contains children) */
+   HSM_ST_KIND_DEEP_HISTORY,    /**< deep history pseudostate */
+   HSM_ST_KIND_FINAL,           /**< final state */
+   HSM_ST_KIND_INITIAL,         /**< initial pseudostate */
+   HSM_ST_KIND_JUNCTION,        /**< junction pseudostate */
+   HSM_ST_KIND_SHALLOW_HISTORY, /**< shallow history pseudostate */
+   HSM_ST_KIND_SIMPLE           /**< simple state (no children) */
 } HSM_State_Kind_T; //State Kind
 
 struct HSM_StateChart_T;
