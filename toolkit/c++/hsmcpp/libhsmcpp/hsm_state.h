@@ -12,15 +12,18 @@
 #define __HSM_STATE_H__
 
 #include "hsm_comm.h"
-#include <assert.h>
+#include <cassert>
 #include <string>
 #include <stdexcept>
 
 class HSM_State_T;
+typedef std::vector<HSM_State_T> HSM_StateList_T;
+typedef std::vector<HSM_State_T>::const_iterator HSM_StateListIterator_T;
+typedef std::vector<HSM_Transition_T>::iterator HSM_TransChainIterator_T;
 
 typedef struct {
-    std::vector<HSM_State_T> stateList;
-    std::string         statechartName;
+    HSM_StateList_T stateList;
+    std::string     statechartName;
 } HSM_State_Definition_T;
 
 

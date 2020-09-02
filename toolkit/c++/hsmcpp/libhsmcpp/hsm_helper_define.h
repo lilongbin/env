@@ -120,12 +120,12 @@ HSM_State_Definition_T get_##statechart_name##_Defn() {\
     state_tmp = HSM_State_T{HSM_ST_KIND_JUNCTION, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};
 
 #define HSM_DEEP_HISTORY_STATE(state_name, parent, default_state)\
-    state_tmp = HSM_State_T{HSM_ST_KIND_DEEP_HISTORY, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};\
+    state_tmp = HSM_State_T{HSM_ST_KIND_DEEP_HISTORY, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, default_state, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};\
     state_tmp.addExternalTrans({HSM_NO_EVENT, HSM_NO_GUARD, HSM_NO_ACTION, default_state, default_state, "no guard", "no action"});\
     stateList.push_back(state_tmp);
 
 #define HSM_SHALLOW_HISTORY_STATE(state_name, parent, default_state)\
-    state_tmp = HSM_State_T{HSM_ST_KIND_SHALLOW_HISTORY, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};\
+    state_tmp = HSM_State_T{HSM_ST_KIND_SHALLOW_HISTORY, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, default_state, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};\
     state_tmp.addExternalTrans({HSM_NO_EVENT, HSM_NO_GUARD, HSM_NO_ACTION, default_state, default_state, "no guard", "no action"});\
     stateList.push_back(state_tmp);
 

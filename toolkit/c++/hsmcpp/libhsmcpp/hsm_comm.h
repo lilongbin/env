@@ -23,6 +23,8 @@
 #include <condition_variable>
 #include <functional>
 
+#define HSM_MAX_NESTING_LEVELS 30
+
 #define HSM_TOP (-1)
 #define HSM_NO_STATE (-1)
 #define HSM_NO_INITIAL_STATE HSM_NO_STATE
@@ -62,13 +64,12 @@ typedef struct {
    HSM_Guard_T guard;    /**< Guard function */
    HSM_Action_T action;  /**< Action function */
    HSM_State_Id_T targetId; /**< Target state ID or default state for history */
-   HSM_State_Id_T historyId; /**< -1 except for transitions from history states */
-   std::string guardName;  /**< Name of guard function (if enabled) */
-   std::string actionName; /**< Name of action function (if enabled) */
+   HSM_State_Id_T historyId; /**< default state for history */
+   std::string guardName;  /**< Name of guard function */
+   std::string actionName; /**< Name of action function */
 } HSM_Transition_T;
 
 typedef struct HSM_StateChart_T {
-    //HSM_State_Definition_T        stateDfn;
     HSM_State_Id_T                currentStateId;
     HSM_State_Id_T                previousStateId;
     bool                          isProcessingEvt;

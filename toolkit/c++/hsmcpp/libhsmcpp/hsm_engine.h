@@ -18,9 +18,6 @@
 #include "hsm_log.h"
 #include <assert.h>
 
-typedef std::vector<HSM_Transition_T>::iterator HSM_TransChainIterator_T;
-typedef std::vector<HSM_State_T>::const_iterator HSM_StateListIterator_T;
-
 #if 0
 #    define mprint(...) printf(__VA_ARGS__)
 #else
@@ -64,7 +61,7 @@ public:
     bool start(const HSM_State_Definition_T &stateDfn, void * userObj) {
         logi("start statechart %s begin", stateDfn.statechartName.c_str());
         init();
-        checkStateDfn(stateDfn);
+        checkStateList(stateDfn.stateList);
         //mStateDfn = stateDfn;
         mStateDfn.statechartName = stateDfn.statechartName;
         HSM_StateListIterator_T slit = stateDfn.stateList.begin();
@@ -126,10 +123,12 @@ private:
         mpStatechart->currentStateId = 0;//init
     }
 
-    void checkStateDfn(const HSM_State_Definition_T &stateDfn) {
-        HSM_Check checker = HSM_Check(stateDfn);
+    void checkStateList(const HSM_StateList_T &stateList) {
+        HSM_Check checker = HSM_Check(stateList);
         bool res = checker.check();
         logi("%s result:%s", __func__, res?"ok":"failure");
+        mprint("check info: %s", checker.getInfo().c_str());
+        logi("check info: %s", checker.getInfo().c_str());
         assert(res == true);
     }
 
@@ -384,7 +383,7 @@ private:
         /* clear transchain first */
         clearTransChain();
 
-        while ((NULL == ptrans) && (stateId != HSM_TOP) && (maxdepth++ <= 30)) {
+        while ((NULL == ptrans) && (stateId != HSM_TOP) && (maxdepth++ < HSM_MAX_NESTING_LEVELS)) {
             //match valid transition
             logi("%s match transition for state:%s, event:%d-%s begin",
                     __func__, getStateNameById(stateId).c_str(), event, getEventName(event).c_str());
@@ -401,7 +400,7 @@ private:
                 break;
             }
         }
-        if (maxdepth >= 30) {
+        if (maxdepth >= HSM_MAX_NESTING_LEVELS) {
             logi("%s match valid transition error, too deep maxdepth:%d", __func__, maxdepth);
             assert(0);
         }
@@ -420,6 +419,9 @@ private:
 
     bool isStateAncestor(HSM_State_Id_T ref, HSM_State_Id_T toConfirm) {
         bool isAncestor = false;
+        if (HSM_TOP == ref) {
+            return false;
+        }
         if (HSM_TOP == toConfirm) {
             return true;
         }
