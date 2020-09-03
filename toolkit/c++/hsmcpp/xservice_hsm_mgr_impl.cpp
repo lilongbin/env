@@ -134,6 +134,14 @@ void resulted(const HSM_StateChart_T& statechart) {
     pobj->working_data.clear();
 }
 
+bool isNumber1_9(const HSM_StateChart_T& statechart) {
+    char data = *(char *)(statechart.eventdata.data());
+    printf("\r[%d-%s] [%s]: %d(%c)\n",
+            statechart.currentStateId, statechart.currentStateName.c_str(),
+            __func__, data, data);
+    return (data >= '1' && data <= '9');
+}
+
 std::string getEventName(int event) {
     switch (event) {
         EVENT2STRS

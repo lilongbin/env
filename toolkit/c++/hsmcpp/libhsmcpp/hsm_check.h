@@ -617,14 +617,14 @@ private:
                 break;
             }
             if (HSM_ST_KIND_INITIAL == state.type()) {
-                ret = hasValidTargetOfInitial(state, trans);
+                ret = isTargetOfInitialValid(state, trans);
                 if (!ret) {
                     addInfo(std::to_string(__LINE__)+" invalid target of initial, @state:"+state.name());
                     break;
                 }
             } else if ((HSM_ST_KIND_DEEP_HISTORY == state.type())
                     || (HSM_ST_KIND_SHALLOW_HISTORY == state.type())) {
-                ret = hasValidDefaultOfHistory(state, trans);
+                ret = isDefaultOfHistoryValid(state, trans);
                 if (!ret) {
                     addInfo(std::to_string(__LINE__)+" invalid default history, @state:"+state.name());
                     break;
@@ -664,7 +664,7 @@ private:
         return true;
     }
 
-    bool hasValidTargetOfInitial(HSM_State_T &initial, HSM_Transition_T &trans) {
+    bool isTargetOfInitialValid(HSM_State_T &initial, HSM_Transition_T &trans) {
         bool ret = false;
         do {
             //an initial state's target should within its parent, and cannot be parent
@@ -677,7 +677,7 @@ private:
         return ret;
     }
 
-    bool hasValidDefaultOfHistory(HSM_State_T &history, HSM_Transition_T &trans) {
+    bool isDefaultOfHistoryValid(HSM_State_T &history, HSM_Transition_T &trans) {
         bool ret = true;
         do {
             //A history state's default target must be inside its parent state.
@@ -787,21 +787,6 @@ private:
         return ret; 
     }
 
-    HSM_State_T &getStateById(const HSM_State_Id_T stateid) {
-        assert(inStateList(stateid));
-        return mStateList[stateid];
-    }
-
-    bool inStateList(const HSM_State_Id_T stateid) {
-        //mprint("%s stateid:%d\n", __func__, stateid);
-        if ((stateid >= 0) && ((size_t)stateid < mStateList.size())) {
-            if (mStateList[stateid].id() == stateid) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     bool isValidParentId(const HSM_State_Id_T parentId) {
         mprint("%s parentId:%d\n", __func__, parentId);
         if ((inStateList(parentId)) || (HSM_TOP == parentId)) {
@@ -835,26 +820,6 @@ private:
         return false;
     }
 
-    uint32_t getNestingLevel(const HSM_State_T &istate) {
-        uint32_t level = 1;
-        HSM_State_T state = istate;
-        HSM_State_Id_T parentId = state.parentId();
-        while (HSM_TOP != parentId) {
-            level += 1;
-            parentId = state.parentId();
-            if ((parentId > 0)
-                && ((size_t)parentId < mStateList.size())) {
-                state = mStateList[parentId];
-            } else if (HSM_TOP == parentId) {
-                // upto top level
-            } else {
-                mprint("%s invalid parentId of state:%s\n", __func__, state.name().c_str());
-                assert(0);
-            }
-        }
-        return level;
-    }
-
     bool isAncestorState(HSM_State_Id_T ref, HSM_State_Id_T toConfirm) {
         bool isAncestor = false;
         if (HSM_TOP == ref) {
@@ -878,6 +843,41 @@ private:
             ref = parentId;
         }
         return isAncestor;
+    }
+
+    HSM_State_T &getStateById(const HSM_State_Id_T stateid) {
+        assert(inStateList(stateid));
+        return mStateList[stateid];
+    }
+
+    bool inStateList(const HSM_State_Id_T stateid) {
+        //mprint("%s stateid:%d\n", __func__, stateid);
+        if ((stateid >= 0) && ((size_t)stateid < mStateList.size())) {
+            if (mStateList[stateid].id() == stateid) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    uint32_t getNestingLevel(const HSM_State_T &istate) {
+        uint32_t level = 1;
+        HSM_State_T state = istate;
+        HSM_State_Id_T parentId = state.parentId();
+        while (HSM_TOP != parentId) {
+            level += 1;
+            parentId = state.parentId();
+            if ((parentId > 0)
+                && ((size_t)parentId < mStateList.size())) {
+                state = mStateList[parentId];
+            } else if (HSM_TOP == parentId) {
+                // upto top level
+            } else {
+                mprint("%s invalid parentId of state:%s\n", __func__, state.name().c_str());
+                assert(0);
+            }
+        }
+        return level;
     }
 
     void addInfo(const std::string info) {

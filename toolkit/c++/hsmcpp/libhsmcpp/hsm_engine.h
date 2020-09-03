@@ -60,26 +60,10 @@ public:
 
     bool start(const HSM_State_Definition_T &stateDfn, void * userObj) {
         logi("start statechart %s begin", stateDfn.statechartName.c_str());
-        init();
-        checkStateList(stateDfn.stateList);
         //mStateDfn = stateDfn;
-        mStateDfn.statechartName = stateDfn.statechartName;
-        HSM_StateListIterator_T slit = stateDfn.stateList.begin();
-        HSM_State_T state;
-        HSM_State_Id_T id = 0;
-        for (; slit != stateDfn.stateList.end(); slit++, id++) {
-            state = *slit;
-            if (state.id() != id) {
-                logi("%s error, status id(%d:%s) and list index are inconsistent, expected id:%d",
-                        __func__, state.id(), state.name().c_str(), id);
-                assert(0);
-            }
-            mStateDfn.stateList.push_back(state);
-        }
-        logi("%s stateList size:%d", __func__, (int)mStateDfn.stateList.size());
-        assert(0 != mStateDfn.stateList.size());
+        initWorkSpace(stateDfn, userObj);
+        checkStateList(stateDfn.stateList);
 
-        mpStatechart->userObj = userObj;
         //build transition chain
         buildTransitionChain(HSM_NO_EVENT);
         //do tansition
@@ -93,8 +77,9 @@ public:
     bool proccessMessage(HSM_Event_T event, std::vector<uint8_t> &data) {
         mpStatechart->event = event;
         mpStatechart->eventdata = data;
-        logi("#%s begin, @state:%s, event:%d-%s", __func__, currentStateName().c_str(), event, getEventName(event).c_str());
+        logi("#%s @state:%s, event:%d-%s", __func__, currentStateName().c_str(), event, getEventName(event).c_str());
         mprint("\n#%s @state:%s, event:%d-%s\n", __func__, currentStateName().c_str(), event, getEventName(event).c_str());
+
         //build transition chain
         buildTransitionChain(event);
         //do transitions
@@ -115,20 +100,41 @@ public:
     }
 
 private:
-    void init() {
+    void initWorkSpace(const HSM_State_Definition_T &stateDfn, void *userObj) {
         mpStatechart = new HSM_StateChart_T();
         if (mpStatechart == NULL) {
             std::cout << "construct HSM_StateChart_T failed." << std::endl;
         }
-        mpStatechart->currentStateId = 0;//init
+        mpStatechart->currentStateId = 0;//@initial state
+
+        mpStatechart->userObj = userObj;
+
+        //init state definition object
+        mStateDfn.statechartName = stateDfn.statechartName;
+        HSM_StateListIterator_T slit;
+        HSM_State_T state;
+        HSM_State_Id_T id = 0;
+        for (slit = stateDfn.stateList.begin();
+                slit != stateDfn.stateList.end();
+                slit++, id++) {
+            state = *slit;
+            if (state.id() != id) {
+                logi("%s error, status id(%d:%s) and list index are inconsistent, expected id:%d",
+                        __func__, state.id(), state.name().c_str(), id);
+                assert(0);
+            }
+            mStateDfn.stateList.push_back(state);
+        }
+        logi("%s stateList size:%d", __func__, (int)mStateDfn.stateList.size());
+        assert(0 != mStateDfn.stateList.size());
     }
 
     void checkStateList(const HSM_StateList_T &stateList) {
         HSM_Check checker = HSM_Check(stateList);
         bool res = checker.check();
-        logi("%s result:%s", __func__, res?"ok":"failure");
         mprint("check info: %s", checker.getInfo().c_str());
         logi("check info: %s", checker.getInfo().c_str());
+        logi("%s result:%s", __func__, res?"ok":"failure");
         assert(res == true);
     }
 
@@ -172,6 +178,10 @@ private:
         return name;
     }
 
+    std::string currentStateName() {
+        return getStateById(currentStateId()).name().c_str();
+    }
+
     HSM_State_Id_T currentStateId() {
         return mpStatechart->currentStateId;
     }
@@ -196,8 +206,74 @@ private:
         return ret;
     }
 
-    std::string currentStateName() {
-        return getStateById(currentStateId()).name().c_str();
+    bool isStateAncestor(HSM_State_Id_T ref, HSM_State_Id_T toConfirm) {
+        bool isAncestor = false;
+        if (HSM_TOP == ref) {
+            return false;
+        }
+        if (HSM_TOP == toConfirm) {
+            return true;
+        }
+        HSM_State_T source;
+        HSM_State_Id_T parentId;
+        while (true) {
+            source = getStateById(ref);
+            parentId = source.parentId();
+            if (toConfirm == parentId) {
+                isAncestor = true;
+                break;
+            }
+            if (HSM_TOP == parentId) {
+                break;
+            }
+            ref = parentId;
+        }
+        //logd("?%s is ancestor of %s? %s", getStateNameById(toConfirm).c_str(), getStateNameById(ref).c_str(), isAncestor?"yes":"no");
+        return isAncestor;
+    }
+
+    HSM_State_Id_T getLeastCommonAncestor(HSM_State_Id_T sourceId, HSM_State_Id_T targetId) {
+        HSM_State_Id_T lca = sourceId;
+        HSM_State_T source;
+        HSM_State_T target;
+
+        if (sourceId == targetId) {
+            source = getStateById(sourceId);
+            lca = source.parentId();
+            return lca;
+        }
+
+        //int maxdepth = HSM_MAX_NESTING_LEVELS;
+        while (true/*maxdepth-- > 0*/) {
+            source = getStateById(sourceId);
+            target = getStateById(targetId);
+            if (isStateAncestor(sourceId, targetId)) {
+                lca = targetId;
+                break;
+            } else if (isStateAncestor(targetId, sourceId)) {
+                lca = sourceId;
+                break;
+            } else if (source.parentId() == getStateById(targetId).parentId()) {
+                //has common parent
+                lca = source.parentId();
+                break;
+            } else {
+                //move up a level
+                if (source.parentId() != HSM_TOP) {
+                    sourceId = source.parentId();
+                }
+                if (target.parentId() != HSM_TOP) {
+                    targetId = target.parentId();
+                }
+            }
+        }
+        if ((lca == HSM_TOP) || (lca > 0)) {
+            //ok
+        } else {
+            logi("%s failed.", __func__);
+            assert(0);
+        }
+        return lca;
     }
 
     size_t transChainSize() {
@@ -214,13 +290,6 @@ private:
 
     HSM_State_Id_T getTransTargetId(const HSM_Transition_T &trans) {
         HSM_State_Id_T targetId = trans.targetId;
-#if 0
-        //for history state, has saved current to target, and when need reset will restore from historyId
-        if (HSM_NO_HISTORY_STATE != trans.historyI) {
-            //if saved history when exit before, goto history first;
-            targetId = trans.historyId;
-        }
-#endif
         if (HSM_NO_STATE == trans.targetId) {
             logi("%s no target to transfer, targetid:%d", __func__, trans.targetId);
             assert(0);
@@ -278,25 +347,25 @@ private:
                 final_trans = ptrans; /* keep track that we had a final state */
                 //go to parent's out path for a final state
                 HSM_State_T parent = getStateById(targetparentId);
-                std::vector<HSM_Transition_T> transTable = parent.transitionTable();
-                HSM_TransChainIterator_T it_trans = transTable.begin();
                 logi("%s searching complete-event trans for final state:%s", __func__, target.name().c_str());
                 //get final's parent's complete event trans
-                for (; it_trans != transTable.end(); it_trans++) {
+                std::vector<HSM_Transition_T> transTable = parent.transitionTable();
+                HSM_TransChainIterator_T it_trans;
+                for (it_trans = transTable.begin(); it_trans != transTable.end(); it_trans++) {
                     trans = *it_trans;
                     if (HSM_COMPLETION_EVENT == trans.event) {
                         ptrans = &trans;
-                        break;
+                        break; //break for loop, and add to transition chain;
                     } else {
                         ptrans = NULL;
                     }
-                }
+                } //end for loop
             } else {
                 logi("%s to complete trans for external state:%s", __func__, target.name().c_str());
                 completeTransitionChain(targetId, &ptrans);
                 done = true;
             }
-        } //end for while loop
+        } //end while loop
 
         if (ptrans == NULL) {
             clearTransChain();
@@ -320,11 +389,12 @@ private:
         HSM_Transition_T trans {};
 
         std::vector<HSM_Transition_T> transTable = state.transitionTable();
-        for (HSM_TransChainIterator_T it_trans = transTable.begin(); it_trans != transTable.end(); it_trans++) {
+        HSM_TransChainIterator_T it_trans = transTable.begin();
+        for (it_trans = transTable.begin(); it_trans != transTable.end(); it_trans++) {
             trans = *it_trans;
             if ((HSM_NO_EVENT == event) || (event == trans.event)) {
                 HSM_Guard_T guard = trans.guard;
-                if (!guard/* guard is nullptr: no guard */) {
+                if (!guard/* no guard */) {
                     /* Remember this transition but keep looking */
                     else_candidate = trans;
                     else_candidate_valid = true;
@@ -349,7 +419,8 @@ private:
                 } else {
                     /* log guard return false */
                     logi("?event:%d-%s, guard:false %s(), @state:%s",
-                            event, getEventName(event).c_str(), trans.guardName.c_str(), getStateNameById(stateid).c_str());
+                            event, getEventName(event).c_str(),
+                            trans.guardName.c_str(), getStateNameById(stateid).c_str());
                 }
             }
         }
@@ -383,20 +454,25 @@ private:
         /* clear transchain first */
         clearTransChain();
 
-        while ((NULL == ptrans) && (stateId != HSM_TOP) && (maxdepth++ < HSM_MAX_NESTING_LEVELS)) {
+        while ((NULL == ptrans)
+                && (HSM_TOP != stateId)
+                && (maxdepth++ < HSM_MAX_NESTING_LEVELS)) {
             //match valid transition
             logi("%s match transition for state:%s, event:%d-%s begin",
-                    __func__, getStateNameById(stateId).c_str(), event, getEventName(event).c_str());
+                    __func__, getStateNameById(stateId).c_str(),
+                    event, getEventName(event).c_str());
             ptrans = matchValidTransition(stateId, event);
             if (NULL == ptrans) {
                 mpStatechart->transChain.clear();
                 state = getStateById(stateId);
                 stateId = state.parentId();
                 logd("%s match transition for state:%s, event:%d-%s failed",
-                        __func__, getStateNameById(stateId).c_str(), event, getEventName(event).c_str());
+                        __func__, getStateNameById(stateId).c_str(),
+                        event, getEventName(event).c_str());
             } else {
                 logd("%s match transition for state:%s, event:%d-%s ok",
-                        __func__, getStateNameById(stateId).c_str(), event, getEventName(event).c_str());
+                        __func__, getStateNameById(stateId).c_str(),
+                        event, getEventName(event).c_str());
                 break;
             }
         }
@@ -407,143 +483,7 @@ private:
         return (ptrans != NULL);
     }
 
-    bool excuteTransAction(const HSM_State_Id_T stateid, const HSM_Transition_T &trans) {
-        (void)stateid;
-        if (trans.action) {
-            logi("#action:%s @state:%d-%s, event:%d-%s",
-                   trans.actionName.c_str(), stateid, getStateNameById(stateid).c_str(), trans.event, getEventName(trans.event).c_str());
-            trans.action(*mpStatechart);
-        }
-        return true;
-    }
-
-    bool isStateAncestor(HSM_State_Id_T ref, HSM_State_Id_T toConfirm) {
-        bool isAncestor = false;
-        if (HSM_TOP == ref) {
-            return false;
-        }
-        if (HSM_TOP == toConfirm) {
-            return true;
-        }
-        HSM_State_T source;
-        HSM_State_Id_T parentId;
-        while (true) {
-            source = getStateById(ref);
-            parentId = source.parentId();
-            if (toConfirm == parentId) {
-                isAncestor = true;
-                break;
-            }
-            if (HSM_TOP == parentId) {
-                break;
-            }
-            ref = parentId;
-        }
-        //logd("%s %s is ancestor of %s? %s", __func__, getStateNameById(toConfirm).c_str(), getStateNameById(ref).c_str(), isAncestor?"yes":"no");
-        return isAncestor;
-    }
-
-    HSM_State_Id_T getLeastCommonAncestor(HSM_State_Id_T sourceId, HSM_State_Id_T targetId) {
-        HSM_State_Id_T lca = sourceId;
-        HSM_State_T source;
-        HSM_State_T target;
-
-        if (sourceId == targetId) {
-            source = getStateById(sourceId);
-            lca = source.parentId();
-            return lca;
-        }
-
-        while (true) {
-            source = getStateById(sourceId);
-            target = getStateById(targetId);
-            if (isStateAncestor(sourceId, targetId)) {
-                lca = targetId;
-                break;
-            } else if (isStateAncestor(targetId, sourceId)) {
-                lca = sourceId;
-                break;
-            } else if (source.parentId() == getStateById(targetId).parentId()) {
-                //has common parent
-                lca = source.parentId();
-                break;
-            } else {
-                //move up a level
-                if (source.parentId() != HSM_TOP) {
-                    sourceId = source.parentId();
-                }
-                if (target.parentId() != HSM_TOP) {
-                    targetId = target.parentId();
-                }
-            }
-        }
-        if ((lca == HSM_TOP) || (lca > 0)) {
-            //ok
-        } else {
-            logi("%s failed.", __func__);
-            assert(0);
-        }
-        return lca;
-    }
-
-    void excuteEntryActions(HSM_State_Id_T targetId, HSM_State_Id_T lca) {
-        (void)targetId;
-        (void)lca;
-        //logi("%s begin", __func__);
-        HSM_State_T target;
-        HSM_State_Id_T parentId;
-        HSM_State_T parent;
-        HSM_State_Id_T parentHistId;
-        HSM_State_T parentHist;
-        HSM_State_Kind_T target_type;
-        HSM_State_Kind_T hist_type;
-        //rebuilt list from target to its parent endwith lca;
-        std::vector<HSM_State_Id_T> entry_states;
-        while ((lca != targetId) && (HSM_TOP != targetId)) {
-            entry_states.push_back(targetId);
-            targetId = getStateById(targetId).parentId();
-        }
-        //enter into target from lca
-        for (std::vector<HSM_State_Id_T>::reverse_iterator rit = entry_states.rbegin(); rit != entry_states.rend(); rit++) {
-            targetId = *rit;
-            logi("%s entry state:%s", __func__, getStateNameById(targetId).c_str());
-            target = getStateById(targetId);
-            target_type = target.type();
-            parentId = target.parentId();
-            if (target.entryAction()) {
-                logi("#entry:%s, @state:%s", target.entryName().c_str(), target.name().c_str());
-                target.entryAction()(*mpStatechart);
-            }
-            //save shallow history
-            parent = getStateById(parentId);
-            parentHistId = parent.historyId();
-            if ((parentId != HSM_TOP) && (parentHistId != parentId)) {
-                if (parentHistId != HSM_NO_HISTORY_STATE) {
-                    parentHist = getStateById(parentHistId);
-                    hist_type = parentHist.type();
-                    if (target_type == HSM_ST_KIND_FINAL) {
-                        //reset history state to its default state
-                        //history has only 1 transiton
-                        //mStateDfn.stateList[parentHistId].mTransitionTable[0].historyId = parentHist.mTransitionTable[0].targetId;
-                        mStateDfn.stateList[parentHistId].saveHistoryState(parentHist.getHistoryDefaultTargetId());
-                        logi("%s reset target of shallow history state:%s to default target:%s",
-                                __func__, parentHist.name().c_str(),
-                                getStateNameById(parentHist.getHistoryDefaultTargetId()).c_str());
-                    } else if (HSM_ST_KIND_SHALLOW_HISTORY == hist_type) {
-                        //update shallow history state to target state
-                        //mStateDfn.stateList[parentHistId].mTransitionTable[0].historyId = targetId;
-                        mStateDfn.stateList[parentHistId].saveHistoryState(targetId);
-                        logi("%s save target of shallow history state:%s to target:%s",
-                                __func__, parentHist.name().c_str(), getStateNameById(targetId).c_str());
-                    }
-                }
-            }
-        }
-    }
-
     void excuteExitActions(HSM_State_Id_T sourceId, HSM_State_Id_T lca) {
-        (void)sourceId;
-        (void)lca;
         //logi("%s begin", __func__);
         HSM_State_T source = getStateById(sourceId);
         HSM_State_Id_T parentId = source.parentId();
@@ -565,8 +505,8 @@ private:
                     hist_type = parentHist.type();
                     if (sourceType == HSM_ST_KIND_FINAL) {
                         //reset history state to its default state
-                        //history has only 1 transiton
-                        //mStateDfn.stateList[parentHistId].mTransitionTable[0].historyId = parentHist.mTransitionTable[0].targetId;
+                        //history has only 1 transiton (to its default state or saved state)
+                        //reset to parentHist.mTransitionTable[0].targetId;
                         mStateDfn.stateList[parentHistId].saveHistoryState(parentHist.getHistoryDefaultTargetId());
                         logi("%s reset target of history state:%s to default target:%s",
                                 __func__, parentHist.name().c_str(),
@@ -574,7 +514,6 @@ private:
                     } else if ((HSM_ST_KIND_DEEP_HISTORY == hist_type)
                                 && ((HSM_ST_KIND_COMPOSITE == sourceType) || (HSM_ST_KIND_SIMPLE == sourceType))) {
                         //update history state to current state
-                        //mStateDfn.stateList[parentHistId].mTransitionTable[0].historyId = currentStateId();
                         mStateDfn.stateList[parentHistId].saveHistoryState(currentStateId());
                         logi("%s save target of deep history state:%s to current state:%s",
                                 __func__, parentHist.name().c_str(), currentStateName().c_str());
@@ -589,31 +528,102 @@ private:
         }
     }
 
+    bool excuteTransAction(const HSM_State_Id_T stateid, const HSM_Transition_T &trans) {
+        (void)stateid;
+        if (trans.action) {
+            logi("#action:%s @state:%d-%s, event:%d-%s",
+                   trans.actionName.c_str(), stateid,
+                   getStateNameById(stateid).c_str(),
+                   trans.event, getEventName(trans.event).c_str());
+            trans.action(*mpStatechart);
+        }
+        return true;
+    }
+
+    void excuteEntryActions(HSM_State_Id_T targetId, HSM_State_Id_T lca) {
+        //logi("%s begin", __func__);
+        HSM_State_T target;
+        HSM_State_Id_T parentId;
+        HSM_State_T parent;
+        HSM_State_Id_T parentHistId;
+        HSM_State_T parentHist;
+        HSM_State_Kind_T target_type;
+        HSM_State_Kind_T hist_type;
+        //rebuilt list from target to its parent endwith lca;
+        std::vector<HSM_State_Id_T> entry_states;
+        while ((lca != targetId) && (HSM_TOP != targetId)) {
+            entry_states.push_back(targetId);
+            targetId = getStateById(targetId).parentId();
+        }
+        //enter into target from lca
+        std::vector<HSM_State_Id_T>::reverse_iterator rit;
+        for (rit = entry_states.rbegin(); rit != entry_states.rend(); rit++) {
+            targetId = *rit;
+            logi("%s entry state:%s", __func__, getStateNameById(targetId).c_str());
+            target = getStateById(targetId);
+            target_type = target.type();
+            parentId = target.parentId();
+            if (target.entryAction()) {
+                logi("#entry:%s, @state:%s", target.entryName().c_str(), target.name().c_str());
+                target.entryAction()(*mpStatechart);
+            }
+            //save shallow history
+            parent = getStateById(parentId);
+            parentHistId = parent.historyId();
+            if ((parentId != HSM_TOP) && (parentHistId != parentId)) {
+                if (parentHistId != HSM_NO_HISTORY_STATE) {
+                    parentHist = getStateById(parentHistId);
+                    hist_type = parentHist.type();
+                    if (target_type == HSM_ST_KIND_FINAL) {
+                        //reset history state to its default state
+                        //history has only 1 transiton (to its default state or saved state)
+                        //reset to parentHist.mTransitionTable[0].targetId;
+                        mStateDfn.stateList[parentHistId].saveHistoryState(parentHist.getHistoryDefaultTargetId());
+                        logi("%s reset target of shallow history state:%s to default target:%s",
+                                __func__, parentHist.name().c_str(),
+                                getStateNameById(parentHist.getHistoryDefaultTargetId()).c_str());
+                    } else if (HSM_ST_KIND_SHALLOW_HISTORY == hist_type) {
+                        //update shallow history state to target state
+                        mStateDfn.stateList[parentHistId].saveHistoryState(targetId);
+                        logi("%s save target of shallow history state:%s to target:%s",
+                                __func__, parentHist.name().c_str(), getStateNameById(targetId).c_str());
+                    }
+                }
+            }
+        }
+    }
+
     void doTransitions() {
         HSM_Transition_T trans;
         HSM_State_Id_T targetId;
         HSM_State_Id_T sourceId = currentStateId();
         HSM_State_T target;
         HSM_State_Id_T lca = HSM_TOP;
-        logd("%s begin current state:%s, trans count:%d", __func__, getStateNameById(sourceId).c_str(), (int)transChainSize());
+
+        logd("%s begin current state:%s, trans count:%d",
+                __func__, getStateNameById(sourceId).c_str(), (int)transChainSize());
+
         std::vector<HSM_Transition_T> transChain = mpStatechart->transChain;
         showTransChainInfo(sourceId, transChain);
-        for (HSM_TransChainIterator_T it_trans = transChain.begin(); it_trans != transChain.end(); it_trans++) {
+        HSM_TransChainIterator_T it_trans;
+        for (it_trans = transChain.begin(); it_trans != transChain.end(); it_trans++) {
             trans = *it_trans;
             targetId = trans.targetId;
             target = getStateById(targetId);
             if ((HSM_SAME_STATE/*sourceId*/ == targetId) || (sourceId == targetId)) {
                 /* same state: internel transition */
-                mprint("\n--##%s Internel transition: source state:%s\n", __func__, getStateNameById(sourceId).c_str());
-                logi("--##%s Internel transition: source state:%s", __func__, getStateNameById(sourceId).c_str());
+                mprint("\n--##%s (Internel): @state:%s\n", __func__, getStateNameById(sourceId).c_str());
+                logi("--##%s (Internel): @state:%s", __func__, getStateNameById(sourceId).c_str());
                 excuteTransAction(sourceId, trans);
             } else {
                 /* Execute the exit actions, transition action and entry actions */
                 lca = getLeastCommonAncestor(sourceId, targetId);
-                mprint("\n++##%s External transition: current state:%s --> target state:%s, lca:%s\n",
-                        __func__, getStateNameById(sourceId).c_str(), target.name().c_str(), getStateNameById(lca).c_str());
-                logi("++##%s External transition: current state:%s --> target state:%s, lca:%s",
-                        __func__, getStateNameById(sourceId).c_str(), target.name().c_str(), getStateNameById(lca).c_str());
+                mprint("\n++##%s (External): @state:%s --> @target:%s, LCA:%s\n",
+                        __func__, getStateNameById(sourceId).c_str(),
+                        target.name().c_str(), getStateNameById(lca).c_str());
+                logi("++##%s (External): @state:%s --> @target:%s, LCA:%s",
+                        __func__, getStateNameById(sourceId).c_str(),
+                        target.name().c_str(), getStateNameById(lca).c_str());
                 excuteExitActions(sourceId, lca);
                 excuteTransAction(sourceId, trans);
                 excuteEntryActions(targetId, lca);
@@ -629,20 +639,24 @@ private:
         HSM_State_Id_T targetId;
         HSM_State_T target;
         std::string stateName = getStateNameById(stateid);
-        mprint("################################################trans begin @state:%s\n", stateName.c_str());
+        std::string splitLine(70, '#');
+        mprint("%s@state:%s\n", splitLine.c_str(), stateName.c_str());
         mprint("%22s  %15s    %15s    %10s\n", "event", "guard", "action", "target");
-        logd("################################################trans begin @state:%s", stateName.c_str());
+        logd("%s@state:%s", splitLine.c_str(), stateName.c_str());
         logd("%22s  %15s    %15s    %10s", "event", "guard", "action", "target");
-        for (HSM_TransChainIterator_T it_trans = transChain.begin(); it_trans != transChain.end(); it_trans++) {
+        HSM_TransChainIterator_T it_trans;
+        for (it_trans = transChain.begin(); it_trans != transChain.end(); it_trans++) {
             trans = *it_trans;
             targetId = trans.targetId;
             target = getStateById(targetId);
             /* event, guard, action, target */
-            mprint("%22s, %15s(), %15s(), %10s\n", getEventName(trans.event).c_str(), trans.guardName.c_str(), trans.actionName.c_str(), target.name().c_str());
-            logd("%22s, %15s(), %15s(), %10s", getEventName(trans.event).c_str(), trans.guardName.c_str(), trans.actionName.c_str(), target.name().c_str());
+            mprint("%22s, %15s(), %15s(), %10s\n", getEventName(trans.event).c_str(),
+                    trans.guardName.c_str(), trans.actionName.c_str(), target.name().c_str());
+            logd("%22s, %15s(), %15s(), %10s", getEventName(trans.event).c_str(),
+                    trans.guardName.c_str(), trans.actionName.c_str(), target.name().c_str());
         }
-        mprint("################################################trans end @state:%s\n", stateName.c_str());
-        logd("################################################trans end @state:%s", stateName.c_str());
+        mprint("%s@target:%s\n", splitLine.c_str(), target.name().c_str());
+        logd("%s@target:%s", splitLine.c_str(), target.name().c_str());
     }
 
     void logi(const char* fmt, ...) {

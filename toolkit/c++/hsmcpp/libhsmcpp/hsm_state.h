@@ -55,6 +55,7 @@ public:
         mEntryName = "";
         mExitName = "";
     }
+
     HSM_State_T(HSM_State_Kind_T type, HSM_State_Id_T id, std::string name,
             HSM_State_Id_T parent, HSM_State_Id_T initial, HSM_State_Id_T history,
             HSM_Action_T entry, HSM_Action_T exit,
@@ -91,6 +92,7 @@ public:
         this->mExitName = state.mExitName;
         this->mTransitionTable = state.mTransitionTable;
     }
+
     HSM_State_T (const HSM_State_T &state) {
         this->mStateType = state.mStateType;
         this->mStateId = state.mStateId;
@@ -104,6 +106,7 @@ public:
         this->mExitName = state.mExitName;
         this->mTransitionTable = state.mTransitionTable;
     }
+
     HSM_State_T& operator= (const HSM_State_T &state) {
         this->mStateType = state.mStateType;
         this->mStateId = state.mStateId;
@@ -127,15 +130,15 @@ public:
         return mStateId;
     }
 
-    std::string & name() {
+    const std::string & name() {
         return mStateName;
     }
 
-    HSM_Action_T entryAction() {
+    const HSM_Action_T entryAction() {
         return mEntryAction;
     }
 
-    HSM_Action_T exitAction() {
+    const HSM_Action_T exitAction() {
         return mExitAction;
     }
 
@@ -151,20 +154,16 @@ public:
         return mHistoryStateId;
     }
 
-    std::string entryName() {
+    const std::string entryName() {
         return mEntryName;
     }
 
-    std::string exitName() {
+    const std::string exitName() {
         return mExitName;
     }
 
-    std::vector<HSM_Transition_T> &transitionTable() {
+    const std::vector<HSM_Transition_T> &transitionTable() {
         return mTransitionTable;
-    }
-
-    void setTransTable(std::vector<HSM_Transition_T> &transTable) {
-        mTransitionTable = transTable;
     }
 
     bool addInternalTrans(const HSM_Transition_T &trans) {
@@ -216,9 +215,6 @@ public:
         return addTransition(transition);
     }
 
-    //virtual bool             addFinalState() {}
-    //virtual bool             addJunctionState() {}
-
     HSM_State_Id_T getHistoryDefaultTargetId() {
         HSM_State_Id_T targetId;
         if ((HSM_ST_KIND_DEEP_HISTORY == mStateType)
@@ -257,6 +253,9 @@ private:
         return true;
     }
 
+    void setTransTable(std::vector<HSM_Transition_T> &transTable) {
+        mTransitionTable = transTable;
+    }
 };
 
 #endif //__HSM_STATE_H__
