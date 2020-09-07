@@ -1,5 +1,5 @@
 /*
- * server
+ * tcp server
  * */
 #include <stdio.h>
 #include <iostream>
