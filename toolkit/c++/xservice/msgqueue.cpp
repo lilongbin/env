@@ -21,7 +21,7 @@
 MsgQueueBase::MsgQueueBase()
 {
     //m_Queue = std::make_unique<ConcurrentQueue<QueueMsgType>>(MESSAGE_QUEUE_TIMEOUT_VALUE);
-    m_Queue = std::make_shared<ConcurrentQueue<QueueMsgType>>(MESSAGE_QUEUE_TIMEOUT_VALUE);
+    m_Queue = std::unique_ptr<ConcurrentQueue<QueueMsgType>>(new ConcurrentQueue<QueueMsgType>(MESSAGE_QUEUE_TIMEOUT_VALUE));
 }
 
 MsgQueueBase::~MsgQueueBase()

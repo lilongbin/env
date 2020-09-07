@@ -30,8 +30,7 @@ private:
     std::string m_tagName;
     //using QueueMsgType = std::vector<uint8_t>;
     using QueueMsgType = MsgQueueType;
-    //std::unique_ptr<ConcurrentQueue<QueueMsgType>> m_Queue;
-    std::shared_ptr<ConcurrentQueue<QueueMsgType>> m_Queue;
+    std::unique_ptr<ConcurrentQueue<QueueMsgType>> m_Queue;
 
 protected:
     void setTagName(std::string &tagName);
