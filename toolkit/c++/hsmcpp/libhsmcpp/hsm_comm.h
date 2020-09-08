@@ -49,6 +49,7 @@ typedef enum {
    HSM_ST_KIND_SIMPLE           /**< simple state (no children) */
 } HSM_State_Kind_T; //State Kind
 
+struct HSM_Transition_T;
 struct HSM_StateChart_T;
 typedef int32_t HSM_Event_T;
 typedef int32_t HSM_State_Id_T;
@@ -59,7 +60,10 @@ typedef std::function<std::string (const HSM_Event_T &)> HSM_EventNameFunc_T;
 typedef std::function<void (const HSM_StateChart_T &)> HSM_DbgFunc_T;
 typedef std::function<void (const std::string &logs)> HSM_LogFunc_T;
 
-typedef struct {
+typedef std::vector<HSM_Transition_T> HSM_TransitionList_T;
+typedef std::vector<HSM_Transition_T>::const_iterator HSM_TransChainIterator_T;
+
+typedef struct HSM_Transition_T {
    HSM_Event_T event;    /**< Event to respond to */
    HSM_Guard_T guard;    /**< Guard function */
    HSM_Action_T action;  /**< Action function */
@@ -71,10 +75,10 @@ typedef struct {
 
 typedef struct HSM_StateChart_T {
     HSM_State_Id_T                currentStateId;
+    std::string                   currentStateName;
     HSM_State_Id_T                previousStateId;
     bool                          isProcessingEvt;
-    std::vector<HSM_Transition_T> transChain;
-    std::string                   currentStateName;
+    HSM_TransitionList_T          transChain;
     void *                        userObj;
     HSM_Event_T                   event;
     std::vector<uint8_t>          eventdata;

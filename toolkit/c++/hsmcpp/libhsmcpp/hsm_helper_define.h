@@ -104,49 +104,48 @@ STATECHART_DEFN9()
 HSM_State_Definition_T get_##statechart_name##_Defn() {\
     HSM_State_Definition_T statechart_name##_Defn;\
     std::string statechartName = #statechart_name;\
-    std::vector<HSM_State_T> stateList;\
-    HSM_State_T state_tmp;\
-    std::vector<HSM_Transition_T> state_Trans_tmp;
+    HSM_StateList_T stateList;\
+    HSM_State_T stateObj;
 
 #define HSM_INITIAL_STATE(state_name, parent, action, next_state)\
-    state_tmp = HSM_State_T{HSM_ST_KIND_INITIAL, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};\
-    state_tmp.addExternalTrans({HSM_NO_EVENT, HSM_NO_GUARD, action, next_state, HSM_NO_HISTORY_STATE, "no guard", #action});\
-    stateList.push_back(state_tmp);
+    stateObj = HSM_State_T{HSM_ST_KIND_INITIAL, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};\
+    stateObj.addExternalTrans({HSM_NO_EVENT, HSM_NO_GUARD, action, next_state, HSM_NO_HISTORY_STATE, "no guard", #action});\
+    stateList.push_back(stateObj);
 
 #define HSM_COMPOSITE_STATE(state_name, parent, initial, history, entry, exit)\
-    state_tmp = HSM_State_T{HSM_ST_KIND_COMPOSITE, state_name, #state_name, parent, initial, history, entry, exit, #entry, #exit};
+    stateObj = HSM_State_T{HSM_ST_KIND_COMPOSITE, state_name, #state_name, parent, initial, history, entry, exit, #entry, #exit};
 
 #define HSM_JUNCTION_STATE(state_name, parent)\
-    state_tmp = HSM_State_T{HSM_ST_KIND_JUNCTION, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};
+    stateObj = HSM_State_T{HSM_ST_KIND_JUNCTION, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};
 
 #define HSM_DEEP_HISTORY_STATE(state_name, parent, default_state)\
-    state_tmp = HSM_State_T{HSM_ST_KIND_DEEP_HISTORY, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};\
-    state_tmp.addExternalTrans({HSM_NO_EVENT, HSM_NO_GUARD, HSM_NO_ACTION, default_state, default_state, "no guard", "no action"});\
-    stateList.push_back(state_tmp);
+    stateObj = HSM_State_T{HSM_ST_KIND_DEEP_HISTORY, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};\
+    stateObj.addExternalTrans({HSM_NO_EVENT, HSM_NO_GUARD, HSM_NO_ACTION, default_state, default_state, "no guard", "no action"});\
+    stateList.push_back(stateObj);
 
 #define HSM_SHALLOW_HISTORY_STATE(state_name, parent, default_state)\
-    state_tmp = HSM_State_T{HSM_ST_KIND_SHALLOW_HISTORY, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};\
-    state_tmp.addExternalTrans({HSM_NO_EVENT, HSM_NO_GUARD, HSM_NO_ACTION, default_state, default_state, "no guard", "no action"});\
-    stateList.push_back(state_tmp);
+    stateObj = HSM_State_T{HSM_ST_KIND_SHALLOW_HISTORY, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};\
+    stateObj.addExternalTrans({HSM_NO_EVENT, HSM_NO_GUARD, HSM_NO_ACTION, default_state, default_state, "no guard", "no action"});\
+    stateList.push_back(stateObj);
 
 #define HSM_SIMPLE_STATE(state_name, parent, entry, exit)\
-    state_tmp = HSM_State_T{HSM_ST_KIND_SIMPLE, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, entry, exit, #entry, #exit};
+    stateObj = HSM_State_T{HSM_ST_KIND_SIMPLE, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, entry, exit, #entry, #exit};
 
 #define HSM_FINAL_STATE(state_name, parent)\
-    state_tmp = HSM_State_T{HSM_ST_KIND_FINAL, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};\
-    stateList.push_back(state_tmp);
+    stateObj = HSM_State_T{HSM_ST_KIND_FINAL, state_name, #state_name, parent, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "no entry", "no exit"};\
+    stateList.push_back(stateObj);
 
 #define HSM_END_STATE(state_name)\
-    stateList.push_back(state_tmp);
+    stateList.push_back(stateObj);
 
 #define HSM_COMPLETION_TRANSITION(action, next_state)\
-    state_tmp.addCompleteTrans({HSM_COMPLETION_EVENT, HSM_NO_GUARD, action, next_state, HSM_NO_HISTORY_STATE, "no guard", #action});
+    stateObj.addCompleteTrans({HSM_COMPLETION_EVENT, HSM_NO_GUARD, action, next_state, HSM_NO_HISTORY_STATE, "no guard", #action});
 
 #define HSM_TRANSITION(event, guard, action, next_state)\
-    state_tmp.addExternalTrans({event, guard, action, next_state, HSM_NO_HISTORY_STATE, #guard, #action});
+    stateObj.addExternalTrans({event, guard, action, next_state, HSM_NO_HISTORY_STATE, #guard, #action});
 
 #define HSM_INTERNAL_TRANSITION(event, guard, action)\
-    state_tmp.addInternalTrans({event, guard, action, HSM_SAME_STATE, HSM_NO_HISTORY_STATE, #guard, #action});
+    stateObj.addInternalTrans({event, guard, action, HSM_SAME_STATE, HSM_NO_HISTORY_STATE, #guard, #action});
 
 #define HSM_END(statechart_name)\
     statechart_name##_Defn.statechartName = statechartName;\

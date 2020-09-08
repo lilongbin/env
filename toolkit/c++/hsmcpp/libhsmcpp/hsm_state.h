@@ -19,7 +19,6 @@
 class HSM_State_T;
 typedef std::vector<HSM_State_T> HSM_StateList_T;
 typedef std::vector<HSM_State_T>::const_iterator HSM_StateListIterator_T;
-typedef std::vector<HSM_Transition_T>::iterator HSM_TransChainIterator_T;
 
 typedef struct {
     HSM_StateList_T stateList;
@@ -40,7 +39,7 @@ private:
     HSM_Action_T     mExitAction;
     std::string      mEntryName;
     std::string      mExitName;
-    std::vector<HSM_Transition_T> mTransitionTable;
+    HSM_TransitionList_T mTransitionTable;
 
 public:
     HSM_State_T() {
@@ -154,15 +153,15 @@ public:
         return mHistoryStateId;
     }
 
-    const std::string entryName() {
+    const std::string & entryName() {
         return mEntryName;
     }
 
-    const std::string exitName() {
+    const std::string & exitName() {
         return mExitName;
     }
 
-    const std::vector<HSM_Transition_T> &transitionTable() {
+    const HSM_TransitionList_T &transitionTable() {
         return mTransitionTable;
     }
 
@@ -253,7 +252,7 @@ private:
         return true;
     }
 
-    void setTransTable(std::vector<HSM_Transition_T> &transTable) {
+    void setTransTable(HSM_TransitionList_T &transTable) {
         mTransitionTable = transTable;
     }
 };

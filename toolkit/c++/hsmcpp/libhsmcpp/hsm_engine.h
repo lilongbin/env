@@ -243,8 +243,8 @@ private:
             return lca;
         }
 
-        //int maxdepth = HSM_MAX_NESTING_LEVELS;
-        while (true/*maxdepth-- > 0*/) {
+        int maxdepth = HSM_MAX_NESTING_LEVELS;
+        while (true) {
             source = getStateById(sourceId);
             target = getStateById(targetId);
             if (isStateAncestor(sourceId, targetId)) {
@@ -265,6 +265,9 @@ private:
                 if (target.parentId() != HSM_TOP) {
                     targetId = target.parentId();
                 }
+            }
+            if (maxdepth-- < 0) {
+                logi("%s failed, checked too deep nesting level.", __func__);
             }
         }
         if ((lca == HSM_TOP) || (lca > 0)) {
@@ -349,7 +352,7 @@ private:
                 HSM_State_T parent = getStateById(targetparentId);
                 logi("%s searching complete-event trans for final state:%s", __func__, target.name().c_str());
                 //get final's parent's complete event trans
-                std::vector<HSM_Transition_T> transTable = parent.transitionTable();
+                const HSM_TransitionList_T transTable = parent.transitionTable();
                 HSM_TransChainIterator_T it_trans;
                 for (it_trans = transTable.begin(); it_trans != transTable.end(); it_trans++) {
                     trans = *it_trans;
@@ -388,8 +391,8 @@ private:
                 event, getEventName(event).c_str());
         HSM_Transition_T trans {};
 
-        std::vector<HSM_Transition_T> transTable = state.transitionTable();
-        HSM_TransChainIterator_T it_trans = transTable.begin();
+        const HSM_TransitionList_T transTable = state.transitionTable();
+        HSM_TransChainIterator_T it_trans;
         for (it_trans = transTable.begin(); it_trans != transTable.end(); it_trans++) {
             trans = *it_trans;
             if ((HSM_NO_EVENT == event) || (event == trans.event)) {
@@ -594,16 +597,16 @@ private:
     }
 
     void doTransitions() {
-        HSM_Transition_T trans;
-        HSM_State_Id_T targetId;
+        HSM_Transition_T trans {};
+        HSM_State_Id_T targetId {};
         HSM_State_Id_T sourceId = currentStateId();
-        HSM_State_T target;
+        HSM_State_T target {};
         HSM_State_Id_T lca = HSM_TOP;
 
         logd("%s begin current state:%s, trans count:%d",
                 __func__, getStateNameById(sourceId).c_str(), (int)transChainSize());
 
-        std::vector<HSM_Transition_T> transChain = mpStatechart->transChain;
+        const HSM_TransitionList_T transChain = mpStatechart->transChain;
         showTransChainInfo(sourceId, transChain);
         HSM_TransChainIterator_T it_trans;
         for (it_trans = transChain.begin(); it_trans != transChain.end(); it_trans++) {
@@ -634,7 +637,7 @@ private:
         logd("%s end current state:%s\n", __func__, getStateNameById(sourceId).c_str());
     }
 
-    void showTransChainInfo(HSM_State_Id_T stateid, std::vector<HSM_Transition_T> &transChain) {
+    void showTransChainInfo(HSM_State_Id_T stateid, const HSM_TransitionList_T &transChain) {
         HSM_Transition_T trans;
         HSM_State_Id_T targetId;
         HSM_State_T target;
