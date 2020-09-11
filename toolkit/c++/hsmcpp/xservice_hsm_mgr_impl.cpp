@@ -134,6 +134,14 @@ void resulted(const HSM_StateChart_T& statechart) {
     pobj->working_data.clear();
 }
 
+bool isEventEnter(const HSM_StateChart_T& statechart) {
+    int event = (int)statechart.event;
+    printf("\r[%d-%s] [%s]: %d(%s)\n",
+            statechart.currentStateId, statechart.currentStateName.c_str(),
+            __func__, event, getEventName(event).c_str());
+    return (EVT_TypedKeyEnter == event);
+}
+
 bool isNumber1_9(const HSM_StateChart_T& statechart) {
     char data = *(char *)(statechart.eventdata.data());
     printf("\r[%d-%s] [%s]: %d(%c)\n",

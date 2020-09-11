@@ -77,7 +77,7 @@ typedef struct HSM_StateChart_T {
     HSM_State_Id_T                currentStateId;
     std::string                   currentStateName;
     HSM_State_Id_T                previousStateId;
-    bool                          isProcessingEvt;
+    //bool                          isProcessingEvt;
     HSM_TransitionList_T          transChain;
     void *                        userObj;
     HSM_Event_T                   event;

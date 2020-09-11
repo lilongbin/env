@@ -77,6 +77,7 @@ public:
     bool proccessMessage(HSM_Event_T event, std::vector<uint8_t> &data) {
         mpStatechart->event = event;
         mpStatechart->eventdata = data;
+        mpStatechart->previousStateId = currentStateId();
         logi("#%s @state:%s, event:%d-%s", __func__, currentStateName().c_str(), event, getEventName(event).c_str());
         mprint("\n#%s @state:%s, event:%d-%s\n", __func__, currentStateName().c_str(), event, getEventName(event).c_str());
 
@@ -90,21 +91,13 @@ public:
         return true;
     }
 
-    HSM_Event_T getEvent() {
-        return mpStatechart->event;
-    }
-
-    size_t getEventData(std::vector<uint8_t> &data) {
-        data = mpStatechart->eventdata;
-        return data.size();
-    }
-
 private:
     void initWorkSpace(const HSM_State_Definition_T &stateDfn, void *userObj) {
         mpStatechart = new HSM_StateChart_T();
         if (mpStatechart == NULL) {
             std::cout << "construct HSM_StateChart_T failed." << std::endl;
         }
+        mpStatechart->previousStateId = 0;
         mpStatechart->currentStateId = 0;//@initial state
 
         mpStatechart->userObj = userObj;
