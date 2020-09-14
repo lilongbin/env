@@ -50,6 +50,8 @@ void resulted(const HSM_Statechart_T* statechart);
  */
 
 //bool guard_is_xx_available(const HSM_Statechart_T* statechart);
+bool isEventEnter(const HSM_Statechart_T* statechart);
+
 
 /* state chart define */
 #include "hsm_define_statechart.h"
@@ -236,6 +238,18 @@ void resulted(const HSM_Statechart_T* pstatechart) {
     memset(pobj->working_data, 0, sizeof(pobj->working_data));
 }
 
+bool isEventEnter(const HSM_Statechart_T* pstatechart) {
+    if (pstatechart == NULL) {
+        DBG_ASSERT(0);
+        return false;
+    }
+    const char *current_state_name = HSM_Get_State_Name(pstatechart, pstatechart->current_state);
+    int event = pstatechart->event;
+    printf("\r[%d-%s] [%s]: event:%d\n",
+            pstatechart->current_state, current_state_name,
+            __func__, event);
+    return true;
+}
 
 /*
  * hsm user define from here
@@ -280,7 +294,7 @@ void XService_HSM_Start(void) {
 #endif
     dbg_ctrl.log_level = TR_LVL_FAULT;
     //dbg_ctrl.log_level = TR_LVL_INFO_LO;
-    dbg_ctrl.perform_check = false;
+    dbg_ctrl.perform_check = true;
     dbg_ctrl.get_event_name = (HSM_Event_Name_Func_T)getEventName;
 
     memset(&gs_xservice_hsm_object, 0, sizeof(gs_xservice_hsm_object));

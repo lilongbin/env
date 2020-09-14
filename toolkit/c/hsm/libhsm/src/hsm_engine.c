@@ -559,6 +559,12 @@ static void Complete_Transition_Chain(HSM_Statechart_T *statechart,
                 "(%s) Illegal initial state",
                 (char*)statechart->def_states.statechart_name
                 );
+        HSM_State_Kind_T initial_type =
+            statechart->def_states.state_table[p_target->initial_state].state_type;
+        PBC_Require_1((HSM_INITIAL_ID == initial_type),
+                "(%s) Illegal initial state",
+                (char*)statechart->def_states.statechart_name
+                );
         p_target = &statechart->def_states.state_table[p_target->initial_state];
     }
     /*
