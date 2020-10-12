@@ -28,6 +28,18 @@ function build_image() {
         echo "empty parameters."
         return
     fi
+    if [ "$*" = "?" ] ;then
+        echo -e "usage:\n\tbuild_image script param\n"
+        local xxscript=$(find ${__BUILD_IMAGE_SCRIPTS_PATH} -maxdepth 1 -type f -name build_\*.sh -printf "%f\n"|sed '/build_image.sh/d' |sed 's/build_//g' |sed 's/\.sh//g')
+        if [ "${xxscript}" != "" ] ;then
+            echo "script can be:"
+        fi
+        for file in ${xxscript}
+        do
+            echo -e "\t${file}"
+        done
+        return
+    fi
     __build_printbar "### ${mscript} ${others} ###\nbegin"
     sleep 1
     bash "${__BUILD_IMAGE_SCRIPTS_PATH}/${mscript}" ${others}
@@ -37,7 +49,7 @@ function build_image() {
 function __build_image_complete_()
 {
     local curw=${COMP_WORDS[COMP_CWORD]}
-    local wordlist=$(find ${__BUILD_IMAGE_SCRIPTS_PATH} -type f -name build_\*.sh -printf "%f\n"|sed '/build_image.sh/d' |sed 's/build_//g' |sed 's/\.sh//g')
+    local wordlist=$(find ${__BUILD_IMAGE_SCRIPTS_PATH} -maxdepth 1 -type f -name build_\*.sh -printf "%f\n"|sed '/build_image.sh/d' |sed 's/build_//g' |sed 's/\.sh//g')
     # 定义双击TAB后显示的结果;compgen -W基于curw提供可能的补全
     #COMPREPLY=( $(compgen -W '${wordlist[@]}' -- "${curw}" ) )
 
