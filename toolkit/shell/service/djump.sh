@@ -239,7 +239,7 @@ function djump()
 function __djump_complete_dtag()
 {
     local curw=${COMP_WORDS[COMP_CWORD]}
-    local wordlist=$(find ${__DJUMP_DATA_PATH} -type l -printf "%f\n" )
+    local wordlist=$(find ${__DJUMP_DATA_PATH} -maxdepth 1 -type l -printf "%f\n" )
     # 定义双击TAB后显示的结果;compgen -W基于curw提供可能的补全
     COMPREPLY=( $(compgen -W '${wordlist[@]}' -- "${curw}" ) )
 }
@@ -248,7 +248,7 @@ function __djump_complete_dtag()
 function __djump_complete_djump()
 {
     local curw=${COMP_WORDS[COMP_CWORD]}
-    local wordlist=$(find ${__DJUMP_DATA_PATH} -type l -printf "%f\n" )
+    local wordlist=$(find ${__DJUMP_DATA_PATH} -maxdepth 1 -type l -printf "%f\n" )
     # 定义双击TAB后显示的结果;compgen -W基于curw提供可能的补全
     #COMPREPLY=( $(compgen -W '${wordlist[@]}' -- "${curw}" ) )
 
