@@ -14,7 +14,11 @@
 #include "hsm_comm.h"
 #include "hsm_state.h"
 
-#define mprint(...)
+#if 0
+#    define mprint(...) printf(__VA_ARGS__)
+#else
+#    define mprint(...)
+#endif
 
 class HSM_Check
 {

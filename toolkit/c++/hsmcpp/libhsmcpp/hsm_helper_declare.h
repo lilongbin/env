@@ -57,14 +57,14 @@
 #define HSM_BEGIN(statechart_name)\
         HSM_State_Definition_T get_##statechart_name##_Defn();
 
-#define HSM_INITIAL_STATE(state_name,parent,action,next_state)
-#define HSM_COMPOSITE_STATE(state_name,parent,initial,history,entry,exit)
-#define HSM_JUNCTION_STATE(state_name,parent)
-#define HSM_DEEP_HISTORY_STATE(state_name,parent,default_state)
-#define HSM_SHALLOW_HISTORY_STATE(state_name,parent,default_state)
-#define HSM_SIMPLE_STATE(state_name,parent,entry,exit)
-#define HSM_FINAL_STATE(state_name,parent)
-#define HSM_END_STATE(state_name)
+#define HSM_INITIAL_STATE(state,parent,action,next_state)
+#define HSM_COMPOSITE_STATE(state,parent,initial,history,entry,exit)
+#define HSM_JUNCTION_STATE(state,parent)
+#define HSM_DEEP_HISTORY_STATE(state,parent,default_state)
+#define HSM_SHALLOW_HISTORY_STATE(state,parent,default_state)
+#define HSM_SIMPLE_STATE(state,parent,entry,exit)
+#define HSM_FINAL_STATE(state,parent)
+#define HSM_END_STATE(state)
 
 #define HSM_COMPLETION_TRANSITION(action, next_state)
 #define HSM_TRANSITION(event,guard,action,next_state)

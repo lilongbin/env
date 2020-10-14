@@ -18,6 +18,9 @@
 #include "hsm_log.h"
 #include <assert.h>
 
+#ifdef mprint
+#undef mprint
+#endif
 #if 0
 #    define mprint(...) printf(__VA_ARGS__)
 #else
@@ -29,8 +32,8 @@ class HSM_Engine
 private:
     HSM_StateChart_T *mpStatechart = NULL;
     HSM_State_Definition_T mStateDfn {};
-    const HSM_State_T mHsmTopState {HSM_ST_KIND_INVALID, HSM_TOP, "HSM_TOP", HSM_NO_STATE, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "", ""};
-    const HSM_State_T mHsmSameState {HSM_ST_KIND_INVALID, HSM_SAME_STATE, "HSM_SAME_STATE", HSM_NO_STATE, HSM_NO_INITIAL_STATE, HSM_NO_HISTORY_STATE, HSM_NO_ACTION, HSM_NO_ACTION, "", ""};
+    const HSM_State_T mHsmTopState = HSM_Dummy_State(HSM_TOP, "HSM_TOP");
+    const HSM_State_T mHsmSameState = HSM_Dummy_State(HSM_SAME_STATE, "HSM_SAME_STATE");
     HSM_Debug m_debug {};
     HSM_Log m_log {};
 
@@ -199,70 +202,32 @@ private:
         return ret;
     }
 
-    bool isStateAncestor(HSM_State_Id_T ref, HSM_State_Id_T toConfirm) {
-        bool isAncestor = false;
-        if (HSM_TOP == ref) {
-            return false;
-        }
-        if (HSM_TOP == toConfirm) {
-            return true;
-        }
-        HSM_State_T source;
-        HSM_State_Id_T parentId;
-        while (true) {
-            source = getStateById(ref);
-            parentId = source.parentId();
-            if (toConfirm == parentId) {
-                isAncestor = true;
-                break;
-            }
-            if (HSM_TOP == parentId) {
-                break;
-            }
-            ref = parentId;
-        }
-        //logd("?%s is ancestor of %s? %s", getStateNameById(toConfirm).c_str(), getStateNameById(ref).c_str(), isAncestor?"yes":"no");
-        return isAncestor;
-    }
-
     HSM_State_Id_T getLeastCommonAncestor(HSM_State_Id_T sourceId, HSM_State_Id_T targetId) {
-        HSM_State_Id_T lca = sourceId;
-        HSM_State_T source;
-        HSM_State_T target;
+        HSM_State_Id_T lca = HSM_TOP;
+        HSM_State_Id_T src = sourceId;
+        HSM_State_Id_T dst = targetId;
+        std::stack<HSM_State_Id_T> srcAncestors;
+        std::stack<HSM_State_Id_T> dstAncestors;
 
-        if (sourceId == targetId) {
-            source = getStateById(sourceId);
-            lca = source.parentId();
-            return lca;
+        while (src != HSM_TOP) {
+            srcAncestors.push(src);
+            src = getStateById(src).parentId();
+        }
+        while (dst != HSM_TOP) {
+            dstAncestors.push(dst);
+            dst = getStateById(dst).parentId();
         }
 
-        int maxdepth = HSM_MAX_NESTING_LEVELS;
-        while (true) {
-            source = getStateById(sourceId);
-            target = getStateById(targetId);
-            if (isStateAncestor(sourceId, targetId)) {
-                lca = targetId;
-                break;
-            } else if (isStateAncestor(targetId, sourceId)) {
-                lca = sourceId;
-                break;
-            } else if (source.parentId() == getStateById(targetId).parentId()) {
-                //has common parent
-                lca = source.parentId();
-                break;
-            } else {
-                //move up a level
-                if (source.parentId() != HSM_TOP) {
-                    sourceId = source.parentId();
-                }
-                if (target.parentId() != HSM_TOP) {
-                    targetId = target.parentId();
-                }
-            }
-            if (maxdepth-- < 0) {
-                logi("%s failed, checked too deep nesting level.", __func__);
-            }
+        while ((src == dst)
+                && (!srcAncestors.empty())
+                && (!dstAncestors.empty())) {
+            lca = src;
+            src = srcAncestors.top();
+            srcAncestors.pop();
+            dst = dstAncestors.top();
+            dstAncestors.pop();
         }
+        logd("lca: %d-%s", lca, getStateNameById(lca).c_str());
         if ((lca == HSM_TOP) || (lca > 0)) {
             //ok
         } else {
@@ -503,14 +468,14 @@ private:
                         //reset history state to its default state
                         //history has only 1 transiton (to its default state or saved state)
                         //reset to parentHist.mTransitionTable[0].targetId;
-                        mStateDfn.stateList[parentHistId].saveHistoryState(parentHist.getHistoryDefaultTargetId());
+                        mStateDfn.stateList[parentHistId].updateHistoryTargetId(parentHist.getHistoryDefaultTargetId());
                         logi("%s reset target of history state:%s to default target:%s",
                                 __func__, parentHist.name().c_str(),
                                 getStateById(parentHist.getHistoryDefaultTargetId()).name().c_str());
                     } else if ((HSM_ST_KIND_DEEP_HISTORY == hist_type)
                                 && ((HSM_ST_KIND_COMPOSITE == sourceType) || (HSM_ST_KIND_SIMPLE == sourceType))) {
                         //update history state to current state
-                        mStateDfn.stateList[parentHistId].saveHistoryState(currentStateId());
+                        mStateDfn.stateList[parentHistId].updateHistoryTargetId(currentStateId());
                         logi("%s save target of deep history state:%s to current state:%s",
                                 __func__, parentHist.name().c_str(), currentStateName().c_str());
                     }
@@ -574,13 +539,13 @@ private:
                         //reset history state to its default state
                         //history has only 1 transiton (to its default state or saved state)
                         //reset to parentHist.mTransitionTable[0].targetId;
-                        mStateDfn.stateList[parentHistId].saveHistoryState(parentHist.getHistoryDefaultTargetId());
+                        mStateDfn.stateList[parentHistId].updateHistoryTargetId(parentHist.getHistoryDefaultTargetId());
                         logi("%s reset target of shallow history state:%s to default target:%s",
                                 __func__, parentHist.name().c_str(),
                                 getStateNameById(parentHist.getHistoryDefaultTargetId()).c_str());
                     } else if (HSM_ST_KIND_SHALLOW_HISTORY == hist_type) {
                         //update shallow history state to target state
-                        mStateDfn.stateList[parentHistId].saveHistoryState(targetId);
+                        mStateDfn.stateList[parentHistId].updateHistoryTargetId(targetId);
                         logi("%s save target of shallow history state:%s to target:%s",
                                 __func__, parentHist.name().c_str(), getStateNameById(targetId).c_str());
                     }
