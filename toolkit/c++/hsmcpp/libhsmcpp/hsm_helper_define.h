@@ -55,51 +55,6 @@
 #undef HSM_END_STATE
 #undef HSM_END
 
-#define HSM_BEGIN(statechart_name) typedef enum statechart_name##_States_Tag {
-
-#define HSM_INITIAL_STATE(state, parent, action, next_state)              state,
-#define HSM_COMPOSITE_STATE(state, parent, initial, history, entry, exit) state,
-#define HSM_JUNCTION_STATE(state, parent)                                 state,
-#define HSM_DEEP_HISTORY_STATE(state, parent, default_state)              state,
-#define HSM_SHALLOW_HISTORY_STATE(state, parent, default_state)           state,
-#define HSM_SIMPLE_STATE(state, parent, entry, exit)                      state,
-#define HSM_FINAL_STATE(state, parent)                                    state,
-#define HSM_END_STATE(state)
-
-#define HSM_COMPLETION_TRANSITION(action, next_state)
-#define HSM_TRANSITION(event, guard, action, next_state)
-#define HSM_INTERNAL_TRANSITION(event, guard, action)
-
-#define HSM_END(statechart_name) } statechart_name##_States_T;
-
-/*##############*/
-STATECHART_DEFN()  /* declare/define the state enumeration type */
-STATECHART_DEFN1()
-STATECHART_DEFN2()
-STATECHART_DEFN3()
-STATECHART_DEFN4()
-STATECHART_DEFN5()
-STATECHART_DEFN6()
-STATECHART_DEFN7()
-STATECHART_DEFN8()
-STATECHART_DEFN9()
-/*##############*/
-
-
-#undef HSM_BEGIN
-#undef HSM_COMPLETION_TRANSITION
-#undef HSM_COMPOSITE_STATE
-#undef HSM_DEEP_HISTORY_STATE
-#undef HSM_FINAL_STATE
-#undef HSM_SHALLOW_HISTORY_STATE
-#undef HSM_INITIAL_STATE
-#undef HSM_JUNCTION_STATE
-#undef HSM_SIMPLE_STATE
-#undef HSM_TRANSITION
-#undef HSM_INTERNAL_TRANSITION
-#undef HSM_END_STATE
-#undef HSM_END
-
 #define HSM_BEGIN(statechart_name)\
 HSM_State_Definition_T get_##statechart_name##_Defn() {\
     HSM_State_Definition_T statechart_name##_Defn;\

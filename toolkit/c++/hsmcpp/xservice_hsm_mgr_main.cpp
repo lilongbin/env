@@ -49,7 +49,7 @@ char getch()
 
 void logfunc(const std::string &logs) {
     (void)logs;
-    //printf("%s", logs.c_str());
+    //std::cout << logs;
 }
 
 /**
@@ -62,7 +62,7 @@ void XService_HSM_Start(void) {
     HSM_Debug debug = HSM_Debug(xservice_mgr_hsm_defn.statechartName, NULL, getEventName, 0, logfunc);
     mHsm->setDebug(debug);
 
-    mHsm->start(xservice_mgr_hsm_defn, &gs_xservice_hsm_object);
+    mHsm->start(xservice_mgr_hsm_defn, Init/* 0 */, &gs_xservice_hsm_object);
 }
 
 bool XService_HSM_ProcMessage(int event, const void * pdata, const size_t data_size) {

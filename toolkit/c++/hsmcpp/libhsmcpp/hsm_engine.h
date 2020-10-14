@@ -61,10 +61,16 @@ public:
         m_debug = debug;
     }
 
-    bool start(const HSM_State_Definition_T &stateDfn, void * userObj) {
+    bool start(const HSM_State_Definition_T &stateDfn, const HSM_State_Id_T initId, void * userObj) {
+        bool ret = false;
         logi("start statechart %s begin", stateDfn.statechartName.c_str());
         //mStateDfn = stateDfn;
-        initWorkSpace(stateDfn, userObj);
+        ret = initWorkSpace(stateDfn, initId, userObj);
+        if (true != ret) {
+            logi("start initWorkSpace failed.");
+            assert(0);
+            return false;
+        }
         checkStateList(stateDfn.stateList);
 
         //build transition chain
@@ -73,7 +79,8 @@ public:
         if (0 < transChainSize()) {
             doTransitions();
         }
-        logi("start statechart %s ok, @state:%s", stateDfn.statechartName.c_str(), currentStateName().c_str());
+        logi("start statechart %s ok, @state:%s, init:%d-%s",
+            stateDfn.statechartName.c_str(), currentStateName().c_str(), initId, getStateNameById(initId).c_str());
         return true;
     }
 
@@ -95,13 +102,15 @@ public:
     }
 
 private:
-    void initWorkSpace(const HSM_State_Definition_T &stateDfn, void *userObj) {
+    bool initWorkSpace(const HSM_State_Definition_T &stateDfn, const HSM_State_Id_T initId, void * const userObj) {
+        bool ret = true;
         mpStatechart = new HSM_StateChart_T();
         if (mpStatechart == NULL) {
-            std::cout << "construct HSM_StateChart_T failed." << std::endl;
+            logi("construct HSM_StateChart_T failed.");
+            return false;
         }
         mpStatechart->previousStateId = 0;
-        mpStatechart->currentStateId = 0;//@initial state
+        mpStatechart->currentStateId = initId;//@initial state
 
         mpStatechart->userObj = userObj;
 
@@ -117,12 +126,24 @@ private:
             if (state.id() != id) {
                 logi("%s error, status id(%d:%s) and list index are inconsistent, expected id:%d",
                         __func__, state.id(), state.name().c_str(), id);
-                assert(0);
+                ret = false;
+                return ret;
             }
             mStateDfn.stateList.push_back(state);
         }
+        if ((initId < 0) || ((size_t)initId >= mStateDfn.stateList.size())) {
+            logi("%s error, invalid init state:%d", __func__, initId);
+            return false;
+        }
+        if (HSM_ST_KIND_INITIAL != getStateById(initId).type()) {
+            logi("%s error, not initial type of init state:%d", __func__, initId);
+            return false;
+        }
         logi("%s stateList size:%d", __func__, (int)mStateDfn.stateList.size());
-        assert(0 != mStateDfn.stateList.size());
+        if (mStateDfn.stateList.empty()) {
+            ret = false;
+        }
+        return ret;
     }
 
     void checkStateList(const HSM_StateList_T &stateList) {
