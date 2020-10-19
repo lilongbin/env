@@ -84,7 +84,7 @@ public:
         return true;
     }
 
-    bool proccessMessage(HSM_Event_T event, std::vector<uint8_t> &data) {
+    bool processMessage(HSM_Event_T event, std::vector<uint8_t> &data) {
         mpStatechart->event = event;
         mpStatechart->eventdata = data;
         mpStatechart->previousStateId = currentStateId();

@@ -73,7 +73,7 @@ bool XService_HSM_ProcMessage(int event, const void * pdata, const size_t data_s
     }
     std::vector<uint8_t> data((uint8_t *)pdata, (uint8_t *)pdata+data_size);
     printf("%s event:%d-%s\n", __func__, event, getEventName(event).c_str());
-    mHsm->proccessMessage(event, data);
+    mHsm->processMessage(event, data);
     return event_used;
 }
 

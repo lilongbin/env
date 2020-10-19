@@ -15,6 +15,6 @@ Integrate the generated code into the project
 3. Implement the guard and action functions used by the statechart.
 4. create HSM_Engine object and Call its start() function to initialize the hsm engine and to cause the statechart 
    to enter its initial state.
-5. Call HSM_Engine object's proccessMessage() when events occur that need to be handled by the statechart engine.
+5. Call HSM_Engine object's processMessage() when events occur that need to be handled by the statechart engine.
 
 
