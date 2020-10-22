@@ -13,8 +13,6 @@
 #include <errno.h>
 #include <termios.h>
 
-#include "xservice_hsm_mgr_comm.h"
-#include "xservice_hsm_mgr_event.h"
 #include "xservice_hsm_mgr_impl.h"
 
 #ifndef STDIN_FILENO
@@ -71,7 +69,6 @@ int main()
         //printf("send evt: %d-%s, data:%d-%c\n", evt, event2str(evt), ch, ch);
         XService_HSM_ProcMessage(evt, &ch, sizeof(ch));
     }
-    XService_HSM_Shutdown();
     return 0;
 }
 

@@ -1020,12 +1020,11 @@ HSM_Statechart_T;
  *   - state_defn->state_count > 1 (minimum statechart is an initial state
  *                                and a simple state)
  */
-#if 0
-static void HSM_Init(HSM_Statechart_T *statechart,
+
+void HSM_Init(HSM_Statechart_T *statechart,
               HSM_State_Defn_T const *state_defn,
               void *this_ptr,
               HSM_Debug_Control_T const *dbg_ctrl);
-#endif
 
 /**
  * Starts a statechart, causing it to enter its initial state.
@@ -1037,9 +1036,8 @@ static void HSM_Init(HSM_Statechart_T *statechart,
  *   - statechart != NULL
  *   - A call to HSM_Begin() must be preceded by a call to HSM_Init().
  */
-#if 0
-static void HSM_Begin(HSM_Statechart_T *statechart);
-#endif
+
+void HSM_Begin(HSM_Statechart_T *statechart);
 
 /**
  * Initializes the statechart, checks the its states' definitions (optional),

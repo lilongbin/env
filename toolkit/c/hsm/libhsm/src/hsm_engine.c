@@ -1643,7 +1643,7 @@ size_t HSM_Save(HSM_Statechart_T *statechart,
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-static void HSM_Init(HSM_Statechart_T *statechart,
+void HSM_Init(HSM_Statechart_T *statechart,
         HSM_State_Defn_T const *state_defn,
         void *this_ptr,
         HSM_Debug_Control_T const *dbg_ctrl)
@@ -1677,7 +1677,7 @@ static void HSM_Init(HSM_Statechart_T *statechart,
  * Please refer to the detailed description in hsm_engine.h
  *
  *===========================================================================*/
-static void HSM_Begin(HSM_Statechart_T *statechart)
+void HSM_Begin(HSM_Statechart_T *statechart)
 {
     PBC_Require( (0 == statechart->current_state) && (0 == statechart->previous_state),
             "Illegal attempt call to HSM_Begin() for an active statechart");
