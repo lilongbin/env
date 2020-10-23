@@ -57,7 +57,7 @@ public:
     ~HSM_Engine() {
     }
 
-    void setDebug(HSM_Debug &debug) {
+    void setDebug(const HSM_Debug &debug) {
         m_debug = debug;
     }
 
@@ -71,6 +71,7 @@ public:
             assert(0);
             return false;
         }
+        showStateChartInfo(stateDfn.stateList);
         checkStateList(stateDfn.stateList);
 
         //build transition chain
@@ -84,7 +85,7 @@ public:
         return true;
     }
 
-    bool processMessage(HSM_Event_T event, std::vector<uint8_t> &data) {
+    bool processMessage(const HSM_Event_T event, std::vector<uint8_t> &data) {
         mpStatechart->event = event;
         mpStatechart->eventdata = data;
         mpStatechart->previousStateId = currentStateId();
@@ -155,7 +156,7 @@ private:
         assert(res == true);
     }
 
-    std::string getEventName(HSM_Event_T event) {
+    std::string getEventName(const HSM_Event_T event) {
         if (HSM_NO_EVENT == event) {
             return "HSM_NO_EVENT";
         } else if (HSM_COMPLETION_EVENT == event) {
@@ -169,7 +170,7 @@ private:
         }
     }
 
-    HSM_State_T &getStateById(const HSM_State_Id_T stateid) {
+    HSM_State_T getStateById(const HSM_State_Id_T stateid) {
         int size = (int)mStateDfn.stateList.size();
         if (HSM_TOP == stateid) {
             return const_cast<HSM_State_T &>(mHsmTopState);
@@ -203,11 +204,11 @@ private:
         return mpStatechart->currentStateId;
     }
 
-    HSM_State_T & currentState() {
+    HSM_State_T currentState() {
         return getStateById(currentStateId());
     }
 
-    bool setCurrentStateId(HSM_State_Id_T id) {
+    bool setCurrentStateId(const HSM_State_Id_T id) {
         bool ret = false;
         logi("%s state:%s -> @state:%s", __func__, currentStateName().c_str(), getStateNameById(id).c_str());
         if ((0 < id) && ((size_t)id < mStateDfn.stateList.size())) {
@@ -223,7 +224,7 @@ private:
         return ret;
     }
 
-    HSM_State_Id_T getLeastCommonAncestor(HSM_State_Id_T sourceId, HSM_State_Id_T targetId) {
+    HSM_State_Id_T getLeastCommonAncestor(const HSM_State_Id_T sourceId, const HSM_State_Id_T targetId) {
         HSM_State_Id_T lca = HSM_TOP;
         HSM_State_Id_T src = sourceId;
         HSM_State_Id_T dst = targetId;
@@ -279,7 +280,7 @@ private:
         return targetId;
     }
 
-    void completeTransitionChain(HSM_State_Id_T stateid, const HSM_Transition_T **pnext_trans) {
+    void completeTransitionChain(const HSM_State_Id_T stateid, const HSM_Transition_T **pnext_trans) {
         HSM_State_T state = getStateById(stateid);
         if (HSM_ST_KIND_COMPOSITE == state.type()) {
             //if the target is a composite state, need goto its initial state;
@@ -357,7 +358,7 @@ private:
         }
     }
 
-    const HSM_Transition_T *matchValidTransition(const HSM_State_Id_T stateid, HSM_Event_T event) {
+    const HSM_Transition_T *matchValidTransition(const HSM_State_Id_T stateid, const HSM_Event_T event) {
         HSM_Transition_T candidate {};
         bool candidate_valid = false;
         HSM_Transition_T else_candidate {};
@@ -424,7 +425,7 @@ private:
         return pcandidate;
     }
 
-    bool buildTransitionChain(HSM_Event_T event) {
+    bool buildTransitionChain(const HSM_Event_T event) {
         //search for a valid transition(inner/outer) by the specified event
         HSM_State_Id_T stateId = currentStateId();
         HSM_State_T state = currentState();
@@ -465,8 +466,9 @@ private:
         return (ptrans != NULL);
     }
 
-    void excuteExitActions(HSM_State_Id_T sourceId, HSM_State_Id_T lca) {
+    void excuteExitActions(const HSM_State_Id_T src, const HSM_State_Id_T lca) {
         //logi("%s begin", __func__);
+        HSM_State_Id_T sourceId = src;
         HSM_State_T source = getStateById(sourceId);
         HSM_State_Id_T parentId = source.parentId();
         HSM_State_T parent;
@@ -522,8 +524,9 @@ private:
         return true;
     }
 
-    void excuteEntryActions(HSM_State_Id_T targetId, HSM_State_Id_T lca) {
+    void excuteEntryActions(const HSM_State_Id_T dst, const HSM_State_Id_T lca) {
         //logi("%s begin", __func__);
+        HSM_State_Id_T targetId = dst;
         HSM_State_T target;
         HSM_State_Id_T parentId;
         HSM_State_T parent;
@@ -616,7 +619,31 @@ private:
         logd("%s end current state:%s\n", __func__, getStateNameById(sourceId).c_str());
     }
 
-    void showTransChainInfo(HSM_State_Id_T stateid, const HSM_TransitionList_T &transChain) {
+    void showStateChartInfo(const HSM_StateList_T &stateList) {
+        HSM_StateListIterator_T slit;
+        HSM_State_T state;
+        HSM_State_Id_T id = 0;
+        HSM_Transition_T trans;
+        HSM_State_Id_T targetId;
+        HSM_State_T target;
+        HSM_TransChainIterator_T it_trans;
+        for (slit = stateList.begin();
+                slit != stateList.end();
+                slit++, id++) {
+            state = *slit;
+            logd("State: %s", state.name().c_str());
+            for (it_trans = state.transitionTable().begin(); it_trans != state.transitionTable().end(); it_trans++) {
+                trans = *it_trans;
+                targetId = trans.targetId;
+                target = getStateById(targetId);
+                logd("%22s  %15s    %15s    %10s", getEventName(trans.event).c_str(),
+                    trans.guardName.c_str(), trans.actionName.c_str(), target.name().c_str());
+            }
+            logd("State: %s end\n", state.name().c_str());
+        }
+    }
+
+    void showTransChainInfo(const HSM_State_Id_T stateid, const HSM_TransitionList_T &transChain) {
         HSM_Transition_T trans;
         HSM_State_Id_T targetId;
         HSM_State_T target;

@@ -176,7 +176,9 @@ private:
             if (HSM_TOP != target.parentId()) {
                 HSM_State_T parent = getStateById(target.parentId());
                 parentHistId = parent.historyId();
-                parentHistType = getStateById(parentHistId).type();
+                if (HSM_NO_HISTORY_STATE != parentHistId) {
+                    parentHistType = getStateById(parentHistId).type();
+                }
             }
             if ((HSM_NO_INITIAL_STATE != initialId)
                     && ((HSM_NO_HISTORY_STATE == parentHistId) || HSM_ST_KIND_SHALLOW_HISTORY != parentHistType)) {
@@ -277,18 +279,22 @@ private:
                 //same guard (which may be an ELSE).
                 int duplicates = 0;
                 std::vector<HSM_Transition_T>::const_iterator it_trans2 = state.transitionTable().begin();
+                //addInfo(std::to_string(__LINE__)+" checking transitions, @state:"+state.name()+", event:"+std::to_string(trans.event)+", guard:"+trans.guardName);
                 for (it_trans2 = state.transitionTable().begin();
                         it_trans2 != state.transitionTable().end();
                         it_trans2++) {
                     HSM_Transition_T trans2 = *it_trans2;
                     if ((trans.event == trans2.event)
-                            /*&& (trans.guard == trans2.guard)*/) {
-                        //todo
+                            && (trans.guard.target<HSM_Guard_T>() == trans2.guard.target<HSM_Guard_T>())) {
+                        //the same event and same guard
                         duplicates ++;
+                        if (duplicates > 1) {
+                            addInfo(std::to_string(__LINE__)+" duplicate transitions, @state:"+state.name()+", event:"+std::to_string(trans.event)+", guard:"+trans.guardName);
+                        }
                     }
                 }
                 if (duplicates != 1) {
-                    addInfo(std::to_string(__LINE__)+" duplicate transitions, @state:"+state.name());
+                    addInfo(std::to_string(__LINE__)+" duplicate transitions, @state:"+state.name()+", event:"+std::to_string(trans.event)+", duplicates:"+std::to_string(duplicates));
                     ret = false;
                     break;
                 }
@@ -479,6 +485,8 @@ private:
                 addInfo(std::to_string(__LINE__)+" parent state invalid, @state:"+state.name());
                 break;
             }
+            //has one or more incoming
+            //has one or more outgoing
         } while (0);
         return ret;
     }
@@ -612,8 +620,10 @@ private:
         return true;
     }
 
-    bool hasValidTarget(HSM_State_T &state, HSM_Transition_T &trans) {
+    bool hasValidTarget(const HSM_State_T &target, const HSM_Transition_T &transition) {
         bool ret = true;
+        HSM_State_T state = target;
+        HSM_Transition_T trans = transition;
         do {
             ret = isValidTargetId(trans.targetId);
             if (!ret) {
@@ -635,10 +645,10 @@ private:
                 }
             }
 
-            /* external transition */
             if (HSM_SAME_STATE == trans.targetId) {
                 continue;
             }
+            /* external transition */
             HSM_State_T target = getStateById(trans.targetId);
             switch (target.type()) {
                 case HSM_ST_KIND_INITIAL:
@@ -650,8 +660,10 @@ private:
                     ret = isTargetCompositeValid(state, trans);
                     break;
                 case HSM_ST_KIND_DEEP_HISTORY:
+                    ret = isTargetDeepHistoryValid(state, trans);
+                    break;
                 case HSM_ST_KIND_SHALLOW_HISTORY:
-                    ret = isTargetHistoryValid(state, trans);
+                    ret = isTargetShallowHistoryValid(state, trans);
                     break;
                 case HSM_ST_KIND_FINAL:
                     ret = isTargetFinalValid(state, trans);
@@ -668,8 +680,10 @@ private:
         return true;
     }
 
-    bool isTargetOfInitialValid(HSM_State_T &initial, HSM_Transition_T &trans) {
+    bool isTargetOfInitialValid(const HSM_State_T &state, const HSM_Transition_T &transition) {
         bool ret = false;
+        HSM_State_T initial = state;
+        HSM_Transition_T trans = transition;
         do {
             //an initial state's target should within its parent, and cannot be parent
             ret = isAncestorState(trans.targetId, initial.parentId());
@@ -681,8 +695,10 @@ private:
         return ret;
     }
 
-    bool isDefaultOfHistoryValid(HSM_State_T &history, HSM_Transition_T &trans) {
+    bool isDefaultOfHistoryValid(const HSM_State_T &state, const HSM_Transition_T &transition) {
         bool ret = true;
+        HSM_State_T history = state;
+        HSM_Transition_T trans = transition;
         do {
             //A history state's default target must be inside its parent state.
             ret = isAncestorState(trans.targetId, history.parentId());
@@ -703,9 +719,10 @@ private:
         return ret;
     }
 
-    bool isTargetCompositeValid(HSM_State_T &state, HSM_Transition_T &trans) {
+    bool isTargetCompositeValid(const HSM_State_T &state, const HSM_Transition_T &transition) {
         bool ret = true;
         (void)state;
+        HSM_Transition_T trans = transition;
         HSM_State_T composite = getStateById(trans.targetId);
         do {
             //A targeted composite state must have an initial state.
@@ -718,8 +735,10 @@ private:
         return ret; 
     }
 
-    bool isTargetHistoryValid(HSM_State_T &source, HSM_Transition_T &trans) {
+    bool isTargetDeepHistoryValid(HSM_State_T &src, HSM_Transition_T &transition) {
         bool ret = true;
+        HSM_State_T source = src;
+        HSM_Transition_T trans = transition;
         HSM_State_T history = getStateById(trans.targetId);
         do {
             /*
@@ -754,13 +773,53 @@ private:
         return ret; 
     }
 
-    bool isTargetFinalValid(HSM_State_T &source, HSM_Transition_T &trans) {
+    bool isTargetShallowHistoryValid(HSM_State_T &src, HSM_Transition_T &transition) {
         bool ret = true;
-        HSM_State_T finall = getStateById(trans.targetId);
+        HSM_State_T source = src;
+        HSM_Transition_T trans = transition;
+        HSM_State_T history = getStateById(trans.targetId);
+        do {
+            /*
+             * The source of the transition to a history state cannot be the
+             * composite state enclosing the history state or within it (unless it
+             * is the composite's initial state).
+             */
+            ret = isValidParentId(history.parentId());
+            if (!ret) {
+                addInfo(std::to_string(__LINE__)+" invalid parent of history, @state:"+history.name());
+                break;
+            }
+            if (HSM_TOP == history.parentId()) {
+                addInfo(std::to_string(__LINE__)+" history should within composite, @state:"+history.name());
+                ret = false;
+                break;
+            }
+            if (source.id() == history.parentId()) {
+                ret = false;
+                addInfo(std::to_string(__LINE__)+" composite cannot target its history, @state:"+source.name());
+                break;
+            }
+            if (isAncestorState(source.id(), history.parentId())) {
+                HSM_State_T parentHist = getStateById(history.parentId());
+                if (parentHist.initialId() != source.id()) {
+                    addInfo(std::to_string(__LINE__)+" cannot target the history state that tracks it, @state:"+source.name());
+                    ret = false;
+                    break;
+                }
+            }
+        } while (0);
+        return ret; 
+    }
+
+    bool isTargetFinalValid(const HSM_State_T &src, const HSM_Transition_T &transition) {
+        bool ret = true;
+        HSM_State_T source = src;
+        HSM_Transition_T trans = transition;
+        HSM_State_T finally = getStateById(trans.targetId);
         do {
             //to final state outside its scope
-            if ((source.id() != finall.parentId())
-                    && (!isAncestorState(source.id(), finall.parentId()))) {
+            if ((source.id() != finally.parentId())
+                    && (!isAncestorState(source.id(), finally.parentId()))) {
                 addInfo(std::to_string(__LINE__)+" to final state outside its scope, @state:"+source.name());
                 ret = false;
                 break;
@@ -770,7 +829,7 @@ private:
              * same composite state's final state because that creates an infinite
              * loop.
              */
-            if ((source.id() == finall.parentId())
+            if ((source.id() == finally.parentId())
                     && (HSM_COMPLETION_EVENT == trans.event)) {
                 ret = false;
                 //Completion transition cannot target its final state
@@ -778,13 +837,23 @@ private:
                 break;
             }
             /*
-             * The first transition from a composite state containing a final
-             * state must be a completion transition.
+             * The transitions from a composite state containing a final state
+             * must have a completion transition.
              */
-            HSM_State_T parent = getStateById(finall.parentId());
-            if (HSM_COMPLETION_EVENT != parent.transitionTable()[0].event) {
-                addInfo(std::to_string(__LINE__)+" first transition must be a complete transiton, @state:"+parent.name());
-                ret = false;
+            HSM_State_T parent = getStateById(finally.parentId());
+            const HSM_TransitionList_T transTable = parent.transitionTable();
+            HSM_TransChainIterator_T it_trans;
+            ret = false;
+            for (it_trans = transTable.begin(); it_trans != transTable.end(); it_trans++) {
+                trans = *it_trans;
+                if (HSM_COMPLETION_EVENT == trans.event) {
+                    //find out complete transition
+                    ret = true;
+                    break;
+                }
+            }
+            if (true != ret) {
+                addInfo(std::to_string(__LINE__)+" transitions must have a complete transition, @state:"+parent.name());
                 break;
             }
         } while (0);
@@ -817,16 +886,18 @@ private:
 
     bool isValidTargetId(const HSM_State_Id_T targetId) {
         mprint("%s targetId:%d\n", __func__, targetId);
-        if ((inStateList(targetId)) /*|| (HSM_NO_STATE == targetId)*/
+        if ((inStateList(targetId))
+                /*|| (HSM_NO_STATE == targetId)*/
                || (HSM_SAME_STATE == targetId)) {
             return true;
         }
         return false;
     }
 
-    bool isAncestorState(HSM_State_Id_T ref, HSM_State_Id_T toConfirm) {
+    bool isAncestorState(const HSM_State_Id_T ref, const HSM_State_Id_T toConfirm) {
         bool isAncestor = false;
-        if (HSM_TOP == ref) {
+        HSM_State_Id_T sourceId = ref;
+        if (HSM_TOP == sourceId) {
             return false;
         }
         if (HSM_TOP == toConfirm) {
@@ -835,7 +906,7 @@ private:
         HSM_State_T source;
         HSM_State_Id_T parentId;
         while (true) {
-            source = getStateById(ref);
+            source = getStateById(sourceId);
             parentId = source.parentId();
             if (toConfirm == parentId) {
                 isAncestor = true;
@@ -844,7 +915,7 @@ private:
             if (HSM_TOP == parentId) {
                 break;
             }
-            ref = parentId;
+            sourceId = parentId;
         }
         return isAncestor;
     }
@@ -884,7 +955,7 @@ private:
         return level;
     }
 
-    void addInfo(const std::string info) {
+    void addInfo(const std::string &info) {
         mInfo.push_back(info);
     }
 };
