@@ -40,6 +40,7 @@ function _make_v3_r7() {
 function _make_v3_r7_overseas() {
     __build_printbar "overseas begin"
     make clean
+    # make v3_r7 overseas=1 VARIANT=v3_fs -j8
     make v3_r7 overseas=1 -j8
     __build_printbar "overseas end"
 }

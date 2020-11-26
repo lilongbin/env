@@ -52,29 +52,31 @@ git仓库存放在当前工作目录的.git文件夹下,主要子目录包括以
     .git/logs/refs/heads 除master分支以外其他分支的HEAD变化历史;
     每次clone仓库的时候实际拷贝的就是这个目录里面的数据;
 git内部系统中一共有3个区域
-    working area工作区    用户看到的文件夹下的内容;
-    repository本地仓库    .git目录下的内容;
+    repository历史区      记录commit后的归档;
     stage area暂存区      准备下次commit到repository的内容;
-    1-> 工作区(working area/working tree);
-    git的工作目录保存当前正在工作的文件,和working tree是相同的意思;
-    在这个目录中的文件可能会在切换branch时被git删除或者替换;
-    这个目录是临时目录,临时存储你从git库中取出的文件,这些文件一直会被保存,直到下次提交;
-    2-> 本地仓库(git directory);
+    working area工作区    用户看到的文件夹下的内容;
+    1-> 历史区(git directory);
     项目的所有历史提交都被保存在了git仓库中,只要不作回滚操作,就不会丢失;
-    3-> 暂存区(stage area/git index);
+    2-> 暂存区(stage area/git index);
     是工作区和git仓库之间的暂存区,和staging area是相同的意思;
-    git index和git staging area是同一个意思,都指已经被add但尚未commit的那些内容所在的区域;查看目前暂存区中内容的方法是使用git status命令;
+    git index和git staging area是同一个意思,都指已经被add但尚未commit的那些内容所在的区域;
+    查看目前暂存区中内容的方法是使用git status命令;
     命令中"Changes to be committed"所列内容在暂存区,commit后进入git仓库;
     命令中"Changed but not updated"所列内容在工作区,add之后将进入暂存区;
     命令中"Untracked files"所列内容是尚未被git跟踪的内容,add之后进入暂存区;
-哪些操作会改变暂存区中的内容?
-    A-> git add <path>...会将工作区中<path>的内容加入暂存区;
-    B-> git reset HEAD <path>...会将暂存区中path内容删除,重新放回工作区;
-stage area的内容由git add添加,每次git commit后又会清空;
-    每次工作区有更新时,git add命令会把工作区的更新内容推送到stage area;
-    git commit命令会把stage area的内容推送到本地仓库,并清空stage area;
-    git commit -a可以提交所有修改及删除的文件,但不包含新增文件;
-    git checkout branch_name可以从仓库中检出对应分支的内容到工作区;
+    哪些操作会改变暂存区中的内容?
+    A-> git add <path>...        会将工作区中<path>的内容加入暂存区;
+    B-> git reset HEAD <path>... 会将暂存区中path内容删除,重新放回工作区;
+    stage area的内容由git add添加,每次git commit后又会清空;
+    3-> 工作区(working area/working tree);
+    git的工作目录保存当前正在工作的文件,和working tree是相同的意思;
+    在这个目录中的文件可能会在切换branch时被git删除或者替换;
+    这个目录是临时目录,临时存储你从git库中取出的文件,这些文件一直会被保存,直到下次提交;
+
+    git add 命令会把工作区的更新内容推送到stage area;
+    git commit 命令会把stage area的内容推送到本地仓库,并清空stage area;
+    git commit -a 可以提交所有修改及删除的文件,但不包含新增文件;
+    git checkout branch_name 可以从仓库中检出对应分支的内容到工作区;
 
     工作目录下面的所有文件都不外乎这两种状态:已跟踪或未跟踪;
     已跟踪的文件是指本来就被纳入版本控制管理的文件,在上次快照中有它们的记录,工作一段时间后,它们的状态可能是未更新,已修改或者已放入暂存区;
@@ -195,7 +197,8 @@ git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(
     如果因为reset等操作丢失一个提交的时候,可以用上面这个方法找回来;除非操作已经被git当作垃圾清理掉了,一般是30天以后;
 
 6.1 撤销git add
-    有两个修改过的文件,我们想要分开提交,但不小心用git add . 全加到了暂存区域;该如何撤消暂存其中的一个文件;
+    有两个修改过的文件,我们想要分开提交,但不小心用git add . 全加到了暂存区域;
+    该如何撤消暂存其中的一个文件;
     git status 的命令输出已经告诉了我们该怎么做git reset HEAD ...;如
     (use "git reset HEAD <file>..." to unstage)
     git reset HEAD test2.txt
@@ -221,7 +224,7 @@ git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(
     git clean -df #删除当前目录下没有被track过的文件和文件夹;
     git clean -xf #删除当前目录下所有没有track过的文件,不管他是否是.gitignore文件里面指定的文件夹和文件;
     git clean -nxdf #建议在用git clean前,先加上-n选项,先看看会删掉哪些文件,防止重要文件被误删;
-    git reset --hard;git clean -f #结合使用能让工作目录完全回退到最近一次commit的状态;
+    git reset --hard;git clean -df #结合使用能让工作目录完全回退到最近一次commit的状态;
 
 7 git remote
     要查看当前配置有哪些远程仓库,可以用git remote命令,它会列出每个远程库的简短名字,如果有多个远程仓库,此命令将全部列出;在克隆完某个项目后,至少可以看到一个名为origin的远程库,git默认使用这个名字来标识所克隆的原始仓库;
@@ -790,10 +793,12 @@ RT linux kernel源代码
     想看上一次提交,可以使用HEAD^,意思是"HEAD 的父提交";
     git show HEAD^
     也可以在^后添加一个数字例如d921970^2,意思是"d921970的第2父提交";这种语法只在合并提交时有用,因为合并提交可能有多个父提交;第一父提交是合并时所在分支,而第二父提交是所合并的分支;
-    另外一个指明祖先提交的方法是~;这也是指向第一父提交,所以HEAD~和HEAD^是等价的;当你指定数字的时候就明显不一样了;HEAD~2是指"第一父提交的第一父提交",也就是"祖父提交",它会根据指定的次数检索第一父提交;
+    另外一个指明祖先提交的方法是~;这也是指向第一父提交,所以HEAD~和HEAD^是等价的;
+    当指定数字的时候^和~的意义就不一样了;
+    HEAD~2是指"第一父提交的第一父提交",也就是"祖父提交",它会根据指定的次数检索第一父提交;
     HEAD~3也可以写成HEAD^^^,同样是第一父提交的第一父提交的第一父提交;
     可以混合使用这些语法,可以通过HEAD~3^2指明先前引用的第二父提交(假设它是一个合并提交);
-----------------------------------------
+    ```
 G   H   I   J
  \ /     \ /
   D   E   F
@@ -815,6 +820,8 @@ G = A^^^ = A^1^1^1 = A~3
 H = D^2  = B^^2    = A^^^2  = A~2^2
 I = F^   = B^3^    = A^^3^
 J = F^2  = B^3^2   = A^^3^2
+    ```
+    ```
 B是A的父提交
 C是A的第二父提交
 D是A的父提交的第一父提交
@@ -824,7 +831,7 @@ G是D的父提交即A的(第一)父提交的父提交的父提交
 H是D的第二父提交即A的(第一)父提交的父提交的第二父提交
 I是F的父提交
 J是F的第二父提交
-----------------------------------------
+    ```
 27.4 提交范围
 27.4.1 双点
     最常用的指明范围的方法是双点的语法;这种语法主要是让git区分出可从一个分支中获得而不能从另一个分支中获得的提交;即查看后者比前者更新的内容;
