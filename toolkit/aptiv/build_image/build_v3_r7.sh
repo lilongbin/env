@@ -32,6 +32,7 @@ function __build_printbar() {
 
 function _make_v3_r7() {
     __build_printbar "v3 begin"
+    export GCC_v3_r7_PATH=/opt/gcc-arm-none-eabi-6-2017-q2-update/bin
     make clean
     make v3_r7 -j8
     __build_printbar "v3 end"
@@ -39,9 +40,10 @@ function _make_v3_r7() {
 
 function _make_v3_r7_overseas() {
     __build_printbar "overseas begin"
+    export GCC_v3_r7_PATH=/opt/gcc-arm-none-eabi-6-2017-q2-update/bin
     make clean
-    # make v3_r7 overseas=1 VARIANT=v3_fs -j8
-    make v3_r7 overseas=1 -j8
+    make v3_r7 overseas=1 v3_fs=OFF -j8
+    # make v3_r7 overseas=1 -j8
     __build_printbar "overseas end"
 }
 

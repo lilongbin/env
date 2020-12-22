@@ -45,13 +45,13 @@
 # --tab-size  ts4 一个tab为4个空格（要能整除"-in"） 
 # --use-tabs  ut  使用tab来缩进
 
-KERNEL_STYLE_PARAM="-npro -kr -i8 -ts8 -sob -l80 -ss -ncs -cp1"
+KERNEL_STYLE_PARAM="-npro -kr -i4 -ts8 -sob -l80 -ss -ncs -cp1"
 LINUX_STYLE_PARAM="-npro -nbad -bap -nbc -bbo -hnl -br -brs -c33 -cd33 -ncdb -ce -ci4 -cli0 -d0 -di1 -nfc1 -i8 -ip0 -l80 -lp -npcs -nprs -npsl -sai -saf -saw -ncs -nsc -sob -nfca -cp33 -ss -ts8 -il1"
 GNU_STYLE_PARAM="-npro -nbad -bap -nbc -bbo -bl -bli2 -bls -ncdb -nce -cp1 -cs -di2 -ndj -nfc1 -nfca -hnl -i2 -ip5 -lp -pcs -nprs -psl -saf -sai -saw -nsc -nsob"
 KR_STYLE_PARAM="-npro -nbad -bap -bbo -nbc -br -brs -c33 -cd33 -ncdb -ce -ci4 -cli0 -cp33 -cs -d0 -di1 -nfc1 -nfca -hnl -i4 -ip0 -l75 -lp -npcs -nprs -npsl -saf -sai -saw -nsc -nsob -nss"
-VS_STYLE_PARAM="-npro -kr -i8 -ts8 -sob -l80 -ss -ncs -bl -bli0 -nce -bls -blf -bap -cp1 -npsl"
-UC_STYLE_PARAM="-npro -kr -i8 -ts8 -sob -l80 -ss -ncs -br -ce -cdw -brs -brf -bap -cp1 -npsl"
-MY_KR_STYLE_PARAM="-npro -nbad -bap -bbo -nbc -br -brs -c33 -cd33 -ncdb -ce -ci4 -cli0 -cp33 -cs -di1 -nfc1 -nfca -hnl -i4 -ip0 -l100 -lp -npcs -nprs -npsl -saf -sai -saw -nsc -nsob -nss -bl -bli0 -nce -ncdw -bad"
+VS_STYLE_PARAM="-npro -kr -i4 -ts4 -sob -l80 -ss -ncs -bl -bli0 -nce -bls -blf -bap -cp1 -npsl"
+UC_STYLE_PARAM="-npro -kr -i4 -ts4 -sob -l80 -ss -ncs -br -ce -cdw -brs -brf -bap -cp1 -npsl"
+MY_KR_STYLE_PARAM="-npro -nbad -bap -bbo -nbc -br -brs -c33 -cd33 -ncdb -ce -ci4 -cli0 -cp33 -cs -di1 -nfc1 -nfca -hnl -i4 -ts4 -ip0 -l100 -lp -npcs -nprs -npsl -saf -sai -saw -nsc -nsob -nss -bl -bli0 -nce -ncdw -bad -nut"
 # DEFAULT_STYLE_PARAM=${UC_STYLE_PARAM}
 DEFAULT_STYLE_PARAM=${MY_KR_STYLE_PARAM}
 

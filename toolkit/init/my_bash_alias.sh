@@ -19,17 +19,26 @@ function __load_PS1_cmd_script_XXX()
 }
 __load_PS1_cmd_script_XXX
 
-function cindex()
+function cindent_kr()
 {
 	if [ "$(which indent 2> /dev/null)" = "" ] ;then
 		return
 	fi
-	indent -npro -kr -i8 -ts4 -sob -l80 -ss -ncs -br -ce -cdw -brs -brf -bap -cp1 -npsl $*
+    if [ "$#" = "0" ] ;then
+        echo "error: empty parameter."
+        return
+    fi
+    local c_src_file=$*
+
+    # MY_KR_STYLE_PARAM="-npro -kr -i4 -ts4 -nut -nsob -l100 -nbs -bad -bad -bbb -bbo -hnl -bli0 -cli0 -ncs"
+    MY_KR_STYLE_PARAM="-npro -nbad -bap -bbo -nbc -br -brs -c33 -cd33 -ncdb -ce -ci4 -cli0 -cp33 -di1 -nfc1 -nfca -hnl -i4 -ip0 -l100 -lp -npcs -nprs -npsl -saf -sai -saw -nsc -nsob -nss -ncs -bli0 -ncdw -bad -nut"
+
+	indent ${MY_KR_STYLE_PARAM} ${c_src_file}
 }
 
 function pyhelp()
 {
-	local script=~/toolkit/bin/app/pyhelp.py
+	local script=~/toolkit/python/app/pyhelp.py
 	if [ "" = "${script}" ] ;then
 		return
 	fi
@@ -40,7 +49,7 @@ function pyhelp()
 
 function ftpd()
 {
-	local script=~/toolkit/bin/ftpd/ftpd.py
+	local script=~/toolkit/python/app/ftpd.py
 	if [ "" = "${script}" ] ;then
 		return
 	fi
@@ -51,7 +60,7 @@ function ftpd()
 
 function calculator()
 {
-	local script=~/toolkit/bin/app/calculator.py
+	local script=~/toolkit/python/app/calculator.py
 	if [ "" = "${script}" ] ;then
 		return
 	fi
