@@ -71,7 +71,9 @@ chrome打开页面右击要定位的元素,选择Inspect(检视),会自动打开
 ## find_element_by_xpath("xpath")
 准确定位的首选方式
 > 可以直接在chrome中复制XPath,如 //*[@id="kw"]
+```
 find_element_by_xpath(r"//*[@id="kw"]")
+```
 
 > 一般不需要使用full XPath如 /html/body/div[1]/div[1]/div[5]/div/div/form/span[1]/input
 
