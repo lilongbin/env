@@ -52,14 +52,13 @@ class MyBrowser(object):
             element.click()
 
     def alert_click(self, accept=True):
-        time.sleep(2)
-        #WebDriverWait(self.driver,10).until(expected_conditions.alert_is_present())
-        element = self.driver.switch_to.active_element
-        element.click()
-        return
+        self.wait_until_with_timeout(expected_conditions.alert_is_present())
+        #element = self.driver.switch_to.active_element
+        #element.click()
+        #return
         alert = self.driver.switch_to.alert #切到弹出框
         if alert:
-            print(alert.text)
+            print("alert: %s, accept:%s" % (alert.text, accept))
             if accept:
                 alert.accept() #确定
             else:
@@ -141,6 +140,56 @@ def open():
 
     return browser
 
+def alert_test():
+    chrome_driver = 'C:\Program Files (x86)\Google\Chrome\Application\chromedriver.exe'
+    url = r'D:\selenium\alert.txt.html'
+    '''
+<html>
+<head>
+	<title>alert test</title>
+	<script>
+		function show(cmd, value) {
+			var id = "show_result";
+			var inpObj = document.getElementById(id);
+			document.getElementById(id).innerHTML = cmd + ": " + value;
+		}
+		function test(cmd, str) {
+			if (cmd == "alert") {
+				ack = alert(str);
+				return;
+			} else if (cmd == "confirm"){
+				ack = confirm(str);
+			} else {
+				ack = prompt(str);
+			}
+			show(cmd, ack);
+		}
+	</script>
+</head>
+<body>
+	<h1>alert test</h1>
+	<button id="btn1" onclick="test('alert', 'hello alert')">alert</button>
+	<button id="btn2" onclick="test('confirm', 'hello confirm')">confirm</button>
+	<button id="btn3" onclick="test('prompt', 'hello prompt')">prompt</button>
+	<p id="show_result"></p>
+</body>
+</html>
+    '''
+    # create browser
+    browser = MyBrowser(url, chrome_driver)
+    condition = expected_conditions.title_is("alert test")
+    browser.wait_until_with_timeout(condition)
+
+    browser.click(browser.find_element("xpath", '//*[@id="btn1"]'))
+    browser.alert_click()
+    time.sleep(1)
+    browser.click(browser.find_element("xpath", '//*[@id="btn2"]'))
+    browser.alert_click(True)
+    time.sleep(1)
+    browser.click(browser.find_element("xpath", '//*[@id="btn3"]'))
+    browser.alert_click(False)
+    time.sleep(5)
+
 def login(browser):
     username = 'test'
     password = '123456'
@@ -174,10 +223,10 @@ def login(browser):
     print(btn_login.text)
     btn_login.click()
 
-    time.sleep(20)
-    #browser.quit()
-
 if __name__ == '__main__':
     browser = open()
     login(browser)
+    #alert_test()
+    time.sleep(20)
+    #browser.quit()
 
