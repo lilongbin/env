@@ -1,63 +1,109 @@
-1 Add a user named Mike
-	First, change to root and use the command
-	# useradd -m -s /bin/bash Mike
-		-m	create user's home directory;
-		-s	appoints user's shell type, such as sh, csh, tcsh or bash;
-	# useradd -m -s /bin/bash -G sudo Mike
-		-G	add Mike to another group(s);
-	# passwd Mike
-		to set user's password, if you don't do this step, the user can't login the system;
-	If you want the new user Mike could use "sudo", you need to modify the file "/etc/sudoers", or use below command
-	for Ubuntu
-		# gpasswd -a Mike sudo
-	for CentOS
-		# gpasswd -a Mike wheel
-		then modify /etc/sudoers, uncomment #%wheel ALL=(ALL) ALL, means whell group could oprate any machine by any user do any thing; 
 
-2 Delete the user Mike
-	Use the command
-	# userdel -r Mike
-		to delete the user and the home directory;
-	# userdel Mike
-		just delete user Mike but keep the home directory;
+# linux user management
+# Add a user named Mike
+First, change to root and use the command
+```
+useradd -m -s /bin/bash Mike
+```
+    -m  create user's home directory;
+    -s  appoints user's shell type, such as sh, csh, tcsh or bash;
 
-3 Modify user's name User to Mike
-	# usermod -l Mike -m -d /home/Mike User
-		-l	modify user name User to Mike,
-		-d	appoint to user directory /home/Mike and the directory /home/Mike should exist;
-		-m	rename the old directory to the new one, if the old directory doesn't exist, then create it.
+``` 
+useradd -m -s /bin/bash -G sudo Mike
+```
+> -G  add Mike to another group(s);
 
-4 Add/delete user to/from a second group
-	# gpasswd -a user group2
-	# gpasswd -d user group2
+```
+passwd Mike
+```
+> to set user's password, if you don't do this step, the user can't login the system;
 
-Add/del/list user and groups
+If you want the new user Mike could use "sudo", you need to modify the file "/etc/sudoers", or use below command
+for Ubuntu
+```
+gpasswd -a Mike sudo
+```
 
-1 groups operations
-1.1  create group
-	# groupadd grp
-	 add一个grp group
-1.2 rename group
-	# groupmod -n grp_new  grp_old
-	rename group name grp_old to grp_new
-1.3 delete group
-	# groupdel grp
-	delete group grp
-1.4 list group
-1.4.1 view current user belongs group(s);
-	# groups
-	list user belongs group(s)
-	# groups user
-1.4.2 list all groups
-	# cat /etc/group
-	some system has no /etc/group file, use another way
-	# cat /etc/passwd |awk -F [:] ‘{print $4}’ |sort|uniq | getent group |awk -F [:] ‘{print $1}’
-	note that getent command could find group infomation by GID;
+for CentOS
+```
+gpasswd -a Mike wheel
+```
+> then modify /etc/sudoers, uncomment #%wheel ALL=(ALL) ALL, means wheel group could oprate any machine by any user do any thing; 
 
-2 user operations
-2.1  add user
-	# useradd --help
+# Delete the user Mike
+Use the command
+```
+userdel -r Mike
+```
+> to delete the user and the home directory;
+
+or
+```
+userdel Mike
+```
+> just delete user Mike but keep the home directory;
+
+# Modify user's name User to Mike
+```
+usermod -l Mike -m -d /home/Mike User
+```
+> -l  modify user name User to Mike,
+> -d  appoint to user directory /home/Mike and the directory /home/Mike should exist;
+> -m  rename the old directory to the new one, if the old directory doesn't exist, then create it.
+
+# Add/delete user to/from a second group
+```
+gpasswd -a user group2
+```
+> Add user to a second group
+
+```
+gpasswd -d user group2
+```
+> delete user from a second group
+
+# groups operations
+1.  create group
+```
+groupadd grp
+```
+> add a grp group
+2. rename group
+```
+groupmod -n grp_new  grp_old
+```
+> rename group name grp_old to grp_new
+3. delete group
+```
+groupdel grp
+```
+> delete group grp
+4. list group
++ view current user belongs group(s);
+```
+groups
+```
++ list user belongs group(s)
+```
+groups user
+```
+
++ list all groups
+```
+cat /etc/group
+```
+> some system has no /etc/group file, use another way
+```
+cat /etc/passwd |awk -F [:] ‘{print $4}’ |sort|uniq | getent group |awk -F [:] ‘{print $1}’
+```
+> note that getent command could find group infomation by GID;
+
+# user operations
+## add user
+```
+useradd --help
 Usage: useradd [options] LOGIN
+
 Options:
   -b, --base-dir BASE_DIR       base directory for the home directory of the
                                 new account
@@ -88,11 +134,16 @@ Options:
   -u, --uid UID                 user ID of the new account
   -U, --user-group              create a group with the same name as the user
   -Z, --selinux-user SEUSER     use a specific SEUSER for the SELinux user mapping
+```
 
-	# passwd user
-		add a new user, must set user's passwd;
+```
+passwd user
+```
+> add a new user, must set user's passwd;
 
-2.2 Modify user's infomation
+## Modify user's infomation
+```
+usermod
 Usage: usermod [options] LOGIN
 Options:
   -c, --comment COMMENT         new value of the GECOS field
@@ -121,29 +172,51 @@ Options:
   -w, --add-subgids FIRST-LAST  add range of subordinate gids
   -W, --del-subgids FIRST-LAST  remvoe range of subordinate gids
   -Z, --selinux-user SEUSER     new SELinux user mapping for the user account
+```
 
-	# usermod -d /home/user1 -G grp user
-	modify user's login dir to /home/user1, then join in grp group, should use -G;
-	# gpasswd -a user group2
-	add user to group group2
-	# gpasswd -d user group2
-	delete user from group group2
-2.3 delete user
-	# userdel -r user
-	delete user test
-2.4 list users
-2.4.1 list current login users
-	# w
-	# who
-2.4.2 list current user's name
-	# whoami
-2.4.3 view user's information
-	# finger apacheuser
-	# id apacheuser
-2.4.4 view login log
-	# last  #view users who login succeed;
-	# lastb #view users who login failed;
-2.4.5 list all users
-	# cut -d : -f 1 /etc/passwd
-	# cat /etc/passwd |awk -F \: ‘{print $1}’
+```
+usermod -d /home/user1 -G grp user
+```
+modify user's login dir to /home/user1, then join in grp group, should use -G;
 
+```
+gpasswd -a user group2
+```
+> add user to group group2
+
+```
+gpasswd -d user group2
+```
+> delete user from group group2
+
+## delete user
+```
+userdel -r user
+```
+> delete user test
+
+## list users
+### list current login users
+```
+w
+who
+```
+### list current user's name
+```
+whoami
+```
+### view user's information
+```
+finger apacheuser
+id apacheuser
+```
+### view login log
+```
+last  #view users who login succeed;
+lastb #view users who login failed;
+```
+### list all users
+```
+cut -d : -f 1 /etc/passwd
+cat /etc/passwd | awk -F \: ‘{print $1}’
+```
