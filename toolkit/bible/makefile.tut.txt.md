@@ -352,7 +352,9 @@ targets : prerequisites ; command
 如果想定义一系列比较类似的文件,可以使用通配符;
 
 make支持三个通配符"*","?"和"[...]";与Unix的B-Shell是相同的;
-波浪号("~")字符在文件名中也有比较特殊的用途;如果是"~/test",这就表示当前用户的$HOME目录下的test文件;而"~soft/test"则表示用户soft宿主目录下的test;而在Windows或是MS-DOS下,用户没有宿主目录,那么波浪号会根据环境变量"HOME"而定;
+波浪号("~")字符在文件名中也有比较特殊的用途;
+如果是"~/test",这就表示当前用户的$HOME目录下的test文件;
+而"~soft/test"则表示用户soft宿主目录下的test;而在Windows或是MS-DOS下,用户没有宿主目录,那么波浪号会根据环境变量"HOME"而定;
 
 通配符可以代替一系列的文件,如"*.c"表示所以后缀为.c的文件;
 如果我们的文件名中有通配符本身,如"*",可以用转义字符"\",如"\*"来表示具体的"*"字符,而不是任意长度的字符串;
@@ -919,53 +921,80 @@ endif
 ```
 
 ## 5.3 变量高级用法
-	这里介绍两种变量的高级使用方法,第一种是变量值的替换;
-	可以替换变量中的共有部分,格式是"$(var:a=b)"或是"${var:a=b}",意思是,把变量"var"中所有以"a"字串"结尾"的"a"替换成"b"字串;这里的"结尾"意思是"空格"或是"结束符";
-	示例
-	foo := a.o b.o c.o
-	bar := $(foo:.o=.c)
-	示例中,我们先定义了一个"$(foo)"变量,而第二行的意思是把"$(foo)"中所有以".o"字串"结尾"全部替换成".c",所以我们的"$(bar)"的值就是"a.c b.c c.c";
-	另外一种变量替换的技术是以"静态模式"(参见前面章节)定义的,如:
-	foo := a.o b.o c.o
-	bar := $(foo:%.o=%.c)
-	这依赖于被替换字串中有相同的模式,模式中必须包含"%"字符;
-	本例同样让$(bar)变量的值为"a.c b.c c.c";
-	第二种高级用法是"把变量的值再当成变量";先看一个例子:
-	x = y
-	y = z
-	a := $($(x))
-	在这个例子中,$(x)的值是"y",所以$($(x))就是$(y),于是$(a)的值就是"z";(注意,是"x=y",而不是"x=$(y)")
-	我们还可以使用更多的层次
-	x = y
-	y = z
-	z = u
-	a := $($($(x)))
-	这里的$(a)的值是"u";
-	再复杂一点,使用"在变量定义中使用变量"的第一个方式,来看一个例子
-	x = $(y)
-	y = z
-	z = Hello
-	a := $($(x))
-	这里的$($(x))被替换成了$($(y)),因为$(y)值是"z",所以,最终结果是a:=$(z),也就是"Hello";
-	再复杂一点,加上函数
-	x = variable1
-	variable2 := Hello
-	y = $(subst 1,2,$(x))
-	z = y
-	a := $($($(z)))
-	这个例子中,"$($($(z)))"扩展为"$($(y))",而其再次被扩展为 "$($(subst 1,2,$(x)))";$(x)的值是"variable1",subst函数把"variable1"中的所有"1"字串替换成"2"字串,于是"variable1"变成"variable2",再取其值;最终$(a)的值就是$(variable2)的值"Hello";
-	在这种方式中,可以使用多个变量来组成一个新的变量名字,然后再取其值
-	first_second = Hello
-	a = first
-	b = second
-	all = $($a_$b)
-	这里的"$a_$b"组成了"first_second",于是,$(all)的值就是"Hello";
-	再来看看结合第一种技术的例子
-	a_objects := a.o b.o c.o
-	1_objects := 1.o 2.o 3.o
-	sources := $($(a1)_objects:.o=.c)
-	这个例子中,如果$(a1)的值是"a"的话,那么,$(sources)的值就是"a.c b.c c.c";如果$(a1)的值是"1",那么$(sources)的值是"1.c 2.c 3.c";
-	再来看一个这种技术和"函数"与"条件语句"一同使用的例子:
+这里介绍两种变量的高级使用方法,
+
+### 第一种是变量值的替换;
+可以替换变量中的共有部分,格式是"$(var:a=b)"或是"${var:a=b}",意思是,把变量"var"中所有以"a"字串"结尾"的"a"替换成"b"字串;这里的"结尾"意思是"空格"或是"结束符";
+示例
+```
+foo := a.o b.o c.o
+bar := $(foo:.o=.c)
+```
+示例中,我们先定义了一个"$(foo)"变量,而第二行的意思是把"$(foo)"中所有以".o"字串"结尾"全部替换成".c",所以我们的"$(bar)"的值就是"a.c b.c c.c";
+
+另外一种变量替换的技术是以"静态模式"(参见前面章节)定义的,如:
+```
+foo := a.o b.o c.o
+bar := $(foo:%.o=%.c)
+```
+这依赖于被替换字串中有相同的模式,模式中必须包含"%"字符;
+本例同样让$(bar)变量的值为"a.c b.c c.c";
+
+### 第二种高级用法是"把变量的值再当成变量";
+先看一个例子:
+```
+x = y
+y = z
+a := $($(x))
+```
+在这个例子中,$(x)的值是"y",所以$($(x))就是$(y),于是$(a)的值就是"z";(注意,是"x=y",而不是"x=$(y)")
+我们还可以使用更多的层次
+```
+x = y
+y = z
+z = u
+a := $($($(x)))
+```
+这里的$(a)的值是"u";
+
+再复杂一点,使用"在变量定义中使用变量"的第一个方式,来看一个例子
+```
+x = $(y)
+y = z
+z = Hello
+a := $($(x))
+```
+这里的$($(x))被替换成了$($(y)),因为$(y)值是"z",所以,最终结果是a:=$(z),也就是"Hello";
+
+再复杂一点,加上函数
+```
+x = variable1
+variable2 := Hello
+y = $(subst 1,2,$(x))
+z = y
+a := $($($(z)))
+```
+这个例子中,"$($($(z)))"扩展为"$($(y))",而其再次被扩展为 "$($(subst 1,2,$(x)))";$(x)的值是"variable1",subst函数把"variable1"中的所有"1"字串替换成"2"字串,于是"variable1"变成"variable2",再取其值;最终$(a)的值就是$(variable2)的值"Hello";
+
+在这种方式中,可以使用多个变量来组成一个新的变量名字,然后再取其值
+```
+first_second = Hello
+a = first
+b = second
+all = $($a_$b)
+```
+这里的"$a_$b"组成了"first_second",于是,$(all)的值就是"Hello";
+
+再来看看结合第一种技术的例子
+```
+a_objects := a.o b.o c.o
+1_objects := 1.o 2.o 3.o
+sources := $($(a1)_objects:.o=.c)
+```
+这个例子中,如果$(a1)的值是"a"的话,那么,$(sources)的值就是"a.c b.c c.c";如果$(a1)的值是"1",那么$(sources)的值是"1.c 2.c 3.c";
+
+再来看一个这种技术和"函数"与"条件语句"一同使用的例子:
+```
 ifdef do_sort
 func := sort
 else
@@ -973,75 +1002,137 @@ func := strip
 endif
 bar := a d b g q c
 foo := $($(func) $(bar))
-	这个示例中,如果定义了"do_sort",那么foo := $(sort a d b g q c),于是$(foo)的值就是"a b c d g q",而如果没有定义"do_sort",那么foo := $(sort a d b g q c),调用的就是strip函数;
-	当然,"把变量的值再当成变量"这种技术,同样可以用在操作符的左边:
+```
+这个示例中,如果定义了"do_sort",那么foo := $(sort a d b g q c),于是$(foo)的值就是"a b c d g q",而如果没有定义"do_sort",那么foo := $(strip a d b g q c),调用的就是strip函数;
+
+当然,"把变量的值再当成变量"这种技术,同样可以用在操作符的左边:
+```
 dir = foo
 $(dir)_sources := $(wildcard $(dir)/*.c)
 define $(dir)_print
 lpr $($(dir)_sources)
 endef
-	这个例子中定义了三个变量"dir","foo_sources"和"foo_print";
+```
+这个例子中定义了三个变量"dir","foo_sources"和"foo_print";
 
 ## 5.4 追加变量值
-	可以使用"+="操作符给变量追加值,如:
-	objects = main.o foo.o bar.o utils.o
-	objects += another.o
-	于是,$(objects)值变成"main.o foo.o bar.o utils.o another.o"(another.o被追加进去了)
-	使用"+="操作符,可以模拟为下面的这种例子:
-    objects = main.o foo.o bar.o utils.o
-    objects := $(objects) another.o
-	所不同的是,用"+="更为简洁;
-	如果变量之前没有定义过,那么,"+="会自动变成"=";如果前面定义过变量,那么"+="会继承于前次操作的赋值符;如果前一次的是":=",那么"+="会以":="作为其赋值符,如:
-	variable := value
-	variable += more
-	等价于:
-	variable := value
-	variable := $(variable) more
-	但如果是这种情况:
-	variable = value
-	variable += more
-	由于前次的赋值符是"=",所以"+="也会以"="来做为赋值;那么岂不会发生变量的递归定义,这是很不好的,但是make会自动解决这个问题,不必担心这个问题;
+可以使用"+="操作符给变量追加值,如:
+```
+objects = main.o foo.o bar.o utils.o
+objects += another.o
+```
+于是,$(objects)值变成"main.o foo.o bar.o utils.o another.o"(another.o被追加进去了)
+
+使用"+="操作符,可以模拟为下面的这种例子:
+```
+objects = main.o foo.o bar.o utils.o
+objects := $(objects) another.o
+```
+所不同的是,用"+="更为简洁;
+如果变量之前没有定义过,那么,"+="会自动变成"=";如果前面定义过变量,那么"+="会继承于前次操作的赋值符;如果前一次的是":=",那么"+="会以":="作为其赋值符,如:
+```
+variable := value
+variable += more
+```
+等价于:
+```
+variable := value
+variable := $(variable) more
+```
+但如果是这种情况:
+```
+variable = value
+variable += more
+```
+由于前次的赋值符是"=",所以"+="也会以"="来做为赋值;那么岂不会发生变量的递归定义,这是很不好的,但是make会自动解决这个问题,不必担心这个问题;
 
 ## 5.5 override 指示符
-	如果有变量是通过make的命令行参数设置的,那么Makefile中对这个变量的赋值会被忽略;
-	如果想在Makefile中设置这类参数的值,可以使用"override"指示符;其语法是
-	override <variable> = <value>
-	override <variable> := <value>
-	当然,你还可以追加
-	override <variable> += <more text>
-	对于多行的变量定义,用define指示符;
-	在define指示符前,也同样可以使用overide指示符,如:
+如果有变量是通过make的命令行参数设置的,那么Makefile中对这个变量的赋值会被忽略;命令行参数优先;
+
+如果想在Makefile中保持Makefile中定义的参数值,可以使用"override"指示符;其语法是
+```
+override <variable> = <value>
+override <variable> := <value>
+```
+当然,还可以追加
+```
+override <variable> += <more text>
+```
+对于多行的变量定义,用define指示符;
+在define指示符前,也同样可以使用overide指示符,如:
+```
 override define foo
 bar
 endef
+```
+如:
+```
+var = "var override"
+test:
+	echo ${var}
+```
+```
+$ make var='hi'
+echo hi
+hi
+```
+如:
+```
+override var = "var override"
+test:
+	echo ${var}
+```
+```
+$ make var='hi'
+echo "var override"
+var override
+```
+
 
 ## 5.6 多行变量
-	还有一种设置变量值的方法是使用define关键字;
-	使用define关键字设置变量的值可以有换行,这有利于定义一系列的命令("命令包"的技术就是利用这个关键字);
-	define指示符后面跟的是变量的名字,而重起一行定义变量的值,定义是以endef关键字结束;其工作方式和"="操作符一样;变量的值可以包含函数,命令,文字或是其它变量;
-	命令需要以[Tab]键开头,所以如果用define定义的命令变量中没有以[Tab]键开头,那么make就不会把其认为是命令;
+还有一种设置变量值的方法是使用define关键字;
+使用define关键字设置变量的值可以有换行,这有利于定义一系列的命令("命令包"的技术就是利用这个关键字);
+
+define指示符后面跟的是变量的名字,而重起一行定义变量的值,定义是以endef关键字结束;
+其工作方式和"="操作符一样;变量的值可以包含函数,命令,文字或是其它变量;
+命令需要以[Tab]键开头,所以如果用define定义的命令变量中没有以[Tab]键开头,那么make就不会把其认为是命令;
+
 下面的这个示例展示了define的用法:
+```
 define two-lines
 	echo foo
 	echo $(bar)
 endef
+```
 
 ## 5.7 环境变量
-	系统环境变量可以在make开始运行时被载入内存中,但是如果Makefile中已定义了这个变量,或是这个变量由make命令行带入,那么系统的环境变量的值将被覆盖;如果make指定了"-e"参数,那么,系统环境变量将覆盖Makefile中定义的变量;
-	如果我们在环境变量中设置了"CFLAGS"环境变量,那么我们就可以在所有的Makefile中使用这个变量;这对于我们使用统一的编译参数有比较大的好处;如果Makefile中定义了CFLAGS,则会使用Makefile中的这个变量,如果没有定义则使用系统环境变量的值,一个共性和个性的统一,很像"全局变量"和"局部变量"的特性;
-	当make嵌套调用时,上层Makefile中定义的变量会以系统环境变量的方式传递到下层的Makefile中;默认情况下,只有通过命令行设置的变量会被传递;而定义在文件中的变量,如果要向下层 Makefile传递,则需要使用exprot关键字来声明;
-	不推荐把许多变量都定义在系统环境中,这样,在执行不用的Makefile时,拥有的是同一套系统变量,这可能会带来更多的麻烦;
+系统环境变量可以在make开始运行时被载入内存中.
++ 如果Makefile中已定义了这个变量,或是这个变量由make命令行带入,那么系统的环境变量的值将被覆盖;
++ 如果make指定了"-e"参数,那么,系统环境变量将覆盖Makefile中定义的变量;
++ 如果我们在环境变量中设置了"CFLAGS"环境变量,那么我们就可以在所有的Makefile中使用这个变量;这对于我们使用统一的编译参数有比较大的好处;如果Makefile中定义了CFLAGS,则会使用Makefile中的这个变量,如果没有定义则使用系统环境变量的值,一个共性和个性的统一,很像"全局变量"和"局部变量"的特性;
+
+当make嵌套调用时,上层Makefile中定义的变量会以系统环境变量的方式传递到下层的Makefile中;
+
+默认情况下,只有通过命令行设置的变量会被传递;而定义在文件中的变量,如果要向下层 Makefile传递,则需要使用export关键字来声明;
+
+不推荐把许多变量都定义在系统环境中,这样,在执行不用的Makefile时,拥有的是同一套系统变量,这可能会带来更多的麻烦;
 
 ## 5.8 目标变量
-	前面所讲的在Makefile中定义的变量都是"全局变量",在整个文件都可以访问这些变量;"自动化变量"除外,如"$<"等这种类量的自动化变量就属于"规则型变量",这种变量的值依赖于规则的目标和依赖目标的定义;
-	也可以为某个目标设置局部变量,这种变量被称为"Target-specific Variable",它可以和"全局变量"同名,因为它的作用范围只在这条规则以及连带规则中,所以其值也只在作用范围内有效;而不会影响规则链以外的全局变量的值;
-	其语法是:
-	<target ...> : <variable-assignment>
-	<target ...> : overide <variable-assignment>
-	<variable-assignment>可以是前面讲过的各种赋值表达式,如"=",":=","+="或"?=";第二个语法是针对于make命令行带入的变量,或是系统环境变量;
-	这个特性非常有用,当我们设置了这样一个变量,这个变量会作用到由这个目标所引发的所有的规则中去;如:
-############################################
+前面所讲的在Makefile中定义的变量都是"全局变量",在整个文件都可以访问这些变量;
+"自动化变量"除外,如"$<"等这种类型的自动化变量就属于"规则型变量",这种变量的值依赖于规则的目标和依赖目标的定义;
+
+也可以为某个目标设置局部变量,这种变量被称为"Target-specific Variable",它可以和"全局变量"同名,因为它的作用范围只在这条规则以及连带规则中,所以其值也只在作用范围内有效;而不会影响规则链以外的全局变量的值;
+其语法是:
+```
+<target ...> : <variable-assignment>
+<target ...> : overide <variable-assignment>
+```
+variable-assignment可以是前面讲过的各种赋值表达式,如"=",":=","+="或"?=";第二个语法是针对于make命令行带入的变量,或是系统环境变量;
+
+这个特性非常有用,当我们设置了这样一个变量,这个变量会作用到由这个目标所引发的所有的规则中去;如:
+```
 prog : CFLAGS = -g
+
 prog : prog.o foo.o bar.o
 	$(CC) $(CFLAGS) prog.o foo.o bar.o
 prog.o : prog.c
@@ -1050,27 +1141,31 @@ foo.o : foo.c
 	$(CC) $(CFLAGS) foo.c
 bar.o : bar.c
 	$(CC) $(CFLAGS) bar.c
-############################################
-	在这个示例中,不管全局的$(CFLAGS)的值是什么,在prog目标以及所引发的所有规则中(prog.o foo.o bar.o的规则),$(CFLAGS)的值都是"-g";
+```
+在这个示例中,不管全局的$(CFLAGS)的值是什么,在prog目标以及所引发的所有规则中(prog.o foo.o bar.o的规则),$(CFLAGS)的值都是"-g";
 
 ## 5.9 模式变量
-	在GNU的make中,还支持模式变量(Pattern-specific Variable),通过上面的目标变量,我们知道,变量可以定义在某个目标上;模式变量的好处就是,我们可以给定一种"模式",可以把变量定义在符合这种模式的所有目标上;
-	make的"模式"一般是至少含有一个"%"的,所以可以以如下方式给所有以[.o]结尾的目标定义目标变量:
-	%.o : CFLAGS = -O
-	同样,模式变量的语法和"目标变量"一样:
+在GNU的make中,还支持模式变量(Pattern-specific Variable),通过上面的目标变量,我们知道,变量可以定义在某个目标上;模式变量的好处就是,我们可以给定一种"模式",可以把变量定义在符合这种模式的所有目标上;
+
+make的"模式"一般是至少含有一个"%"的,所以可以用如下方式给所有以[.o]结尾的目标定义目标变量:
+```
+%.o : CFLAGS = -O
+```
+同样,模式变量的语法和"目标变量"一样:
+```
 <pattern ...> : <variable-assignment>
 <pattern ...> : override <variable-assignment>
-	override同样是针对于系统环境传入的变量,或是make命令行指定的变量;
+```
+override同样是针对于系统环境传入的变量,或是make命令行指定的变量;
 
 
 # 6. 使用条件判断
-
-	使用条件判断可以让make根据运行时的不同情况选择不同的执行分支;
-	条件表达式可以是比较变量的值,也可以比较变量和常量的值;
+使用条件判断可以让make根据运行时的不同情况选择不同的执行分支;
+条件表达式可以比较变量的值,也可以比较变量和常量的值;
 
 ## 6.1 示例
-	下面的例子,判断$(CC)变量是否"gcc",如果是的话,则使用GNU函数编译目标;
-############################################
+下面的例子,判断$(CC)变量是否"gcc",如果是的话,则使用GNU函数编译目标;
+```
 libs_for_gcc = -lgnu
 normal_libs =
 foo: $(objects)
@@ -1079,20 +1174,26 @@ ifeq ($(CC),gcc)
 else
 	$(CC) -o foo $(objects) $(normal_libs)
 endif
-############################################
-	在上面示例的这个规则中,目标"foo"可以根据变量"$(CC)"值来选取不同的函数库来编译程序;
-	从上面的示例中看到三个关键字ifeq,else和endif;
-	ifeq的意思表示条件语句的开始,并指定一个条件表达式,表达式包含两个参数,以逗号分隔,表达式以圆括号括起;
-	else表示条件表达式为假的情况;
-	endif表示一个条件语句的结束,任何一个条件表达式都应该以endif结束;
-	当我们的变量$(CC)值是"gcc"时,目标foo的规则是
+```
+在上面示例的这个规则中,目标"foo"可以根据变量"$(CC)"值来选取不同的函数库来编译程序;
+
+从上面的示例中看到三个关键字ifeq,else和endif;
++ ifeq的意思表示条件语句的开始,并指定一个条件表达式,表达式包含两个参数,以逗号分隔,表达式以圆括号括起;
++ else表示条件表达式为假的情况;
++ endif表示一个条件语句的结束,任何一个条件表达式都应该以endif结束;
+
+当我们的变量$(CC)值是"gcc"时,目标foo的规则是
+```
 foo: $(objects)
 	$(CC) -o foo $(objects) $(libs_for_gcc)
-	当我们的变量$(CC)值不是"gcc"时(比如"cc"),目标foo的规则是:
+```
+当我们的变量$(CC)值不是"gcc"时(比如"cc"),目标foo的规则是:
+```
 foo: $(objects)
 	$(CC) -o foo $(objects) $(normal_libs)
-	当然,我们还可以把上面的那个例子写得更简洁一些:
-############################################
+```
+当然,我们还可以把上面的那个例子写得更简洁一些:
+```
 libs_for_gcc = -lgnu
 normal_libs =
 ifeq ($(CC),gcc)
@@ -1102,43 +1203,59 @@ libs=$(normal_libs)
 endif
 foo: $(objects)
 	$(CC) -o foo $(objects) $(libs)
-############################################
+```
 
 ## 6.2 语法
-	条件表达式的语法为
+条件表达式的语法为
+```
 <conditional-directive>
 <text-if-true>
 endif
-	以及
+```
+以及
+```
 <conditional-directive>
 <text-if-true>
 else
 <text-if-false>
 endif
-	其中<conditional-directive>表示条件关键字,如"ifeq";这个关键字有四个;
-	第一个是"ifeq"
+```
+其中conditional-directive表示条件关键字,如"ifeq";这个关键字有四个;
+1. 第一个是"ifeq"
+```
 	ifeq (<arg1>, <arg2>)
 	ifeq '<arg1>' '<arg2>'
 	ifeq "<arg1>" "<arg2>"
 	ifeq "<arg1>" '<arg2>'
 	ifeq '<arg1>' "<arg2>"
-	比较参数"arg1"和"arg2"的值是否相同;当然,参数中我们还可以使用make的函数;如:
+```
+> 比较参数"arg1"和"arg2"的值是否相同;当然,参数中我们还可以使用make的函数;如:
+```
 	ifeq ($(strip $(foo)),)
 	<text-if-empty>
 	endif
-	这个示例中使用了"strip"函数,如果这个函数的返回值是空(Empty),那么<text-if-empty>就生效;
-	第二个条件关键字是"ifneq";语法是:
+```
+> 这个示例中使用了"strip"函数,如果这个函数的返回值是空(Empty),那么text-if-empty就生效;
+
+2. 第二个条件关键字是"ifneq";
+```
 	ifneq (<arg1>, <arg2>)
 	ifneq '<arg1>' '<arg2>'
 	ifneq "<arg1>" "<arg2>"
 	ifneq "<arg1>" '<arg2>'
 	ifneq '<arg1>' "<arg2>"
-	其比较参数"arg1"和"arg2"的值是否相同,如果不同,则为真;和"ifeq"类似;
-	第三个条件关键字是"ifdef";语法是:
+```
+> 其比较参数"arg1"和"arg2"的值是否相同,如果不同,则为真;和"ifeq"类似;
+
+3. 第三个条件关键字是"ifdef";
+```
 	ifdef <variable-name>
-	如果变量<variable-name>的值非空,表达式为真;否则,表达式为假;<variable-name>同样可以是一个函数的返回值;
-	注意,ifdef只是测试一个变量是否有值,并不会把变量展开到当前位置;还是来看两个例子:
-	示例一:
+```
+如果变量variable-name的值非空,表达式为真;否则,表达式为假;variable-name同样可以是一个函数的返回值;
+
+注意,ifdef只是测试一个变量是否有值,并不会把变量展开到当前位置;来看两个例子:
+示例一:
+```
 bar =
 foo = $(bar)
 ifdef foo
@@ -1146,758 +1263,1010 @@ frobozz = yes
 else
 frobozz = no
 endif
-	示例二:
+```
+示例二:
+```
 foo =
 ifdef foo
 frobozz = yes
 else
 frobozz = no
 endif
-	第一个例子中,"$(frobozz)"值是"yes",第二个则是"no";
-	第四个条件关键字是"ifndef";其语法是:
+```
+第一个例子中,"$(frobozz)"值是"yes",第二个则是"no";
+
+4. 第四个条件关键字是"ifndef";
+```
 	ifndef <variable-name>
-	这个和"ifdef"是相反的意思;
-	在<conditional-directive>这一行上,多余的空格是被允许的,但是不能以[Tab]键做为开始(不然就被认为是命令);而注释符"#"同样也是安全的;"else"和"endif"也一样,只要不是以[Tab]键开始就行了;
-	注意,make是在读取Makefile时计算条件表达式的值,并根据条件表达式的值来选择语句,所以最好不要把自动化变量(如"$@"等)放入条件表达式中,因为自动化变量是在运行时才有的;
-	而且,为了避免混乱,make不允许把整个条件语句分成两部分放在不同的文件中;
+```
+这个和"ifdef"是相反的意思;
+在conditional-directive这一行上,多余的空格是被允许的,但是不能以[Tab]键做为开始(不然就被认为是命令);而注释符"#"同样也是安全的;"else"和"endif"也一样,只要不是以[Tab]键开始就行了;
+
+注意,make是在读取Makefile时计算条件表达式的值,并根据条件表达式的值来选择语句,所以最好不要把自动化变量(如"$@"等)放入条件表达式中,因为自动化变量是在运行时才有的;
+而且,为了避免混乱,make不允许把整个条件语句分成两部分放在不同的文件中;
 
 
 # 7. 使用函数
-
-	在Makefile中可以使用函数来处理变量,从而让命令或是规则更为灵活和具有智能;
-	函数调用后,函数的返回值可以当做变量来使用;
+在Makefile中可以使用函数来处理变量,从而让命令或是规则更为灵活和具有智能;
+函数调用后,函数的返回值可以当做变量来使用;
 
 ## 7.1 函数的调用语法
-	函数调用,很像变量的使用,也是以"$"来标识的,其语法如下:
-	$(<function> <arguments>)
-	或是
-	${<function> <arguments>}
-	这里<function>就是函数名;<arguments>是函数的参数,参数间以逗号","分隔,而函数名和参数之间以"空格"分隔;
-	函数调用以"$"开头,以圆括号或花括号把函数名和参数括起;感觉很像一个变量,是不是?函数中的参数可以使用变量,为了风格的统一,函数和变量的括号最好一样,如使用"$(subst a,b,$(x))"这样的形式,而不是"$(subst a,b,${x})"的形式;因为统一会更清楚,也会减少一些不必要的麻烦;
-	还是来看一个示例:
-	comma:= ,
-	empty:=
-	space:= $(empty) $(empty)
-	foo:= a b c
-	bar:= $(subst $(space),$(comma),$(foo))
-	在这个示例中,$(comma)的值是一个逗号;$(space)使用了$(empty)定义了一个空格,$(foo)的值是"a b c",$(bar)的定义调用了函数"subst",这是一个替换函数,这个函数有三个参数,第一个参数是被替换字串,第二个参数是替换字串,第三个参数是替换操作作用的字串;这个函数也就是把$(foo)中的空格替换成逗号,所以$(bar)的值是"a,b,c";
+函数调用很像变量的使用,也是以"$"来标识的,其语法如下:
+```
+$(<function> <arguments>)
+```
+或是
+```
+${<function> <arguments>}
+```
+这里function就是函数名;arguments是函数的参数,参数间以逗号","分隔,而函数名和参数之间以"空格"分隔;
+
+函数调用以"$"开头,以圆括号或花括号把函数名和参数括起;
+
+函数中的参数可以使用变量,为了风格的统一,函数和变量的括号最好一样,如使用"$(subst a,b,$(x))"这样的形式,而不是"$(subst a,b,${x})"的形式;因为统一会更清楚,也会减少一些不必要的麻烦;
+
+来看一个示例:
+```
+comma:= ,
+empty:=
+space:= $(empty) $(empty)
+foo:= a b c
+bar:= $(subst $(space),$(comma),$(foo))
+```
+在这个示例中,$(comma)的值是一个逗号;$(space)使用了$(empty)定义了一个空格,$(foo)的值是"a b c",
+
+$(bar)的定义调用了函数"subst",这是一个替换函数,这个函数有三个参数,第一个参数是被替换字串,第二个参数是替换字串,第三个参数是替换操作作用的字串;这个函数也就是把$(foo)中的空格替换成逗号,所以$(bar)的值是"a,b,c";
 
 ## 7.2 字符串处理函数
+```
 $(subst <from>,<to>,<text>)
-	名称:字符串替换函数subst;
-	功能:把字串<text>中的<from>字符串替换成<to>;
-	返回:函数返回被替换过后的字符串;
-	示例:
-		$(subst ee,EE,feet on the street),
-		把"feet on the street"中的"ee"替换成"EE",返回结果是"fEEt on the strEEt";
-$(patsubst <pattern>,<replacement>,<text>)
-	名称:模式字符串替换函数patsubst;
-	功能:查找<text>中的单词(单词以"空格","Tab","回车"或"换行"分隔)是否符合模式<pattern>,如果匹配的话,则以<replacement>替换;这里<pattern>可以包括通配符"%",表示任意长度的字串;如果<replacement>中也包含"%",那么<replacement>中的这个"%"将是<pattern>中的那个"%"所代表的字串;(可以用"\"来转义,以"\%"来表示真实的"%"字符);
-	返回:函数返回被替换过后的字符串;
-	示例:
-		$(patsubst %.c,%.o,x.c.c bar.c)
-		把字串"x.c.c bar.c"符合模式[%.c]的单词替换成[%.o],返回结果是"x.c.o bar.o"
-	备注:
-	这和我们前面"变量章节"说过的相关知识有点相似;如:
-	"$(var:<pattern>=<replacement>)"
-	相当于
-	"$(patsubst <pattern>,<replacement>,$(var))",
-	而"$(var: <suffix>=<replacement>)"
-	则相当于
-	"$(patsubst %<suffix>,%<replacement>,$(var))";
-	例如有:objects = foo.o bar.o baz.o,
-	那么,"$(objects:.o=.c)"和"$(patsubst %.o,%.c,$(objects))"是一样的;
-$(strip <string>)
-	名称:去空格函数  strip;
-	功能:去掉<string>字串中开头和结尾的空字符;
-	返回:返回被去掉空格的字符串值;
-	示例:
-		$(strip a b c )
-		把字串"a b c "去到开头和结尾的空格,结果是"a b c";
-$(findstring <find>,<in>)
-	名称:查找字符串函数  findstring;
-	功能:在字串<in>中查找<find>字串;
-	返回:如果找到,那么返回<find>,否则返回空字符串;
-	示例:
-		$(findstring a,a b c)
-		$(findstring a,b c)
-		第一个函数返回"a"字符串,第二个返回""字符串(空字符串)
-$(filter <pattern...>,<text>)
-	名称:过滤函数  filter;
-	功能:以<pattern>模式过滤<text>字符串中的单词,保留符合模式<pattern>的单词;可以有多个模式;
-	返回:返回符合模式<pattern>的字串;
-	示例:
-		sources := foo.c bar.c baz.s ugh.h
-		foo: $(sources)
-			cc $(filter %.c %.s,$(sources)) -o foo
-		$(filter %.c %.s,$(sources))返回的值是"foo.c bar.c baz.s";
-$(filter-out <pattern...>,<text>)
-	名称:反过滤函数  filter-out;
-	功能:以<pattern>模式过滤<text>字符串中的单词,去除符合模式<pattern>的单词;可以有多个模式;
-	返回:返回不符合模式<pattern>的字串;
-	示例:
-		objects=main1.o foo.o main2.o bar.o
-		mains=main1.o main2.o
-		$(filter-out $(mains),$(objects)) 返回值是"foo.o bar.o";
-$(sort <list>)
-	名称:排序函数  sort;
-	功能:给字符串<list>中的单词排序(升序);
-	返回:返回排序后的字符串;
-	示例:$(sort foo bar lose)返回"bar foo lose" ;
-	备注:sort函数会去掉<list>中相同的单词;
-$(word <n>,<text>)
-	名称:取单词函数  word;
-	功能:取字符串<text>中第<n>个单词;(从一开始)
-	返回:返回字符串<text>中第<n>个单词;如果<n>比<text>中的单词数要大,那么返回空字符串;
-	示例:$(word 2, foo bar baz)返回值是"bar";
-$(wordlist <s>,<e>,<text>)
-	名称:取单词串函数  wordlist;
-	功能:从字符串<text>中取从<s>开始到<e>的单词串;<s>和<e>是一个数字;
-	返回:返回字符串<text>中从<s>到<e>的单词字串;如果<s>比<text>中的单词数要大,那么返回空字符串;如果<e>大于<text>的单词数,那么返回从<s>开始, 到<text>结束的单词串;
-	示例: $(wordlist 2, 3, foo bar baz)返回值是"bar baz";
-$(words <text>)
-	名称:单词个数统计函数  words;
-	功能:统计<text>中字符串中的单词个数;
-	返回:返回<text>中的单词数;
-	示例:$(words, foo bar baz)返回值是"3";
-	备注:如果我们要取<text>中最后的一个单词,我们可以这样:$(word $(words <text>),<text>);
-$(firstword <text>)
-	名称:首单词函数  firstword;
-	功能:取字符串<text>中的第一个单词;
-	返回:返回字符串<text>的第一个单词;
-	示例:$(firstword foo bar)返回值是"foo";
-	备注:这个函数可以用word函数来实现:$(word 1,<text>);
+```
++ 名称:字符串替换函数subst;
++ 功能:把字串text中的from字符串替换成to;
++ 返回:函数返回被替换过后的字符串;
 
-	以上是所有的字符串操作函数,如果搭配混合使用,可以完成比较复杂的功能;这里举一个现实中应用的例子;我们知道,make使用"VPATH"变量来指定"依赖文件"的搜索路径;于是,我们可以利用这个搜索路径来指定编译器对头文件的搜索路径参数CFLAGS,如:
-	override CFLAGS += $(patsubst %,-I%,$(subst :, ,$(VPATH)))
-	如果我们的"$(VPATH)"值是"src:../headers",那么"$(patsubst %,-I%,$(subst :, ,$(VPATH)))"将返回"-Isrc -I../headers",这正是cc或gcc搜索头文件路径的参数;
+> 示例:
+`$(subst ee,EE,feet on the street)`
+>> 把"feet on the street"中的"ee"替换成"EE",返回结果是"fEEt on the strEEt";
+
+```
+$(patsubst <pattern>,<replacement>,<text>)
+```
++ 名称:模式字符串替换函数patsubst;
++ 功能:查找text中的单词(单词以"空格","Tab","回车"或"换行"分隔)是否符合模式pattern,如果匹配的话,则以replacement替换;这里pattern可以包括通配符"%",表示任意长度的字串;如果replacement中也包含"%",那么replacement中的这个"%"将是pattern中的那个"%"所代表的字串;(可以用"\"来转义,以"\%"来表示真实的"%"字符);
++ 返回:函数返回被替换过后的字符串;
+
+> 示例:
+`$(patsubst %.c,%.o,x.c.c bar.c)`
+>> 把字串"x.c.c bar.c"符合模式[%.c]的单词替换成[%.o],返回结果是"x.c.o bar.o"
+
+> 这和我们前面"变量章节"说过的相关知识有点相似;
+如:`"$(var:<pattern>=<replacement>)"`相当于
+`"$(patsubst <pattern>,<replacement>,$(var))",`
+而`"$(var: <suffix>=<replacement>)"`
+则相当于`"$(patsubst %<suffix>,%<replacement>,$(var))"`;
+
+> 例如有:objects = foo.o bar.o baz.o,
+那么,"$(objects:.o=.c)"和"$(patsubst %.o,%.c,$(objects))"是一样的;
+
+```
+$(strip <string>)
+```
++ 名称:去空格函数  strip;
++ 功能:去掉string字串中开头和结尾的空字符;
++ 返回:返回被去掉空格的字符串值;
+
+> 示例:
+`$(strip a b c )`
+>> 把字串"a b c "去到开头和结尾的空格,结果是"a b c";
+
+```
+$(findstring <find>,<in>)
+```
++ 名称:查找字符串函数  findstring;
++ 功能:在字串in中查找find字串;
++ 返回:如果找到,那么返回find,否则返回空字符串;
+
+> 示例:
+```
+$(findstring a,a b c)
+$(findstring a,b c)
+```
+> 第一个函数返回"a"字符串,第二个返回""字符串(空字符串)
+
+```
+$(filter <pattern...>,<text>)
+```
++ 名称:过滤函数 filter;
++ 功能:以pattern模式过滤text字符串中的单词,保留符合模式pattern的单词;可以有多个模式;
++ 返回:返回符合模式pattern的字串;
+
+> 示例:
+```
+sources := foo.c bar.c baz.s ugh.h
+foo: $(sources)
+	cc $(filter %.c %.s,$(sources)) -o foo
+```
+> $(filter %.c %.s,$(sources))返回的值是"foo.c bar.c baz.s";
+
+```
+$(filter-out <pattern...>,<text>)
+```
++ 名称:反过滤函数 filter-out;
++ 功能:以pattern模式过滤text字符串中的单词,去除符合模式pattern的单词;可以有多个模式;
++ 返回:返回不符合模式pattern的字串;
+
+> 示例:
+```
+objects = main1.o foo.o main2.o bar.o
+mains = main1.o main2.o
+target = $(filter-out $(mains),$(objects))
+```
+> target是"foo.o bar.o";
+
+```
+$(sort <list>)
+```
++ 名称:排序函数  sort;
++ 功能:给字符串list中的单词排序(升序);
++ 返回:返回排序后的字符串;
+> 示例:$(sort foo bar lose)返回"bar foo lose" ;
+>> 备注:sort函数会去掉list中相同的单词;
+
+```
+$(word <n>,<text>)
+```
++ 名称:取单词函数 word;
++ 功能:取字符串text中第n个单词;(从1开始)
++ 返回:返回字符串text中第n个单词;如果n比text中的单词数要大,那么返回空字符串;
+> 示例:$(word 2, foo bar baz)返回值是"bar";
+
+```
+$(wordlist <s>,<e>,<text>)
+```
++ 名称:取单词串函数 wordlist;
++ 功能:从字符串text中取从s开始到e的单词串;s和e是数字;
++ 返回:返回字符串text中从s到e的单词字串;如果s比text中的单词数要大,那么返回空字符串;如果e大于text的单词数,那么返回从s始,到text结束的单词串;
+
+> 示例: $(wordlist 2, 3, foo bar baz)返回值是"bar baz";
+
+```
+$(words <text>)
+```
++ 名称:单词个数统计函数  words;
++ 功能:统计text中字符串中的单词个数;
++ 返回:返回text中的单词数;
+> 示例:$(words, foo bar baz)返回值是"3";
+>> 备注:如果我们要取text中最后的一个单词,我们可以这样:$(word $(words text),text);
+
+```
+$(firstword <text>)
+```
++ 名称:首单词函数 firstword;
++ 功能:取字符串text中的第一个单词;
++ 返回:返回字符串text的第一个单词;
+> 示例:$(firstword foo bar)返回值是"foo";
+>> 备注:这个函数可以用word函数来实现:$(word 1,text);
+
+以上是所有的字符串操作函数,如果搭配混合使用,可以完成比较复杂的功能;
+
+这里举一个现实中应用的例子;我们知道,make使用"VPATH"变量来指定"依赖文件"的搜索路径;于是,我们可以利用这个搜索路径来指定编译器对头文件的搜索路径参数CFLAGS,
+如:
+`override CFLAGS += $(patsubst %,-I%,$(subst :, ,$(VPATH)))`
+
+如果我们的"$(VPATH)"值是"src:../headers",那么"$(patsubst %,-I%,$(subst :, ,$(VPATH)))"将返回"-Isrc -I../headers",这正是cc或gcc搜索头文件路径的参数;
 
 ## 7.3 文件名操作函数
-	下面我们要介绍的函数主要是处理文件名的;每个函数的参数字符串都会被当做一个或是一系列的文件名来对待;
+下面我们要介绍的函数主要是处理文件名的,每个函数的参数字符串都会被当做一个或是一系列的文件名来对待;
+
+```
 $(dir <names...>)
-	名称:取目录函数  dir;
-	功能:从文件名序列<names>中取出目录部分;目录部分是指最后一个斜杠("/")之前的部分;如果没有反斜杠,那么返回"./";
-	返回:返回文件名序列<names>的目录部分;
-	示例: $(dir src/foo.c hacks)返回值是"src/ ./";
+```
++ 名称:取目录函数 dir;
++ 功能:从文件名序列names中取出目录部分;目录部分是指最后一个斜杠("/")之前的部分;如果没有反斜杠,那么返回"./";
++ 返回:返回文件名序列names的目录部分;
+> 示例: $(dir src/foo.c hacks)返回值是"src/ ./";
+
+```
 $(notdir <names...>)
-	名称:取文件函数  notdir;
-	功能:从文件名序列<names>中取出非目录部分;非目录部分是指最后一个斜杠("/")之后的部分;
-	返回:返回文件名序列<names>的非目录部分;
-	示例: $(notdir src/foo.c hacks)返回值是"foo.c hacks";
+```
++ 名称:取文件函数 notdir;
++ 功能:从文件名序列names中取出非目录部分;非目录部分是指最后一个斜杠("/")之后的部分;
++ 返回:返回文件名序列names的非目录部分;
+> 示例: $(notdir src/foo.c hacks)返回值是"foo.c hacks";
+
+```
 $(suffix <names...>)
-	名称:取后缀函数  suffix;
-	功能:从文件名序列<names>中取出各个文件名的后缀;
-	返回:返回文件名序列<names>的后缀序列,如果文件没有后缀,则返回空字串;
-	示例:$(suffix src/foo.c src-1.0/bar.c hacks)返回值是".c .c";
+```
++ 名称:取后缀函数 suffix;
++ 功能:从文件名序列names中取出各个文件名的后缀;
++ 返回:返回文件名序列names的后缀序列,如果文件没有后缀,则返回空字串;
+> 示例:$(suffix src/foo.c src-1.0/bar.c hacks)返回值是".c .c";
+
+```
 $(basename <names...>)
-	名称:取前缀函数  basename;
-	功能:从文件名序列<names>中取出各个文件名的前缀部分;
-	返回:返回文件名序列<names>的前缀序列,如果文件没有前缀,则返回空字串;
-	示例:$(basename src/foo.c src-1.0/bar.c hacks)返回值是"src/foo src-1.0/bar hacks";
+```
++ 名称:取前缀函数 basename;
++ 功能:从文件名序列names中取出各个文件名的前缀部分;
++ 返回:返回文件名序列names的前缀序列,如果文件没有前缀,则返回空字串;
+> 示例:$(basename src/foo.c src-1.0/bar.c hacks)返回值是"src/foo src-1.0/bar hacks";
+
+```
 $(addsuffix <suffix>,<names...>)
-	名称:加后缀函数  addsuffix;
-	功能:把后缀<suffix>加到<names>中的每个单词后面;
-	返回:返回加过后缀的文件名序列;
-	示例:$(addsuffix .c,foo bar)返回值是"foo.c bar.c";
+```
++ 名称:加后缀函数  addsuffix;
++ 功能:把后缀suffix加到names中的每个单词后面;
++ 返回:返回加过后缀的文件名序列;
+> 示例:$(addsuffix .c,foo bar)返回值是"foo.c bar.c";
+
+```
 $(addprefix <prefix>,<names...>)
-	名称:加前缀函数  addprefix;
-	功能:把前缀<prefix>加到<names>中的每个单词后面;
-	返回:返回加过前缀的文件名序列;
-	示例:$(addprefix src/,foo bar)返回值是"src/foo src/bar";
+```
++ 名称:加前缀函数  addprefix;
++ 功能:把前缀prefix加到names中的每个单词后面;
++ 返回:返回加过前缀的文件名序列;
+> 示例:$(addprefix src/,foo bar)返回值是"src/foo src/bar";
+
+```
 $(join <list1>,<list2>)
-	名称:连接函数  join;
-	功能:把<list2>中的单词对应地加到<list1>的单词后面;如果<list1>的单词个数要 比<list2>的多,那么,<list1>中的多出来的单词将保持原样;如果<list2>的单词个数要 比<list1>多,那么,<list2>多出来的单词将被复制到<list2>中;
-	返回:返回连接过后的字符串;
-	示例:$(join aaa bbb , 111 222 333)返回值是"aaa111 bbb222 333";
+```
++ 名称:连接函数 join;
++ 功能:把list2中的单词对应地加到list1的单词后面;如果list1的单词个数比list2的多,那么list1中多出来的单词将保持原样;如果list2的单词个数比list1多,那么list2多出来的单词将被复制到list2中;
++ 返回:返回连接过后的字符串;
+> 示例:$(join aaa bbb, 111 222 333)返回值是"aaa111 bbb222 333";
 
 ## 7.4 foreach 函数
-	foreach函数和别的函数不一样;因为这个函数是用来做循环用的,
-	Makefile中的foreach函数几乎是仿照于Unix标准Shell(/bin/sh)中的for语句,或是C-Shell(/bin/csh)中的foreach语句而构建的;它的语法是:
-	$(foreach <var>,<list>,<text>)
-	这个函数的意思是,把参数<list>中的单词逐一取出放到参数<var>所指定的变量中,然后再执行<text>所包含的表达式;
-	每一次<text>会返回一个字符串,循环过程中,<text>所返回的每个字符串会以空格分隔,最后当整个循环结束时,<text>所返回的每个字符串所组成的整个字符串(以空格分隔)将会是foreach函数的返回值;
-	所以,<var>最好是一个变量名,<list>可以是一个表达式,而<text>中一般会使用<var>这个参数来依次枚举<list>中的单词;举个例子:
-	names := a b c d
-	files := $(foreach n,$(names),$(n).o)
-	上面的例子中,$(name)中的单词会被挨个取出,并存到变量"n"中,"$(n).o"每次根据"$(n)"计算出一个值,这些值以空格分隔,最后作为foreach函数的返回,所以$(files)的值是"a.o b.o c.o d.o";
-	注意,foreach中的<var>参数是一个临时的局部变量,foreach函数执行完后,参数<var>的变量将不再作用,其作用域只在foreach函数当中;
+foreach函数和别的函数不一样;因为这个函数是用来做循环用的,
+Makefile中的foreach函数几乎是仿照于Unix标准Shell(/bin/sh)中的for语句,或是C-Shell(/bin/csh)中的foreach语句而构建的;
+
+它的语法是:
+```
+$(foreach <var>,<list>,<text>)
+```
+这个函数的意思是,把参数list中的单词逐一取出放到参数var所指定的变量中,然后再执行text所包含的表达式;
+
+每一次text会返回一个字符串,循环过程中,text所返回的每个字符串会以空格分隔,最后当整个循环结束时,text所返回的每个字符串所组成的整个字符串(以空格分隔)将会是foreach函数的返回值;
+
+所以var最好是一个变量名,list可以是一个表达式,而text中一般会使用var这个参数来依次枚举list中的单词;
+
+举个例子:
+```
+names := a b c d
+files := $(foreach n,$(names),$(n).o)
+```
+上面的例子中,$(name)中的单词会被挨个取出,并存到变量"n"中,"$(n).o"每次根据"$(n)"计算出一个值,这些值以空格分隔,最后作为foreach函数的返回,所以$(files)的值是"a.o b.o c.o d.o";
+> 注意,foreach中的var参数是一个临时的局部变量,foreach函数执行完后,参数var的变量将不再作用,其作用域只在foreach函数当中;
 
 ## 7.5 if 函数
-	if函数很像GNU的make所支持的条件语句ifeq,if函数的语法是:
-	$(if <condition>,<then-part>)
-	或是
-	$(if <condition>,<then-part>,<else-part>)
-	可见,if函数可以包含或是不含"else"部分;即if函数的参数可以是两个,也可以是三个;<condition>参数是if的表达式,如果其返回的为非空字符串,那么这个表达式就相当于返回真,于是<then-part>会被计算,否则<else-part>会被计算;
-	而if函数的返回值是,如果<condition>为真(非空字符串),那个<then-part>会是整个函数的返回值,如果<condition>为假(空字符串),那么<else-part>会是整个函数的返回值,此时如果<else-part>没有被定义,那么整个函数返回空字串;
-	所以<then-part>和<else-part>只会有一个被计算;
+if函数很像GNU的make所支持的条件语句ifeq
+
+if函数的语法是:
+```
+$(if <condition>,<then-part>)
+```
+或是
+```
+$(if <condition>,<then-part>,<else-part>)
+```
+if函数的"else"部分可选,即参数可以是两个,也可以是三个;
+condition参数是if的表达式,如果其返回的为非空字符串,那么这个表达式就相当于返回真,于是then-part会被计算,否则else-part会被计算;
+
+if函数的返回值是,如果condition为真(非空字符串),那个then-part会是整个函数的返回值,如果condition为假(空字符串),那么else-part会是整个函数的返回值,此时如果else-part没有被定义,那么整个函数返回空字串;所以then-part和else-part只会有一个被计算;
 
 ## 7.6 call函数
-	call函数是唯一一个可以用来创建新的参数化的函数;
-	可以写一个非常复杂的表达式,这个表达式中,可以定义许多参数,然后可以用call函数来向这个表达式传递参数;其语法是:
-	$(call <expression>,<parm1>,<parm2>,<parm3>...)
-	当make执行这个函数时,<expression>参数中的变量,如$(1),$(2),$(3)等,会被参数<parm1>,<parm2>,<parm3>依次取代;而<expression>的返回值就是call函数的返回值;例如:
-	reverse =  $(1) $(2)
-	foo = $(call reverse,a,b)
-	那么,foo的值就是"a b";当然,参数的次序是可以自定义的,不一定是顺序的,如:
-	reverse =  $(2) $(1)
-	foo = $(call reverse,a,b)
-	此时foo的值就是"b a";
+call函数是唯一一个可以用来创建新的参数化的函数;
+可以写一个非常复杂的表达式,这个表达式中,可以定义许多参数,然后可以用call函数来向这个表达式传递参数;
+
+其语法是:
+```
+$(call <expression>,<parm1>,<parm2>,<parm3>...)
+```
+当make执行这个函数时,expression参数中的变量,如$(1),$(2),$(3)等,会被参数parm1,parm2,parm3依次取代;而expression的返回值就是call函数的返回值;例如:
+```
+reverse = $(1) $(2)
+foo = $(call reverse,a,b)
+```
+> 那么,foo的值就是"a b";
+
+参数的次序是可以自定义的,不一定是顺序的,如:
+```
+reverse = $(2) $(1)
+foo = $(call reverse,a,b)
+```
+> 此时foo的值就是"b a";
 
 ## 7.7 origin函数
-	origin函数不像其它函数,他并不操作变量的值,只是告诉我们这个变量是哪里来的?其语法是:
-	$(origin <variable>)
-	注意<variable>是变量的名字,不应该是引用;所以最好不要在<variable>中使用"$"字符;Origin函数会以其返回值来告诉你这个变量的"出生情况",下面是origin函数的返回值:
-	"undefined"
-		如果<variable>从来没有定义过,origin函数返回这个值"undefined";
-	"default"
-		如果<variable>是一个默认的定义,比如"CC"这个变量,这种变量我们将在后面讲述;
-	"environment"
-		如果<variable>是一个环境变量,并且当Makefile被执行时,"-e"参数没有被打开;
-	"file"
-		如果<variable>这个变量被定义在Makefile中;
-	"command line"
-		如果<variable>这个变量是被命令行定义的;
-	"override"
-		如果<variable>是被override指示符重新定义的;
-	"automatic"
-		如果<variable>是一个命令运行中的自动化变量;关于自动化变量将在后面讲述;
-	这些信息对于我们编写Makefile是非常有用的;例如,假设我们有一个Makefile其包了一个定义文件Make.def,在Make.def中定义了一个变量"bletch",而我们的环境中也有一个环境变量"bletch",此时,我们想判断一下,如果变量来源于环境,那么我们就重定义,如果来源于Make.def或是命令行等非环境的,那么我们就不重新定义它;于是在我们的Makefile中,我们可以这样写:
-	ifdef bletch
-	ifeq "$(origin bletch)" "environment"
-	bletch = barf, gag, etc.
-	endif
-	endif
-	当然,你也许会说,使用override关键字不就可以重新定义环境中的变量了吗?为什么需要使用这样的步骤?是的,我们用override是可以达到这样的效果,可是override过于粗暴,它同时会把从命令行定义的变量也覆盖了,而我们只想重新定义环境传来的,而不想重新定义命令行传来的;
+origin函数不像其它函数,他并不操作变量的值,只是告诉我们这个变量是哪里来的.
+
+其语法是:
+```
+$(origin <variable>)
+```
+注意variable是变量的名字,不应该是引用;所以最好不要在variable中使用"$"字符;
+
+Origin函数会以其返回值来告诉你这个变量的"出生情况",下面是origin函数的返回值:
++ "undefined"
+	如果variable从来没有定义过,origin函数返回这个值"undefined";
++ "default"
+	如果variable是一个默认的定义,比如"CC"这个变量,这种变量我们将在后面讲述;
++ "environment"
+	如果variable是一个环境变量,并且当Makefile被执行时,"-e"参数没有被打开;
++ "file"
+	如果variable这个变量被定义在Makefile中;
++ "command line"
+	如果variable这个变量是被命令行定义的;
++ "override"
+	如果variable是被override指示符重新定义的;
++ "automatic"
+	如果variable是一个命令运行中的自动化变量;关于自动化变量将在后面讲述;
+
+这些信息对于我们编写Makefile是非常有用的;
+例如,假设我们有一个Makefile其包了一个定义文件Make.def,在Make.def中定义了一个变量"bletch",而我们的环境中也有一个环境变量"bletch",此时,我们想判断一下,如果变量来源于环境,那么我们就重定义,如果来源于Make.def或是命令行等非环境的,那么我们就不重新定义它;
+于是在我们的Makefile中,我们可以这样写:
+```
+ifdef bletch
+ifeq "$(origin bletch)" "environment"
+bletch = barf, gag, etc.
+endif
+endif
+```
+当然,你也许会说,使用override关键字不就可以重新定义环境中的变量了吗?为什么需要使用这样的步骤?是的,我们用override是可以达到这样的效果,可是override过于粗暴,它同时会把从命令行定义的变量也覆盖了,而我们只想重新定义环境传来的,而不想重新定义命令行传来的;
 
 ## 7.8 shell函数
-	shell函数也不像其它函数;它的参数应该就是操作系统Shell的命令;它和反引号"`"是相同的功能;这就是说,shell函数把执行操作系统命令后的输出作为函数返回值;于是,我们可以用操作系统命令以及字符串处理命令awk,sed等命令来生成一个变量,如:
-	contents := $(shell cat foo)
-	files := $(shell echo *.c)
-	注意,这个函数会调用一个Shell程序来执行命令,所以要注意其运行性能;如果Makefile中有一些比较复杂的规则,并大量使用了这个函数,那么对系统性能是有害的;特别是Makefile的隐晦规则可能会让shell函数执行的次数比你想像的多得多;
+shell函数也不像其它函数;它的参数应该就是操作系统Shell的命令;它和反引号"`"是相同的功能;这就是说,shell函数把执行操作系统命令后的输出作为函数返回值;
+
+于是,我们可以用操作系统命令以及字符串处理命令awk,sed等命令来生成一个变量,
+如:
+```
+contents := $(shell cat foo)
+files := $(shell echo *.c)
+```
+注意,这个函数会调用一个Shell程序来执行命令,所以要注意其运行性能;如果Makefile中有一些比较复杂的规则,并大量使用了这个函数,那么对系统性能是有害的;特别是Makefile的隐晦规则可能会让shell函数执行的次数比你想像的多得多;
 
 ## 7.9 控制make的函数
-	make提供了一些函数来控制make的运行;通常需要检测一些运行Makefile时的运行时信息,并且根据这些信息来决定,是让make继续执行,还是停止;
+make提供了一些函数来控制make的运行;通常需要检测一些运行Makefile时的运行时信息,并且根据这些信息来决定,是让make继续执行,还是停止;
+
+```
 $(error <text ...>)
-	产生一个致命的错误,<text ...>是错误信息;注意,error函数不会在一被使用就会产生错误信息,所以如果把其定义在某个变量中,并在后续的脚本中使用这个变量,那么也是可以的;例如:
-	示例一:
-	ifdef ERROR_001
+```
+产生一个致命的错误,`<text ...>`是错误信息;
+> 注意,error函数不会在一被使用就会产生错误信息,所以如果把其定义在某个变量中,并在后续的脚本中使用这个变量,那么也是可以的;
+
+例如:
+示例一:
+```
+ifdef ERROR_001
 	$(error error is $(ERROR_001))
-	endif
-	示例二:
-	ERR = $(error found an error!)
-	.PHONY: err
-	err: ; $(ERR)
-	示例一会在变量ERROR_001定义了后执行时产生error调用;
-	示例二则在目录err被执行时才发生error调用;
+endif
+```
+示例二:
+```
+ERR = $(error found an error!)
+.PHONY: err
+err: ; $(ERR)
+```
+示例一会在变量ERROR_001定义了后执行时产生error调用;
+示例二则在目录err被执行时才发生error调用;
+
+```
 $(warning <text ...>)
-	 这个函数很像error函数,只是它并不会让make退出,只是输出一段警告信息,而make继续执行;
+```
+ 这个函数很像error函数,只是它并不会让make退出,只是输出一段警告信息,而make继续执行;
 
 
 # 8. make 的运行
+一般来说,最简单的就是直接在命令行下输入make命令,make命令会找当前目录的makefile来执行,一切都是自动的;
 
-	一般来说,最简单的就是直接在命令行下输入make命令,make命令会找当前目录的makefile来执行,一切都是自动的;
-	但也有时也许只想让make重编译某些文件,而不是整个工程;而又有的时候有几套编译规则,想在不同的时候使用不同的编译规则,等等;
+但也有时也许只想让make重编译某些文件,而不是整个工程;而又有的时候有几套编译规则,想在不同的时候使用不同的编译规则,等等;
 
 ## 8.1 make的退出码
-	make命令执行后有三个退出码:
-		0	表示成功执行;
-		1	如果make运行时出现任何错误,其返回1;
-		2	如果你使用了make的"-q"选项,并且make使得一些目标不需要更新,那么返回2;
+make命令执行后有三个退出码:
++ 0 表示成功执行;
++ 1 如果make运行时出现任何错误,其返回1;
++ 2 如果你使用了make的"-q"选项,并且make使得一些目标不需要更新,那么返回2;
 
 ## 8.2 指定Makefile
-	GNU make查找默认的Makefile的规则是在当前目录下依次找三个文件"GNUmakefile","makefile"和"Makefile";其按顺序找这三个文件,一旦找到,就开始读取这个文件并执行;
-	也可以给make命令指定一个特殊名字的Makefile;要达到这个功能,要使用make的"-f"或是"--file"参数("--makefile"参数也行);
-	例如,有个makefile的名字是"soft.mk",那么可以这样来让make来执行这个文件:
-		make –f soft.mk
-	如果在make的命令行不只一次地使用了"-f"参数,那么所有指定的makefile将会被连在一起传递给make执行;
+GNU make查找默认的Makefile的规则是在当前目录下依次找三个文件"GNUmakefile","makefile"和"Makefile";其按顺序找这三个文件,一旦找到,就开始读取这个文件并执行;
+
+也可以给make命令指定一个特殊名字的Makefile;要达到这个功能,要使用make的"-f"或是"--file"参数("--makefile"参数也行);
+例如,有个makefile的名字是"soft.mk",那么可以这样来让make来执行这个文件:
+```
+make –f soft.mk
+```
+如果在make的命令行不只一次地使用了"-f"参数,那么所有指定的makefile将会被连在一起传递给make执行;
 
 ## 8.3 指定目标
-	make的最终目标默认是makefile中的第一个目标,而其它目标一般是由这个目标连带出来的;
-	makefile中的第一个目标一般是由许多个目标组成,可以指示make,让其完成所指定的目标;要达到这一目的很简单,需在make命令后直接跟目标的名字就可以完成(如前面提到的"make clean"形式);
-	任何在makefile中的目标都可以被指定成终极目标,但是除了以"-"打头,或是包含了"="的目标,因为有这些字符的目标,会被解析成命令行参数或是变量;
-	没有被我们明确写出来的目标也可以成为make的终极目标,也就是说,只要 make可以找到其隐含规则推导规则,那么这个隐含目标同样可以被指定成终极目标;
-	有一个make的环境变量叫"MAKECMDGOALS",这个变量中会存放所指定终极目标的列表,如果在命令行上,没有指定目标,那么这个变量是空值;这个变量可以使用在一些比较特殊的情形下;比如下面的例子:
-	sources = foo.c bar.c
-	ifneq ($(MAKECMDGOALS), clean)
-	include $(sources:.c=.d)
-	endif
-	基于上面的这个例子,只要我们输入的命令不是"make clean",那么makefile会自动包含"foo.d"和"bar.d"这两个makefile;
-	使用指定终极目标的方法可以很方便地让我们编译我们的程序,例如下面这个例子:
-	.PHONY: all
-	all: prog1 prog2 prog3 prog4
-	从这个例子中,这个makefile中有四个需要编译的程序"prog1","prog2","prog3"和"prog4",可以使用"make all"命令来编译所有的目标(如果把all设置成第一个目标,那么只需执行"make"),我们也可以使用"make prog2"来单独编译目标"prog2";
-	即然make可以指定所有makefile中的目标,那么也包括"伪目标",于是我们可以根据这种性质来让makefile根据指定不同的目标来完成不同的事;在Unix世界,软件发布时,特别是GNU这种开源软件的发布时,其makefile都包含了编译,安装,打包等功能;可以参照这种规则来书写我们的makefile中的目标;
-	"all"
-		所有目标的目标,其功能一般是编译所有的目标;
-	"clean"
-		功能是删除所有被make创建的文件;
-	"install"
-		功能是安装已编译好的程序,其实就是把目标可执行文件拷贝到指定的目录;
-	"print"
-		功能是列出改变过的源文件;
-	"tar"
-		功能是把源程序打包备份;也就是一个tar文件;
-	"dist"
-		功能是创建一个压缩文件,一般是把tar文件压成Z文件;或是gz文件;
-	"TAGS"
-		功能是更新所有的目标,以备完整地重编译使用;
-	"check"和"test"
-		一般用来测试makefile的流程;
-	当然一个项目的makefile中也不一定要书写这样的目标,这些都是GNU的东西,但是GNU这些东西一定有其可取之处;
-	如果要书写这种功能,最好使用这种名字命名目标,这样规范一些,规范的好处就是不用解释,大家都明白;
-	而且如果makefile中有这些功能,一是很实用,二是可以显得makefile很专业;
+make的最终目标默认是makefile中的第一个目标,而其它目标一般是由这个目标连带出来的;
+
+makefile中的第一个目标一般是由许多个目标组成,可以指示make,让其完成所指定的目标;要达到这一目的很简单,需在make命令后直接跟目标的名字就可以完成(如前面提到的"make clean"形式);
+
+任何在makefile中的目标都可以被指定成终极目标,但是除了以"-"打头,或是包含了"="的目标,因为有这些字符的目标,会被解析成命令行参数或是变量;
+
+没有被我们明确写出来的目标也可以成为make的终极目标,也就是说,只要make可以找到其隐含规则推导规则,那么这个隐含目标同样可以被指定成终极目标;
+
+有一个make的环境变量叫"MAKECMDGOALS",这个变量中会存放所指定终极目标的列表,如果在命令行上,没有指定目标,那么这个变量是空值;这个变量可以使用在一些比较特殊的情形下;
+比如下面的例子:
+```
+sources = foo.c bar.c
+ifneq ($(MAKECMDGOALS), clean)
+include $(sources:.c=.d)
+endif
+```
+基于上面的这个例子,只要我们输入的命令不是"make clean",那么makefile会自动包含"foo.d"和"bar.d"这两个makefile;
+
+使用指定终极目标的方法可以很方便地让我们编译我们的程序,
+例如下面这个例子:
+```
+.PHONY: all
+all: prog1 prog2 prog3 prog4
+```
+从这个例子中,这个makefile中有四个需要编译的程序"prog1","prog2","prog3"和"prog4",
+可以使用"make all"命令来编译所有的目标(如果把all设置成第一个目标,那么只需执行"make"),我们也可以使用"make prog2"来单独编译目标"prog2";
+
+即然make可以指定所有makefile中的目标,那么也包括"伪目标",于是我们可以根据这种性质来让makefile根据指定不同的目标来完成不同的事;
+
+在Unix世界,软件发布时,特别是GNU这种开源软件的发布时,其makefile都包含了编译,安装,打包等功能;可以参照这种规则来书写我们的makefile中的目标;
++ "all" 所有目标的目标,其功能一般是编译所有的目标;
++ "clean" 功能是删除所有被make创建的文件;
++ "install" 功能是安装已编译好的程序,其实就是把目标可执行文件拷贝到指定的目录;
++ "print" 功能是列出改变过的源文件;
++ "tar" 功能是把源程序打包备份;也就是一个tar文件;
++ "dist" 功能是创建一个压缩文件,一般是把tar文件压成Z文件;或是gz文件;
++ "TAGS" 功能是更新所有的目标,以备完整地重编译使用;
++ "check"和"test" 一般用来测试makefile的流程;
+
+当然一个项目的makefile中也不一定要书写这样的目标,这些都是GNU的东西,但是GNU这些东西一定有其可取之处;
+
+如果要书写这种功能,最好使用这种名字命名目标,这样规范一些,规范的好处就是不用解释,大家都明白;
+而且如果makefile中有这些功能,一是很实用,二是可以显得makefile很专业;
 
 ## 8.4 检查规则
-	有时候只想检查一下我们的命令或是执行的序列,不想让makefile中的规则真正执行起来;于是我们可以使用make命令的下述参数:
-	"-n"
-	"--just-print"
-	"--dry-run"
-	"--recon"
-	使用这些参数只是打印命令;不管目标是否更新,把规则和连带规则下的命令打印出来,但不执行,这些参数对于我们调试makefile很有用处;
-	"-t"
-	"--touch"
-	这个参数的意思就是把目标文件的时间更新,但不更改目标文件;也就是说,make假装编译目标,但不是真正的编译目标,只是把目标变成已编译过的状态;
-	"-q"
-	"--question"
-	这个参数的行为是找目标的意思,也就是说,如果目标存在,那么其什么也不会输出,当然也不会执行编译,如果目标不存在,其会打印出一条出错信息;
-	"-W <file>"
-	"--what-if=<file>"
-	"--assume-new=<file>"
-	"--new-file=<file>"
-	这个参数需要指定一个文件;一般是是源文件(或依赖文件),Make会根据规则推导来运行依赖于这个文件的命令,一般来说,可以和"-n"参数一同使用,来查看这个依赖文件所发生的规则命令;
-	另一个很有意思的用法是结合"-p"和"-v"来输出makefile被执行时的信息;
+有时候只想检查一下我们的命令或是执行的序列,不想让makefile中的规则真正执行起来;
+
+于是我们可以使用make命令的下述参数:
+
+`"-n" "--just-print" "--dry-run" "--recon"`
+使用这些参数只是打印命令;不管目标是否更新,把规则和连带规则下的命令打印出来,但不执行,这些参数对于我们调试makefile很有用处;
+
+`"-t" "--touch"`
+这个参数的意思就是把目标文件的时间更新,但不更改目标文件;也就是说,make假装编译目标,但不是真正的编译目标,只是把目标变成已编译过的状态;
+
+`"-q" "--question"`
+这个参数的行为是找目标的意思,也就是说,如果目标存在,那么其什么也不会输出,当然也不会执行编译,如果目标不存在,其会打印出一条出错信息;
+
+`"-W <file>" "--what-if=<file>" "--assume-new=<file>" "--new-file=<file>"`
+这个参数需要指定一个文件;一般是是源文件(或依赖文件),Make会根据规则推导来运行依赖于这个文件的命令,一般来说,可以和"-n"参数一同使用,来查看这个依赖文件所发生的规则命令;
+另一个很有意思的用法是结合"-p"和"-v"来输出makefile被执行时的信息;
 
 ## 8.5 make的参数
-	下面列举了GNU make 3.81版的参数定义;
-	"-b"
-	"-m"
-	这两个参数的作用是忽略和其它版本make的兼容性;
-	"-B"
-	"--always-make"
-	认为所有的目标都需要更新(重编译);
-	"-C <dir>"
-	"--directory=<dir>"
-	指定读取makefile的目录;如果有多个"-C"参数,make会把后面的路径以前面的作为相对路径,并以最后的目录作为被指定目录;
-	如"make –C ~soft/test –C prog"等价于"make –C ~soft/test/prog";
-	"debug[=<options>]"
-	输出make的调试信息;它有几种不同的级别可供选择,如果没有参数,那就是输出最简单的调试信息;下面是<options>的取值:
-	a	即all,输出所有的调试信息;(会非常的多);
-	b	即basic,只输出简单的调试信息;输出不需要重编译的目标;
-	v	即verbose,在b选项的级别之上;输出的信息包括哪个makefile被解析,不需要被重编译的依赖文件(或是依赖目标)等;
-	i	即implicit,输出所有隐含规则;
-	j	即jobs,输出执行规则中命令的详细信息,如命令的PID/返回码等;
-	m	即makefile,输出make读取makefile,更新makefile,执行makefile的信息;
+下面列举了GNU make 4.1版的参数定义;
+`"-b""-m"` 这两个参数的作用是忽略和其它版本make的兼容性;
 
-	"-d"
-	相当于"--debug=a";
-	"-e"
-	"--environment-overrides"
-	指明环境变量的值覆盖makefile中定义的变量的值;
-	"-f=<file>"
-	"--file=<file>"
-	"--makefile=<file>"
-	指定需要执行的makefile;
-	"-h"
-	"--help"
-	显示帮助信息;
-	"-i"
-	"--ignore-errors"
-	在执行时忽略所有的错误;
-	"-I <dir>"
-	"--include-dir=<dir>"
-	指定一个被包含makefile的搜索目标;可以使用多个"-I"参数来指定多个目录;
-	"-j [<jobsnum>]"
-	"--jobs[=<jobsnum>]"
-	指同时运行命令的个数;如果没有这个参数,make运行命令时能运行多少就运行多少;如果有一个以上的"-j"参数,那么仅最后一个"-j"才是有效的;(注意这个参数在MS-DOS中是无用的)
-	"-k"
-	"--keep-going"
-	出错也不停止运行;如果生成一个目标失败了,那么依赖于其上的目标就不会被执行了;
-	"-l <load>"
-	"--load-average[=<load]"
-	" max-load[=<load>]"
-	指定make运行命令的负载;
-	"-n"
-	"--just-print"
-	"--dry-run"
-	"--recon"
-	仅输出执行过程中的命令序列,但并不执行;
-	"-o <file>"
-	"--old-file=<file>"
-	"--assume-old=<file>"
-	不重新生成的指定的<file>,即使这个目标的依赖文件新于它;
-	"-p"
-	"--print-data-base"
-	输出makefile中的所有数据,包括所有的规则和变量;这个参数会让一个简单的makefile都会输出一堆信息;
-	如果只是想输出信息而不想执行makefile,可以使用"make -qp"命令;
-	如果想查看执行makefile前的预设变量和规则,可以使用"make –p –f /dev/null";这个参数输出的信息会包含着makefile文件的文件名和行号,所以用这个参数来调试makefile会是很有用的, 特别是当环境变量很复杂的时候;
-	"-q"
-	"--question"
-	不运行命令,也不输出;仅仅是检查所指定的目标是否需要更新;如果是0则说明要更新,如果是2则说明有错误发生;
-	"-r"
-	"--no-builtin-rules"
-	禁止make使用任何隐含规则;
-	"-R"
-	"--no-builtin-variabes"
-	禁止make使用任何作用于变量上的隐含规则;
-	"-s"
-	"--silent"
-	"--quiet"
-	在命令运行时不输出命令的输出;
-	"-S"
-	"--no-keep-going"
-	"--stop"
-	取消"-k"选项的作用;因为有些时候,make的选项是从环境变量"MAKEFLAGS"中继承下来的;所以可以在命令行中使用这个参数来让环境变量中的"-k"选项失效;
-	"-t"
-	"--touch"
-	相当于UNIX的touch命令,只是把目标的修改日期变成最新的,也就是阻止生成目标的命令运行;
-	"-v"
-	"--version"
-	输出make程序的版本,版权等关于make的信息;
-	"-w"
-	"--print-directory"
-	输出运行makefile之前和之后的信息;这个参数对于跟踪嵌套式调用make时很有用;
-	"--no-print-directory"
-	禁止"-w"选项;
-	"-W <file>"
-	"--what-if=<file>"
-	"--new-file=<file>"
-	"--assume-file=<file>"
-	假定目标<file>需要更新,如果和"-n"选项使用,那么这个参数会输出该目标更新时的运行动作;如果没有"-n"那么就像运行UNIX的"touch"命令一样,使得<file>的修改时间为当前时间;
-	"--warn-undefined-variables"
-	只要make发现有未定义的变量,那么就输出警告信息;
+`"-B" "--always-make"`
+认为所有的目标都需要更新(重编译);
 
+`"-C <dir>" "--directory=<dir>"`
+指定读取makefile的目录;如果有多个"-C"参数,make会把后面的路径以前面的作为相对路径,并以最后的目录作为被指定目录;
+如"make -C ~soft/test -C prog"等价于"make -C ~soft/test/prog";
+
+`"debug[=<options>]"`
+输出make的调试信息;它有几种不同的级别可供选择,如果没有参数,那就是输出最简单的调试信息;下面是`<options>`的取值:
++ a	即all,输出所有的调试信息;(会非常的多);
++ b	即basic,只输出简单的调试信息;输出不需要重编译的目标;
++ v	即verbose,在b选项的级别之上;输出的信息包括哪个makefile被解析,不需要被重编译的依赖文件(或是依赖目标)等;
++ i	即implicit,输出所有隐含规则;
++ j	即jobs,输出执行规则中命令的详细信息,如命令的PID/返回码等;
++ m	即makefile,输出make读取makefile,更新makefile,执行makefile的信息;
+
+`"-d"` 相当于"--debug=a";
+
+`"-e" "--environment-overrides"`
+指明环境变量的值覆盖makefile中定义的变量的值;
+
+`"-f=<file>" "--file=<file>" "--makefile=<file>"`
+指定需要执行的makefile;
+
+`"-h" "--help"` 显示帮助信息;
+
+`"-i" "--ignore-errors"`
+在执行时忽略所有的错误;
+
+`"-I dir" "--include-dir=dir"`
+指定一个被包含makefile的搜索目标;可以使用多个"-I"参数来指定多个目录;
+
+`"-j [<jobsnum>]" "--jobs[=<jobsnum>]"`
+指同时运行命令的job个数;如果没有这个参数,make运行命令时能运行多少就运行多少;如果有一个以上的"-j"参数,那么仅最后一个"-j"才是有效的;(注意这个参数在MS-DOS中是无用的)
+
+`"-k" "--keep-going"`
+出错也不停止运行;如果生成一个目标失败了,那么依赖于其上的目标就不会被执行了;
+
+`"-l <load>" "--load-average[=<load]" " max-load[=<load>]"`
+指定make运行命令的负载;
+
+`"-n" "--just-print" "--dry-run" "--recon"`
+仅输出执行过程中的命令序列,但并不执行;
+
+`"-o <file>" "--old-file=<file>" "--assume-old=<file>"`
+不重新生成的指定的`<file>`,即使这个目标的依赖文件新于它;
+
+`"-p" "--print-data-base"`
+输出makefile中的所有数据,包括所有的规则和变量;这个参数会让一个简单的makefile都会输出一堆信息;
+如果只是想输出信息而不想执行makefile,可以使用"make -qp"命令;
+如果想查看执行makefile前的预设变量和规则,可以使用"make -p -f /dev/null";这个参数输出的信息会包含着makefile文件的文件名和行号,所以用这个参数来调试makefile会是很有用的, 特别是当环境变量很复杂的时候;
+
+`"-q" "--question"`
+不运行命令,也不输出;仅仅是检查所指定的目标是否需要更新;如果是0则说明要更新,如果是2则说明有错误发生;
+
+`"-r" "--no-builtin-rules"`
+禁止make使用任何隐含规则;
+
+`"-R" "--no-builtin-variabes"`
+禁止make使用任何作用于变量上的隐含规则;
+
+`"-s" "--silent" "--quiet"`
+在命令运行时不输出命令的输出;
+
+`"-S" "--no-keep-going" "--stop"`
+取消"-k"选项的作用;因为有些时候,make的选项是从环境变量"MAKEFLAGS"中继承下来的;所以可以在命令行中使用这个参数来让环境变量中的"-k"选项失效;
+
+`"-t" "--touch"`
+相当于UNIX的touch命令,只是把目标的修改日期变成最新的,也就是阻止生成目标的命令运行;
+
+`"-v" "--version"`
+输出make程序的版本,版权等关于make的信息;
+
+`"-w" "--print-directory"`
+输出运行makefile之前和之后的信息;这个参数对于跟踪嵌套式调用make时很有用;
+`"--no-print-directory"`禁止"-w"选项;
+
+`"-W <file>" "--what-if=<file>" "--new-file=<file>" "--assume-file=<file>"`
+假定目标file需要更新,如果和"-n"选项使用,那么这个参数会输出该目标更新时的运行动作;如果没有"-n"那么就像运行UNIX的"touch"命令一样,使得file的修改时间为当前时间;
+
+`"--warn-undefined-variables"`
+只要make发现有未定义的变量,那么就输出警告信息;
 
 # 9. 隐含规则
+在使用Makefile时,有一些使用频率非常高的东西,比如编译C/C++的源程序为中间目标文件(Unix下是[.o]文件,Windows下是[.obj]文件);
+在Makefile中有一些规则是"隐含的",早先约定的,不需要我们再写出来的规则;
 
-	在使用Makefile时,有一些使用频率非常高的东西,比如编译C/C++的源程序为中间目标文件(Unix下是[.o]文件,Windows下是[.obj]文件);
-	在Makefile中有一些规则是 "隐含的",早先约定了的,不需要我们再写出来的规则;
-	"隐含规则"也就是一种惯例,make会按照这种"惯例"心照不喧地来运行,那怕Makefile中没有书写这样的规则;例如把[.c]文件编译成[.o]文件这一规则,根本就不用写出来,make会自动推导出这种规则,并生成我们需要的[.o]文件;
-	"隐含规则"会使用一些系统变量,可以改变这些系统变量的值来定制隐含规则的运行时的参数;如系统变量"CFLAGS"可以控制编译时的编译器参数;
-	还可以通过"模式规则"的方式写下自己的隐含规则;用"后缀规则"来定义隐含规则会有许多的限制;使用"模式规则"会更加智能和清楚,但"后缀规则"可以用来保证我们Makefile的兼容性;
-	了解了"隐含规则",可以让其为我们更好的服务,也会让我们知道一些"约定俗成"了的东西,不至于在运行Makefile时出现一些觉得莫名其妙的东西;
-	当然,有时候"隐含规则"也会给我们造成不小的麻烦;只有了解它,才能更好地使用它;
+"隐含规则"也就是一种惯例,make会按照这种"惯例"心照不喧地来运行,那怕Makefile中没有书写这样的规则;例如把[.c]文件编译成[.o]文件这一规则,根本就不用写出来,make会自动推导出这种规则,并生成我们需要的[.o]文件;
+
+"隐含规则"会使用一些系统变量,可以改变这些系统变量的值来定制隐含规则的运行时的参数;如系统变量"CFLAGS"可以控制编译时的编译器参数;
+还可以通过"模式规则"的方式写下自己的隐含规则;用"后缀规则"来定义隐含规则会有许多的限制;使用"模式规则"会更加智能和清楚,但"后缀规则"可以用来保证我们Makefile的兼容性;
+
+了解了"隐含规则",可以让其为我们更好的服务,也会让我们知道一些"约定俗成"的东西,不至于在运行Makefile时出现一些觉得莫名其妙的东西;
+当然,有时候"隐含规则"也会给我们造成不小的麻烦;只有了解它,才能更好地使用它;
 
 ## 9.1 使用隐含规则
-	如果要使用隐含规则生成需要的目标,所需要做的就是不要写出这个目标的规则;
-	那么,make会试图去自动推导产生这个目标的规则和命令,如果make可以自动推导生成这个目标的规则和命令,那么这个行为就是隐含规则的自动推导;当然,隐含规则是make事先约定好的一些东西;例如,下面的一个Makefile:
+如果要用隐含规则来生成目标,需要做的就是不要写出这个目标的规则,make会试图去自动推导产生这个目标的规则和命令;如果make可以自动推导生成这个目标的规则和命令,那么这个行为就是隐含规则的自动推导;当然,隐含规则是make事先约定好的;
+
+例如,下面的一个Makefile:
+```
 foo : foo.o bar.o
 	cc –o foo foo.o bar.o $(CFLAGS) $(LDFLAGS)
-	可以注意到,这个Makefile中并没有写下如何生成foo.o和bar.o这两目标的规则和命令;因为make的"隐含规则"功能会自动去推导这两个目标的依赖目标和生成命令;
-	make会在自己的"隐含规则"库中查找可以用的规则,如果找到,就会使用;如果找不到,就会报错;在上面的那个例子中,make调用的隐含规则是把[.o]的目标的依赖文件置成[.c],并使用C的编译命令"cc –c $(CFLAGS) [.c]"来生成[.o]的目标;也就是说,完全没有必要写下下面的两条规则:
+```
+可以注意到,这个Makefile中并没有写下如何生成foo.o和bar.o这两目标的规则和命令,因为make的"隐含规则"功能会自动去推导这两个目标的依赖和生成命令;
+
+make会在自己的"隐含规则"库中查找可以用的规则,如果找到,就会使用;如果找不到,就会报错;
+
+在上面的那个例子中,make调用的隐含规则是把[.o]的目标的依赖文件置成[.c],并使用C的编译命令"cc –c $(CFLAGS) [.c]"来生成[.o]的目标;也就是说,完全没有必要写下下面的两条规则:
+```
 foo.o : foo.c
 	cc –c foo.c $(CFLAGS)
 bar.o : bar.c
 	cc –c bar.c $(CFLAGS)
-	因为,这已经是"约定"好的make用C编译器"cc"生成[.o]文件的规则,这就是隐含规则;
-	当然,如果我们为[.o]文件书写了自己的规则,那么make就不会自动推导并调用隐含规则,它会按照我们写好的规则忠实地执行;
-	还有,在make的"隐含规则库"中,每一条隐含规则都在库中有其顺序,越靠前则越被经常使用;所以,这会导致有些时候即使显式地指定了目标依赖,make也不会管;如下面这条规则(没有命令):
-	foo.o : foo.p
-	依赖文件"foo.p"(Pascal程序的源文件)有可能变得没有意义;如果目录下存在了"foo.c"文件,那么隐含规则一样会生效,并通过"foo.c"调用C的编译器生成foo.o文件;因为,在隐含规则中,Pascal的规则出现在C的规则之后,所以make找到可以生成foo.o的C的规则就不再查找下一条规则了;
-	如果确实不希望任何隐含规则推导,那么就不要只写"依赖规则",而不写命令;
+```
+因为,这已经是"约定"好的make用C编译器"cc"生成[.o]文件的规则,这就是隐含规则;
+
+如果我们为[.o]文件书写了自己的规则,那么make就不会自动推导并调用隐含规则,它会按照我们写好的规则忠实地执行;
+
+还有,在make的"隐含规则库"中,每一条隐含规则都在库中有其顺序,越靠前则越被经常使用;所以,这会导致有些时候即使显式地指定了目标依赖,make也不会管;如下面这条规则(没有命令):
+```
+foo.o : foo.p
+```
+依赖文件"foo.p"(Pascal程序的源文件)有可能变得没有意义;如果目录下存在了"foo.c"文件,那么隐含规则一样会生效,并通过"foo.c"调用C的编译器生成foo.o文件;因为,在隐含规则中,Pascal的规则出现在C的规则之后,所以make找到可以生成foo.o的C的规则就不再查找下一条规则了;
+
+如果确实不希望任何隐含规则推导,那么就不要只写"依赖规则",而不写生成命令;
 
 ## 9.2 隐含规则一览
-	如果不明确地写下规则,那么make就会在这些规则中查找所需要规则和命令;当然也可以使用make的参数"-r"或"--no-builtin-rules"选项来取消所有预设置的隐含规则;
-	当然,即使指定了"-r"参数,某些隐含规则还是会生效,因为有许多隐含规则都是使用了"后缀规则"来定义的;所以,只要隐含规则中有"后缀列表"(也就一系统定义在目标.SUFFIXES的依赖目标),那么隐含规则就会生效;
-	默认的后缀列表是
-	.out, .a, .ln, .o, .c, .cc, .C, .p, .f, .F, .r, .y, .l, .s, .S,
-	.mod, .sym, .def, .h, .info, .dvi, .tex, .texinfo, .texi, .txinfo,
-	.w, .ch .web, .sh, .elc, .el
+如果不明确地写下规则,那么make就会在这些规则中查找所需要规则和命令;也可以使用make的参数"-r"或"--no-builtin-rules"选项来取消所有预设置的隐含规则;
+
+即使指定了"-r"参数,某些隐含规则还是会生效,因为有许多隐含规则都是使用了"后缀规则"来定义的;所以,只要隐含规则中有"后缀列表"(也就一系统定义在目标.SUFFIXES的依赖目标),那么隐含规则就会生效;
+
+默认的后缀列表是
+```
+.out, .a, .ln, .o, .c, .cc, .C, .p, .f, .F, .r, .y, .l, .s, .S,
+.mod, .sym, .def, .h, .info, .dvi, .tex, .texinfo, .texi, .txinfo,
+.w, .ch .web, .sh, .elc, .el
+```
 
 ### 9.2.1 编译C程序的隐含规则
-	"<n>.o"的目标的依赖目标会自动推导为"<n>.c",并为其生成命令"$(CC) –c $(CPPFLAGS) $(CFLAGS)"
+`"<n>.o"`的目标的依赖目标会自动推导为`"<n>.c"`,并为其生成命令`"$(CC) –c $(CPPFLAGS) $(CFLAGS)"`
 
 ### 9.2.2 编译C++程序的隐含规则
-	"<n>.o"的目标的依赖目标会自动推导为"<n>.cc"或是"<n>.C",并为其生成命令"$(CXX) –c $(CPPFLAGS) $(CFLAGS)";
-	建议使用".cc"作为C++源文件的后缀,而不是".C";
+`"<n>.o"`的目标的依赖目标会自动推导为`"<n>.cc"`或是`"<n>.C"`,并为其生成命令`"$(CXX) –c $(CPPFLAGS) $(CFLAGS)"`;
+建议使用".cc"作为C++源文件的后缀,而不是".C";
 
 ### 9.2.3 编译Pascal程序的隐含规则
-	"<n>.o"的目标的依赖目标会自动推导为"<n>.p",并为其生成命令"$(PC) –c $(PFLAGS)";
+`"<n>.o"`的目标的依赖目标会自动推导为`"<n>.p"`,并为其生成命令`"$(PC) –c $(PFLAGS)"`;
 
 ### 9.2.4 编译Fortran/Ratfor程序的隐含规则
-	"<n>.o"的目标的依赖目标会自动推导为"<n>.r"或"<n>.F"或"<n>.f",并为其生成命令
-	".f"  "$(FC) –c  $(FFLAGS)"
-	".F"  "$(FC) –c  $(FFLAGS) $(CPPFLAGS)"
-	".f"  "$(FC) –c  $(FFLAGS) $(RFLAGS)"
+`"<n>.o"`的目标的依赖目标会自动推导为`"<n>.r"`或`"<n>.F"`或`"<n>.f"`,并为其生成命令
++ ".f"  `"$(FC) –c  $(FFLAGS)"`
++ ".F"  `"$(FC) –c  $(FFLAGS) $(CPPFLAGS)"`
++ ".f"  `"$(FC) –c  $(FFLAGS) $(RFLAGS)"`
 
 ### 9.2.5 预处理Fortran/Ratfor程序的隐含规则
-	"<n>.f"的目标的依赖目标会自动推导为"<n>.r"或"<n>.F";这个规则只是转换Ratfor或有预处理的Fortran程序到一个标准的Fortran程序;其使用的命令是:
-	".F"  "$(FC) –F $(CPPFLAGS) $(FFLAGS)"
-	".r"  "$(FC) –F $(FFLAGS) $(RFLAGS)"
+`"<n>.f"`的目标的依赖目标会自动推导为`"<n>.r"`或`"<n>.F"`;
+这个规则只是转换Ratfor或有预处理的Fortran程序到一个标准的Fortran程序;其使用的命令是:
++ ".F"  `"$(FC) –F $(CPPFLAGS) $(FFLAGS)"`
++ ".r"  `"$(FC) –F $(FFLAGS) $(RFLAGS)"`
 
 ### 9.2.6 编译Modula-2程序的隐含规则
-	"<n>.sym"的目标的依赖目标会自动推导为"<n>.def",并为其生成命令"$(M2C) $(M2FLAGS) $(DEFFLAGS)";
-	"<n.o>"的目标的依赖目标会自动推导为"<n>.mod",并为其生成命令"$(M2C) $(M2FLAGS) $(MODFLAGS)";
+`"<n>.sym"`的目标的依赖目标会自动推导为`"<n>.def"`,并为其生成命令`"$(M2C) $(M2FLAGS) $(DEFFLAGS)"`;
+
+`"<n.o>"`的目标的依赖目标会自动推导为`"<n>.mod"`,并为其生成命令`"$(M2C) $(M2FLAGS) $(MODFLAGS)"`;
 
 ### 9.2.7 汇编和汇编预处理的隐含规则
-	"<n>.o"的目标的依赖目标会自动推导为"<n>.s",默认使用编译品"as",并且其生成命令是"$(AS) $(ASFLAGS)";
-	"<n>.s"的目标的依赖目标会自动推导为"<n>.S",默认使用C预编译器"cpp",并且其生成命令是"$(AS) $(ASFLAGS)";
+`"<n>.o"`的目标的依赖目标会自动推导为`"<n>.s"`,默认使用编译品"as",并且其生成命令是`"$(AS) $(ASFLAGS)"`;
+
+`"<n>.s"`的目标的依赖目标会自动推导为`"<n>.S"`,默认使用C预编译器"cpp",并且其生成命令是`"$(AS) $(ASFLAGS)"`;
 
 ### 9.2.8 链接Object文件的隐含规则
-	"<n>"目标依赖于"<n>.o",通过运行C的编译器来运行链接程序生成(一般是"ld"),其生成命令是"$(CC) $(LDFLAGS) <n>.o $(LOADLIBES) $(LDLIBS)";这个规则对于只有一个源文件的工程有效,同时也对多个Object文件(由不同的源文件生成)的也有效;例如如下规则:
+`"<n>"`目标依赖于`"<n>.o"`,通过运行C的编译器来运行链接程序生成(一般是"ld"),其生成命令是`"$(CC) $(LDFLAGS) <n>.o $(LOADLIBES) $(LDLIBS)"`;
+这个规则对于只有一个源文件的工程有效,同时也对多个Object文件(由不同的源文件生成)的也有效;
+
+例如如下规则:
+```
 x : y.o z.o
-	并且"x.c","y.c"和"z.c"都存在时,隐含规则将执行如下命令:
-	cc -c x.c -o x.o
-	cc -c y.c -o y.o
-	cc -c z.c -o z.o
-	cc x.o y.o z.o -o x
-	rm -f x.o
-	rm -f y.o
-	rm -f z.o
-	如果没有一个源文件(如上例中的x.c)和目标名字(如上例中的x)相关联,那么最好写出自己的生成规则,不然隐含规则会报错的;
+```
+并且"x.c","y.c"和"z.c"都存在时,隐含规则将执行如下命令:
+```
+cc -c x.c -o x.o
+cc -c y.c -o y.o
+cc -c z.c -o z.o
+cc x.o y.o z.o -o x
+rm -f x.o
+rm -f y.o
+rm -f z.o
+```
+如果没有一个源文件(如上例中的x.c)和目标名字(如上例中的x)相关联,那么最好写出自己的生成规则,不然隐含规则会报错的;
 
 ### 9.2.9 Yacc C程序时的隐含规则
-	"<n>.c"的依赖文件被自动推导为"n.y"(Yacc生成的文件),其生成命令是"$(YACC) $(YFALGS)";
-	"Yacc"是一个语法分析器;
+`"<n>.c"`的依赖文件被自动推导为`"n.y"`(Yacc生成的文件),其生成命令是`"$(YACC) $(YFALGS)"`;
+"Yacc"是一个语法分析器;
 
 ### 9.2.10 Lex C程序时的隐含规则
-	"<n>.c"的依赖文件被自动推导为"n.l"(Lex生成的文件),其生成命令是"$(LEX) $(LFALGS)";
+`"<n>.c"`的依赖文件被自动推导为`"n.l"`(Lex生成的文件),其生成命令是`"$(LEX) $(LFALGS)"`;
 
 ### 9.2.11 Lex Ratfor程序时的隐含规则
-	"<n>.r"的依赖文件被自动推导为"n.l"(Lex生成的文件),其生成命令是"$(LEX) $(LFALGS)";
+`"<n>.r"`的依赖文件被自动推导为`"n.l"`(Lex生成的文件),其生成命令是`"$(LEX) $(LFALGS)"`;
 
 ### 9.2.12 从C程序/Yacc文件或Lex文件创建Lint库的隐含规则
-	"<n>.ln"(lint生成的文件)的依赖文件被自动推导为"n.c",其生成命令是"$(LINT) $(LINTFALGS) $(CPPFLAGS) -i";
-	对于"<n>.y"和"<n>.l"也是同样的规则;
+`"<n>.ln"`(lint生成的文件)的依赖文件被自动推导为`"n.c"`,其生成命令是`"$(LINT) $(LINTFALGS) $(CPPFLAGS) -i"`;
+对于`"<n>.y"`和`"<n>.l"`也是同样的规则;
 
 ## 9.3 隐含规则使用的变量
-	在隐含规则中的命令,基本上都是使用了一些预先设置的变量;
-	可以makefile中改变这些变量的值,或是在make的命令行中传入这些值,或是在环境变量 中设置这些值,无论怎么样,只要设置了这些特定的变量,那么就会对隐含规则起作用;
-	也可以利用make的"-R"或"--no– builtin-variables"参数来取消所定义的变量对隐含规则的作用;
-	例如,第一条隐含规则,编译C程序的隐含规则的命令是"$(CC) –c $(CFLAGS) $(CPPFLAGS)";Make默认的编译命令是"cc",如果把变量"$(CC)"重定义成"gcc",把变量"$(CFLAGS)"重定义成"-g",那么隐含规则中的命令全部会以"gcc –c -g $(CPPFLAGS)"的样子来执行了;
-	可以把隐含规则中使用的变量分成两种:一种是命令相关的,如"CC";一种是参数相的关,如"CFLAGS";
-	下面是所有隐含规则中会用到的变量:
+在隐含规则中的命令,基本上都是使用了一些预先设置的变量;
+可以makefile中改变这些变量的值,或是在make的命令行中传入这些值,或是在环境变量中设置这些值,无论怎么样,只要设置了这些特定的变量,那么就会对隐含规则起作用;
 
+也可以利用make的"-R"或"--no– builtin-variables"参数来取消所定义的变量对隐含规则的作用;
+
+例如,第一条隐含规则,编译C程序的隐含规则的命令是`"$(CC) –c $(CFLAGS) $(CPPFLAGS)"`;Make默认的编译命令是"cc",如果把变量"$(CC)"重定义成"gcc",把变量"$(CFLAGS)"重定义成"-g",那么隐含规则中的命令全部会以"gcc -c -g $(CPPFLAGS)"的样子来执行了;
+
+可以把隐含规则中使用的变量分成两种:一种是命令相关的,如"CC";一种是参数相的关,如"CFLAGS";
+
+下面是所有隐含规则中会用到的变量:
 ### 9.3.3 关于命令的变量
-	AR	函数库打包程序;默认命令是"ar";
-	AS	汇编语言编译程序;默认命令是"as";
-	CC	C语言编译程序;默认命令是"cc";
-	CXX	C++语言编译程序;默认命令是"g++";
-	CO	从RCS文件中扩展文件程序;默认命令是"co";
-	CPP	C程序的预处理器(输出是标准输出设备);默认命令是"$(CC) –E";
-	FC	Fortran 和 Ratfor 的编译器和预处理程序;默认命令是"f77";
-	GET	从SCCS文件中扩展文件的程序;默认命令是"get";
-	LEX	Lex方法分析器程序(针对于C或Ratfor);默认命令是"lex";
-	PC	Pascal语言编译程序;默认命令是"pc";
-	YACC	Yacc文法分析器(针对于C程序);默认命令是"yacc";
-	YACCR	Yacc文法分析器(针对于Ratfor程序);默认命令是"yacc –r";
-	MAKEINFO	转换Texinfo源文件(.texi)到Info文件程序;默认命令是"makeinfo";
-	TEX	从TeX源文件创建TeX DVI文件的程序;默认命令是"tex";
-	TEXI2DVI	从Texinfo源文件创建军TeX DVI 文件的程序;默认命令是"texi2dvi";
-	WEAVE	转换Web到TeX的程序;默认命令是"weave";
-	CWEAVE	转换C Web 到 TeX的程序;默认命令是"cweave";
-	TANGLE	转换Web到Pascal语言的程序;默认命令是"tangle";
-	CTANGLE	转换C Web 到 C;默认命令是"ctangle";
-	RM	删除文件命令;默认命令是"rm –f";
++ AR	函数库打包程序;默认命令是"ar";
++ AS	汇编语言编译程序;默认命令是"as";
++ CC	C语言编译程序;默认命令是"cc";
++ CXX	C++语言编译程序;默认命令是"g++";
++ CO	从RCS文件中扩展文件程序;默认命令是"co";
++ CPP	C程序的预处理器(输出是标准输出设备);默认命令是"$(CC) -E";
++ FC	Fortran 和 Ratfor 的编译器和预处理程序;默认命令是"f77";
++ GET	从SCCS文件中扩展文件的程序;默认命令是"get";
++ LEX	Lex方法分析器程序(针对于C或Ratfor);默认命令是"lex";
++ PC	Pascal语言编译程序;默认命令是"pc";
++ YACC	Yacc文法分析器(针对于C程序);默认命令是"yacc";
++ YACCR	Yacc文法分析器(针对于Ratfor程序);默认命令是"yacc -r";
++ MAKEINFO	转换Texinfo源文件(.texi)到Info文件程序;默认命令是"makeinfo";
++ TEX	从TeX源文件创建TeX DVI文件的程序;默认命令是"tex";
++ TEXI2DVI	从Texinfo源文件创建军TeX DVI 文件的程序;默认命令是"texi2dvi";
++ WEAVE	转换Web到TeX的程序;默认命令是"weave";
++ CWEAVE	转换C Web 到 TeX的程序;默认命令是"cweave";
++ TANGLE	转换Web到Pascal语言的程序;默认命令是"tangle";
++ CTANGLE	转换C Web 到 C;默认命令是"ctangle";
++ RM	删除文件命令;默认命令是"rm -f";
 
 ### 9.3.2 关于命令参数的变量
-	下面的这些变量都是上面相关命令的参数;如果没有指明其默认值,默认值都是空;
-	ARFLAGS	函数库打包程序AR命令的参数;默认值是"rv";
-	ASFLAGS	汇编语言编译器参数;(当明显地调用".s"或".S"文件时);
-	CFLAGS	C语言编译器参数;
-	CXXFLAGS	C++语言编译器参数;
-	COFLAGS	RCS命令参数;
-	CPPFLAGS	C预处理器参数;(C和Fortran编译器也会用到);
-	FFLAGS	Fortran语言编译器参数;
-	GFLAGS	SCCS "get"程序参数;
-	LDFLAGS	链接器参数;(如:"ld")
-	LFLAGS	Lex文法分析器参数;
-	PFLAGS	Pascal语言编译器参数;
-	RFLAGS	Ratfor程序的Fortran编译器参数;
-	YFLAGS	Yacc文法分析器参数;
+下面的这些变量都是上面相关命令的参数;如果没有指明其默认值,默认值都是空;
++ ARFLAGS	函数库打包程序AR命令的参数;默认值是"rv";
++ ASFLAGS	汇编语言编译器参数;(当明显地调用".s"或".S"文件时);
++ CFLAGS	C语言编译器参数;
++ CXXFLAGS	C++语言编译器参数;
++ COFLAGS	RCS命令参数;
++ CPPFLAGS	C预处理器参数;(C和Fortran编译器也会用到);
++ FFLAGS	Fortran语言编译器参数;
++ GFLAGS	SCCS "get"程序参数;
++ LDFLAGS	链接器参数;(如:"ld")
++ LFLAGS	Lex文法分析器参数;
++ PFLAGS	Pascal语言编译器参数;
++ RFLAGS	Ratfor程序的Fortran编译器参数;
++ YFLAGS	Yacc文法分析器参数;
 
 ## 9.4 隐含规则链
-	有些时候,一个目标可能被一系列的隐含规则所作用;例如,一个[.o]的文件生成,可能会是先被Yacc的[.y]文件先成[.c],然后再被C的编译器生成;我们把这一系列的隐含规则叫做"隐含规则链";
-	在上面的例子中,如果文件[.c]存在,那么就直接调用C的编译器的隐含规则,如果没有[.c]文件,但有一个[.y]文件,那么Yacc的隐含规则会被调用,生成[.c]文件,然后,再调用C编译的隐含规则最终由[.c]生成[.o]文件,达到目标;
-	我们把这种[.c]的文件(或是目标),叫做中间目标;不管怎么样,make会努力自动推导生 成目标的一切方法,不管中间目标有多少,其都会执着地把所有的隐含规则和你书写的规则全部合起来分析,努力达到目标,所以,有些时候,可能会让你觉得奇 怪,怎么我的目标会这样生成?怎么我的makefile发疯了?
-	在默认情况下,对于中间目标,它和一般的目标有两个地方所不同:第一个不同是除非中间的目标不存在,才会引发中间规则;第二个不同的是,只要目标成功产生,那么,产生最终目标过程中,所产生的中间目标文件会被以"rm -f"删除;
-	通常,一个被makefile指定成目标或是依赖目标的文件不能被当作中介;然而,你可以明显地说明一个文件或是目标是中介目标,你可以使用伪目标".INTERMEDIATE"来强制声明;(如:.INTERMEDIATE : mid )
-	你也可以阻止make自动删除中间目标,要做到这一点,你可以使用伪目标 ".SECONDARY"来强制声明(如:.SECONDARY : sec);你还可以把你的目标,以模式的方式来指定(如:%.o)成伪目标".PRECIOUS"的依赖目标,以保存被隐含规则所生成的中间文件;
-	在"隐含规则链"中,禁止同一个目标出现两次或两次以上,这样一来,就可防止在make自动推导时出现无限递归的情况;
-	Make会优化一些特殊的隐含规则,而不生成中间文件;如,从文件"foo.c"生成目标程序 "foo",按道理,make会编译生成中间文件"foo.o",然后链接成"foo",但在实际情况下,这一动作可以被一条"cc"的命令完成(cc –o foo foo.c),于是优化过的规则就不会生成中间文件;
+有些时候,一个目标可能被一系列的隐含规则所作用;例如,一个[.o]的文件生成,可能会是先被Yacc的[.y]文件先成[.c],然后再被C的编译器生成;我们把这一系列的隐含规则叫做"隐含规则链";
+
+在上面的例子中,如果文件[.c]存在,那么就直接调用C的编译器的隐含规则,如果没有[.c]文件,但有一个[.y]文件,那么Yacc的隐含规则会被调用,生成[.c]文件,然后,再调用C编译的隐含规则最终由[.c]生成[.o]文件,达到目标;我们把这种[.c]的文件(或是目标),叫做中间目标;
+
+不管怎么样,make会努力自动推导生成目标的一切方法,不管中间目标有多少,其都会执着地把所有的隐含规则和你书写的规则全部合起来分析,努力达到目标,所以,有些时候,可能会让你觉得奇怪,怎么我的目标会这样生成?怎么我的makefile发疯了?
+
+在默认情况下,对于中间目标,它和一般的目标有两个地方所不同:
++ 第一个不同是除非中间的目标不存在,才会引发中间规则;
++ 第二个不同的是,只要目标成功产生,那么,产生最终目标过程中,所产生的中间目标文件会被"rm -f"删除;
+
+通常,一个被makefile指定成目标或是依赖目标的文件不能被当作中介;然而,可以明显地说明一个文件或目标是中介目标,可以使用伪目标".INTERMEDIATE"来强制声明;(如:.INTERMEDIATE : mid )
+
+也可以阻止make自动删除中间目标,要做到这一点,可以使用伪目标 ".SECONDARY"来强制声明(如:.SECONDARY : sec);
+
+还可以把目标以模式的方式来指定(如:%.o)成伪目标".PRECIOUS"的依赖目标,以保存被隐含规则所生成的中间文件;
+
+在"隐含规则链"中,禁止同一个目标出现两次或两次以上,这样一来,就可防止在make自动推导时出现无限递归的情况;
+
+Make会优化一些特殊的隐含规则,而不生成中间文件;
+如,从文件"foo.c"生成目标程序"foo",按道理,make会编译生成中间文件"foo.o",然后链接成"foo",但在实际情况下,这一动作可以被一条"cc"的命令完成(cc –o foo foo.c),于是优化过的规则就不会生成中间文件;
 
 ## 9.5 定义模式规则
-	你可以使用模式规则来定义一个隐含规则;一个模式规则就好像一个一般的规则,只是在规则中,目标的定义需要有"%"字符;"%"的意思是表示一个或多个任意字符;在依赖目标中同样可以使用"%",只是依赖目标中的"%"的取值,取决于其目标;
-	有一点需要注意的是,"%"的展开发生在变量和函数的展开之后,变量和函数的展开发生在make载入Makefile时,而模式规则中的"%"则发生在运行时;
+你可以使用模式规则来定义一个隐含规则;一个模式规则就好像一个一般的规则,只是在规则中,目标的定义需要有"%"字符;
+"%"的意思是表示一个或多个任意字符;在依赖目标中同样可以使用"%",只是依赖目标中的"%"的取值,取决于其目标;
+
+有一点需要注意的是,"%"的展开发生在变量和函数的展开之后,变量和函数的展开发生在make载入Makefile时,而模式规则中的"%"则发生在运行时;
 
 ### 9.5.1 模式规则介绍
-	模式规则中,至少在规则的目标定义中要包含"%",否则,就是一般的规则;目标中的"%"定义 表示对文件名的匹配,"%"表示长度任意的非空字符串;例如:"%.c"表示以".c"结尾的文件名(文件名的长度至少为3),而"s.%.c"则表示 以"s."开头,".c"结尾的文件名(文件名的长度至少为5);
-	如果"%"定义在目标中,那么,目标中的"%"的值决定了依赖目标中的"%"的值,也就是说,目标中的模式的"%"决定了依赖目标中"%"的样子;例如有一个模式规则如下:
-	%.o : %.c ; <command ......>
-其含义是,指出了怎么从所有的[.c]文件生成相应的[.o]文件的规则;如果要生成的目标是"a.o b.o",那么"%c"就是"a.c b.c";
-	一旦依赖目标中的"%"模式被确定,那么,make会被要求去匹配当前目录下所有的文件名,一 旦找到,make就会规则下的命令,所以,在模式规则中,目标可能会是多个的,如果有模式匹配出多个目标,make就会产生所有的模式目标,此 时,make关心的是依赖的文件名和生成目标的命令这两件事;
+模式规则中,至少在规则的目标定义中要包含"%",否则,就是一般的规则;
+
+目标中的"%"定义 表示对文件名的匹配,"%"表示长度任意的非空字符串;例如:"%.c"表示以".c"结尾的文件名(文件名的长度至少为3),而"s.%.c"则表示 以"s."开头,".c"结尾的文件名(文件名的长度至少为5);
+
+如果"%"定义在目标中,那么,目标中的"%"的值决定了依赖目标中的"%"的值,也就是说,目标中的模式的"%"决定了依赖目标中"%"的样子;例如有一个模式规则如下:
+```
+%.o : %.c ; <command ......>
+```
+其含义是,指出了怎么从所有的[.c]文件生成相应的[.o]文件的规则;
+如果要生成的目标是"a.o b.o",那么"%c"就是"a.c b.c";
+
+一旦依赖目标中的"%"模式被确定,那么,make会被要求去匹配当前目录下所有的文件名,一旦找到,make就会执行规则下的命令,所以,在模式规则中,目标可能会是多个的,如果有模式匹配出多个目标,make就会产生所有的模式目标,此时,make关心的是依赖的文件名和生成目标的命令这两件事;
 
 ### 9.5.2 模式规则示例
-	下面这个例子表示了,把所有的[.c]文件都编译成[.o]文件.
+下面这个例子表示了,把所有的[.c]文件都编译成[.o]文件.
+```
 %.o : %.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
-	其中,"$@"表示所有的目标的挨个值,"$<"表示了所有依赖目标的挨个值;这些奇怪的变量我们叫"自动化变量";
-	下面的这个例子中有两个目标是模式的
+```
+其中,"$@"表示所有的目标的挨个值,"$<"表示了所有依赖目标的挨个值;这些奇怪的变量我们叫"自动化变量";
+
+下面的这个例子中有两个目标是模式的
+```
 %.tab.c %.tab.h: %.y
 	bison -d $<
-	这条规则告诉make把所有的[.y]文件都以"bison -d <n>.y"执行,然后生成"<n>.tab.c"和"<n>.tab.h"文件;(其中"<n>"表示一个任意字符串);
-	如果可执行程序"foo"依赖于文件"parse.tab.o"和"scan.o",并且文件"scan.o"依赖于文 件"parse.tab.h",如果"parse.y"文件被更新了,那么根据上述的规则,"bison -d parse.y"就会被执行一次,于是,"parse.tab.o"和"scan.o"的依赖文件就齐了;(假设,"parse.tab.o" 由"parse.tab.c"生成,和"scan.o"由"scan.c"生成,而"foo"由"parse.tab.o"和"scan.o"链接生成,而且foo和其[.o]文件的依赖关系也写好,那么所有的目标都会得到满足);
+```
+这条规则告诉make把所有的[.y]文件都以`"bison -d <n>.y"`执行,然后生成`"<n>.tab.c"`和`"<n>.tab.h"`文件;(其中`"<n>"`表示一个任意字符串);
+
+如果可执行程序"foo"依赖于文件"parse.tab.o"和"scan.o",并且文件"scan.o"依赖于文件"parse.tab.h",如果"parse.y"文件被更新了,那么根据上述的规则,"bison -d parse.y"就会被执行一次,于是,"parse.tab.o"和"scan.o"的依赖文件就齐了;(假设,"parse.tab.o" 由"parse.tab.c"生成,"scan.o"由"scan.c"生成,而"foo"由"parse.tab.o"和"scan.o"链接生成,而且foo和其[.o]文件的依赖关系也写好,那么所有的目标都会得到满足);
 
 ### 9.5.3 自动化变量
-	在上述的模式规则中,目标和依赖文件都是一系例的文件,那么我们如何书写一个命令来完成从不同的依赖文件生成相应的目标?因为在每一次的对模式规则的解析时,都会是不同的目标和依赖文件;
-	自动化变量就是完成这个功能的;在前面,我们已经对自动化变量有所提涉,相信你看到这里已对它有一个感性认识了;所谓自动化变量,就是这种变量会把模式中所定义的一系列的文件自动地挨个取出,直至所有的符合模式的文件都取完了;这种自动化变量只应出现在规则的命令中;
-	下面是所有的自动化变量及其说明:
-	$@
-		表示规则中的目标文件集;在模式规则中,如果有多个目标,那么,"$@"就是匹配于目标中模式定义的集合;
-	$%
-		仅当目标是函数库文件中,表示规则中的目标成员名;例如,如果一个目标是"foo.a(bar.o)",那么,"$%"就是"bar.o","$@"就 是"foo.a";如果目标不是函数库文件(Unix下是[.a],Windows下是[.lib]),那么,其值为空;
-	$<
-		依赖目标中的第一个目标名字;如果依赖目标是以模式(即"%")定义的,那么"$<"将是符合模式的一系列的文件集;注意,其是一个一个取出来的;
-	$?
-		所有比目标新的依赖目标的集合;以空格分隔;
-	$^
-		所有的依赖目标的集合;以空格分隔;如果在依赖目标中有多个重复的,那个这个变量会去除重复的依赖目标,只保留一份;
-	$+
-		这个变量很像"$^",也是所有依赖目标的集合;只是它不去除重复的依赖目标;
-	$*
-		这个变量表示目标模式中"%"及其之前的部分;
-	如果目标是"dir/a.foo.b",并且目标的模式是"a.%.b",那么"$*"的值就是"dir /a.foo";这个变量对于构造有关联的文件名是比较有较;
-	如果目标中没有模式的定义,那么"$*"也就不能被推导出,但是如果目标文件的后缀是make所识别的,那么"$*"就是除了后缀的那一部分;例如如果目标是"foo.c",因为".c"是make所能识别的后缀名,所以"$*"的值就是"foo";
-	这个特性是GNU make的,很有可能不兼容其它版本的make,所以应该尽量避免使用"$*",除非是在隐含规则或是静态模式中;如果目标中的后缀是make所不能识别的,那么"$*"就是空值;
-	当你希望只对更新过的依赖文件进行操作时,"$?"在显式规则中很有用,例如,假设有一个函数库文件叫"lib",其由其它几个object文件更新;那么把object文件打包的比较有效率的Makefile规则是:
+在上述的模式规则中,目标和依赖文件都是一系例的文件,那么我们如何书写一个命令来完成从不同的依赖文件生成相应的目标?因为在每一次模式规则解析时,都会是不同的目标和依赖文件;
+
+自动化变量就是完成这个功能的;所谓自动化变量,就是这种变量会把模式中所定义的一系列的文件自动地挨个取出,直至所有的符合模式的文件都取完;这种自动化变量只应出现在规则的命令中;
+
+下面是所有的自动化变量及其说明:
++ $@	表示规则中的目标文件集;在模式规则中,如果有多个目标,那么,"$@"就是匹配于目标中模式定义的集合;
++ $%	仅当目标是函数库文件中,表示规则中的目标成员名;例如,如果一个目标是"foo.a(bar.o)",那么,"$%"就是"bar.o","$@"就是"foo.a";如果目标不是函数库文件(Unix下是[.a],Windows下是[.lib]),那么,其值为空;
++ $<	依赖目标中的第一个目标名字;如果依赖目标是以模式(即"%")定义的,那么"$<"将是符合模式的一系列的文件集;注意,其是一个一个取出来的;
++ $?	所有比目标新的依赖目标的集合;以空格分隔;
++ $^	所有的依赖目标的集合;以空格分隔;如果在依赖目标中有多个重复的,那个这个变量会去除重复的依赖目标,只保留一份;
++ $+	这个变量很像"$^",也是所有依赖目标的集合;只是它不去除重复的依赖目标;
++ $*	这个变量表示目标模式中"%"及其之前的部分;
+如果目标是"dir/a.foo.b",并且目标的模式是"a.%.b",那么"$*"的值就是"dir /a.foo";这个变量对于构造有关联的文件名是比较有用;
+如果目标中没有模式的定义,那么"$*"也就不能被推导出,但是如果目标文件的后缀是make所识别的,那么"$*"就是除了后缀的那一部分;例如如果目标是"foo.c",因为".c"是make所能识别的后缀名,所以"$*"的值就是"foo";
+这个特性是GNU make的,很有可能不兼容其它版本的make,所以应该尽量避免使用"$*",除非是在隐含规则或是静态模式中;如果目标中的后缀是make所不能识别的,那么"$*"就是空值;
+
+当希望只对更新过的依赖文件进行操作时,"$?"在显式规则中很有用,例如,假设有一个函数库文件叫"lib",其由其它几个object文件更新;那么把object文件打包的比较有效率的Makefile规则是:
+```
 lib : foo.o bar.o lose.o win.o
 	arr lib $?
-	在上述所列出来的自动量变量中;四个变量($@,$<,$%,$*)在扩展时只会有一个文件,而另三个的值是一个文件列表;
-	这七个自动化变量还可以取得文件的目录名或是在当前目录下的符合模式的文件名,只需要搭配上"D"或"F"字样;这是GNU make中老版本的特性,在新版本中使用函数"dir"或"notdir"就可以做到了;"D"的含义是Directory,就是目录,"F"的含义是File,就是文件;
-	下面是对于上面的七个变量分别加上"D"或是"F"的含义
-	$(@D)
-		表示"$@"的目录部分(不以斜杠作为结尾),如果"$@"值是"dir/foo.o",那么"$(@D)"就是"dir",而如果"$@"中没有包含斜杠的话,其值就是"."(当前目录);
-	$(@F)
-		表示"$@"的文件部分,如果"$@"值是"dir/foo.o",那么"$(@F)"就是"foo.o","$(@F)"相当于函数"$(notdir $@)";
-	"$(*D)"
-	"$(*F)"
-		和上面所述的同理,也是取文件的目录部分和文件部分;对于上面的那个例子,"$(*D)"返回"dir",而"$(*F)"返回"foo"
-	"$(%D)"
-	"$(%F)"
-		分别表示了函数包文件成员的目录部分和文件部分;这对于形同"archive(member)"形式的目标中的"member"中包含了不同的目录很有用;
-	"$(<D)"
-	"$(<F)"
-		分别表示依赖文件的目录部分和文件部分;
-	"$(^D)"
-	"$(^F)"
-		分别表示所有依赖文件的目录部分和文件部分;(无相同的)
-	"$(+D)"
-	"$(+F)"
-		分别表示所有依赖文件的目录部分和文件部分;(可以有相同的)
-	"$(?D)"
-	"$(?F)"
-		分别表示被更新的依赖文件的目录部分和文件部分;
-	最后想提醒一下的是,对于"$<",为了避免产生不必要的麻烦,我们最好给$后面的那个特定字符都加上圆括号,比如,"$(<)"就要比"$<"要好一些;
-	还得要注意的是,这些变量只使用在规则的命令中,而且一般都是"显式规则"和"静态模式规则";其在隐含规则中并没有意义;
+```
+
+在上述所列出来的自动量变量中;四个变量($@,$<,$%,$*)在扩展时只会有一个文件,而另三个的值是一个文件列表;
+
+这七个自动化变量还可以取得文件的目录名或是在当前目录下的符合模式的文件名,只需要搭配上"D"或"F"字样;这是GNU make中老版本的特性,在新版本中使用函数"dir"或"notdir"就可以做到了;"D"的含义是Directory,就是目录,"F"的含义是File,就是文件;
+
+下面是对于上面的七个变量分别加上"D"或是"F"的含义
++ $(@D)
+	表示"$@"的目录部分(不以斜杠作为结尾),如果"$@"值是"dir/foo.o",那么"$(@D)"就是"dir",而如果"$@"中没有包含斜杠的话,其值就是"."(当前目录);
++ $(@F)
+	表示"$@"的文件部分,如果"$@"值是"dir/foo.o",那么"$(@F)"就是"foo.o","$(@F)"相当于函数"$(notdir $@)";
++ "$(*D)"
++ "$(*F)"
+	和上面所述的同理,也是取文件的目录部分和文件部分;对于上面的那个例子,"$(*D)"返回"dir",而"$(*F)"返回"foo"
++ "$(%D)"
++ "$(%F)"
+	分别表示了函数包文件成员的目录部分和文件部分;这对于形同"archive(member)"形式的目标中的"member"中包含了不同的目录很有用;
++ "$(<D)"
++ "$(<F)"
+	分别表示依赖文件的目录部分和文件部分;
++ "$(^D)"
++ "$(^F)"
+	分别表示所有依赖文件的目录部分和文件部分;(无相同的)
++ "$(+D)"
++ "$(+F)"
+	分别表示所有依赖文件的目录部分和文件部分;(可以有相同的)
++ "$(?D)"
++ "$(?F)"
+	分别表示被更新的依赖文件的目录部分和文件部分;
+
+最后想提醒一下的是,对于"$<",为了避免产生不必要的麻烦,我们最好给$后面的那个特定字符都加上圆括号,比如,"$(<)"就要比"$<"要好一些;
+
+还得要注意的是,这些变量只适用在规则的命令中,而且一般都是"显式规则"和"静态模式规则";其在隐含规则中并没有意义;
 
 ### 9.5.4 模式的匹配
-	一般来说,一个目标的模式有一个有前缀或是后缀的"%",或是没有前后缀,直接就是一个"%";因为"%"代表一个或多个字符,所以在定义好了的模式中,把"%"所匹配的内容叫做"茎",例如"%.c"所匹配的文件"test.c" 中"test"就是"茎";因为在目标和依赖目标中同时有"%"时,依赖目标的"茎"会传给目标,当做目标中的"茎";
-	当一个模式匹配包含有斜杠(实际也不经常包含)的文件时,那么在进行模式匹配时,目录部分会首先被移开,然后进行匹配,成功后,再把目录加回去;
-	在进行"茎"的传递时,我们需要知道这个步骤;
-	例如有一个模式"e%t",文件"src/eat"匹配于该模式,于是"src/a"就是其"茎",如果这个模式定义在依赖目标中,而被依赖于这个模式的目标中又有个模式"c%r",那么目标就是"src/car";("茎"被传递);
+一般来说,一个目标的模式有一个有前缀或是后缀的"%",或是没有前后缀,直接就是一个"%";因为"%"代表一个或多个字符,所以在定义好的模式中,把"%"所匹配的内容叫做"茎";
+例如"%.c"所匹配的文件"test.c" 中"test"就是"茎";
+
+在目标和依赖目标中同时有"%"时,依赖目标的"茎"会传给目标,当做目标中的"茎";
+
+当一个模式匹配包含有斜杠(实际也不经常包含)的文件时,那么在进行模式匹配时,目录部分会首先被移开,然后进行匹配,成功后,再把目录加回去;
+
+在进行"茎"的传递时,我们需要知道这个步骤;
+例如有一个模式"e%t",文件"src/eat"匹配于该模式,于是"src/a"就是其"茎",如果这个模式定义在依赖目标中,而被依赖于这个模式的目标中又有个模式"c%r",那么目标就是"src/car";("茎"被传递);
 
 ### 9.5.5 重载内建隐含规则
-	内建的隐含规则(或是定义一个全新的)可以重载,例如可以重新构造和内建隐含规则不同的命令,如:
+内建的隐含规则(或是定义一个全新的)可以重载,
+
+例如可以重新构造和内建隐含规则不同的命令,如:
+```
 %.o : %.c
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) -D$(date)
-	可以取消内建的隐含规则,只要不在后面写命令就行;如:
+```
+
+可以取消内建的隐含规则,只要不在后面写命令就行;如:
+```
 %.o : %.s
-	同样也可以重新定义一个全新的隐含规则,其在隐含规则中的位置取决于在哪里写下这个规则;朝前的位置就靠前;
+```
+同样也可以重新定义一个全新的隐含规则,其在隐含规则中的位置取决于在哪里写下这个规则;朝前的位置就靠前;
 
 ## 9.6 老式风格的"后缀规则"
-	后缀规则是一个比较老式的定义隐含规则的方法;后缀规则会被模式规则逐步地取代;因为模式规则更强更清晰;
-	为了和老版本的Makefile兼容,GNU make同样兼容于这些东西;
-	后缀规则有两种方式:"双后缀"和"单后缀";
-	双后缀规则定义了一对后缀:目标文件的后缀和依赖目标(源文件)的后缀;如".c.o"相当于"%o : %c";
-	单后缀规则只定义一个后缀,也就是源文件的后缀;如".c"相当于"% : %.c";
-	后缀规则中所定义的后缀应该是make所认识的,如果一个后缀是make所认识的,那么这个规 则就是单后缀规则,而如果两个连在一起的后缀都被make所认识,那就是双后缀规则;
-	例如".c"和".o"都是make所知道;因而,如果定义了一个规则是".c.o"那么其就是双后缀规则,意义就是".c"是源文件的后缀,".o"是目标文件的后缀;如下示例:
+后缀规则是一个比较老式的定义隐含规则的方法;后缀规则会被模式规则逐步地取代;因为模式规则更强更清晰;
+
+为了和老版本的Makefile兼容,GNU make同样兼容于这些东西;
+
+后缀规则有两种方式:"双后缀"和"单后缀";
++ 双后缀规则定义了一对后缀:目标文件的后缀和依赖(源文件)的后缀;如".c.o"相当于"%o : %c";
++ 单后缀规则只定义一个后缀,也就是源文件的后缀;如".c"相当于"% : %.c";
+
+后缀规则中所定义的后缀应该是make所认识的;
+
+如果一个后缀是make所认识的,那么这个规则就是单后缀规则,而如果两个连在一起的后缀都被make所认识,那就是双后缀规则;
+
+例如".c"和".o"都是make所知道;因而,如果定义了一个规则是".c.o"那么其就是双后缀规则,意义就是".c"是源文件的后缀,".o"是目标文件的后缀;
+如下示例:
+```
 .c.o:
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
-	后缀规则不允许任何的依赖文件,如果有依赖文件的话,那就不是后缀规则,那些后缀统统被认为是文件名,如:
+```
+
+后缀规则不允许任何的依赖文件,如果有依赖文件的话,那就不是后缀规则;那些后缀统统被认为是文件名,如:
+```
 .c.o: foo.h
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
-	这个例子就是说,文件".c.o"依赖于文件"foo.h",而不是我们想要的这样:
+```
+这个例子就是说,文件".c.o"依赖于文件"foo.h",而不是我们想要的这样:
+```
 %.o: %.c foo.h
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
-	后缀规则中,如果没有命令,那是毫无意义的;因为他也不会移去内建的隐含规则;
-	而要让make知道一些特定的后缀,可以使用伪目标".SUFFIXES"来定义或是删除,如:
+```
+
+后缀规则中,如果没有命令,那是毫无意义的;因为他也不会移除内建的隐含规则;
+
+而要让make知道一些特定的后缀,可以使用伪目标".SUFFIXES"来定义或是删除,如:
+```
 .SUFFIXES: .hack .win
-	把后缀.hack和.win加入后缀列表中的末尾;
+```
+把后缀.hack和.win加入后缀列表中的末尾;
+
+```
 .SUFFIXES:			  # 删除默认的后缀
 .SUFFIXES: .c .o .h   # 定义自己的后缀
-	先清楚默认后缀,后定义自己的后缀列表;
-	make的参数"-r"或"-no-builtin-rules"也会使默认的后缀列表为空;
-	而变量"SUFFIXE"被用来定义默认的后缀列表,可以用".SUFFIXES"来改变后缀列表,但请不要改变变量"SUFFIXE"的值;
+```
+先清除默认后缀,后定义自己的后缀列表;
+
+make的参数"-r"或"-no-builtin-rules"也会使默认的后缀列表为空;
+而变量"SUFFIXE"被用来定义默认的后缀列表,可以用".SUFFIXES"来改变后缀列表,但请不要改变变量"SUFFIXE"的值;
 
 ## 9.7 隐含规则搜索算法
-	比如有一个目标叫T;下面是搜索目标T的规则的算法;
-	请注意,在下面,我们没有提到后缀规则,原因是,所有的后缀规则在Makefile被载入内存时,会被转换成模式规则;
-	如果目标是"archive(member)"的函数库文件模式,那么这个算法会被运行两次,第一次是找目标T,如果没有找到的话,那么进入第二次,第二次会把"member"当作T来搜索;
-	1,把T的目录部分分离出来;叫D,而剩余部分叫N;(如:如果T是"src/foo.o",那么,D就是"src/",N就是"foo.o")
-	2,创建所有匹配T或是N的模式规则列表;
-	3,如果在模式规则列表中有匹配所有文件的模式,如"%",那么从列表中移除其它的模式;
-	4,移除列表中没有命令的规则;
-	5,对于第一个在列表中的模式规则:
-		1-> 推导其"茎"S,S应该是T或是N匹配于模式中"%"非空的部分;
-		2-> 计算依赖文件;把依赖文件中的"%"都替换成"茎"S;如果目标模式中没有包含斜框字符,而把D加在第一个依赖文件的开头;
-		3-> 测试是否所有的依赖文件都存在或是理当存在;(如果有一个文件被定义成另外一个规则的目标文件,或者是一个显式规则的依赖文件,那么这个文件就叫"理当存在")
-		4-> 如果所有的依赖文件存在或是理当存在,或是就没有依赖文件;那么这条规则将被采用,退出该算法;
-	6,如果经过第5步,没有模式规则被找到,那么就做更进一步的搜索;对于存在于列表中的第一个模式规则:
-		1-> 如果规则是终止规则,那就忽略它,继续下一条模式规则;
-		2-> 计算依赖文件;(同第5步)
-		3-> 测试所有的依赖文件是否存在或是理当存在;
-		4-> 对于不存在的依赖文件,递归调用这个算法查找他是否可以被隐含规则找到;
-		5-> 如果所有的依赖文件存在或是理当存在,或是就根本没有依赖文件;那么这条规则被采用,退出该算法;
-	7,如果没有隐含规则可以使用,查看".DEFAULT"规则,如果有,采用,把".DEFAULT"的命令给T使用;
-	一旦规则被找到,就会执行其相当的命令,而此时,我们的自动化变量的值才会生成;
+比如有一个目标叫T;下面是搜索目标T的规则的算法;
+请注意,在下面,我们没有提到后缀规则,原因是,所有的后缀规则在Makefile被载入内存时,会被转换成模式规则;
+
+如果目标是"archive(member)"的函数库文件模式,那么这个算法会被运行两次,第一次是找目标T,如果没有找到的话,那么进入第二次,第二次会把"member"当作T来搜索;
+
+1. 把T的目录部分分离出来;叫D,而剩余部分叫N;(如:如果T是"src/foo.o",那么,D就是"src/",N就是"foo.o")
+2. 创建所有匹配T或是N的模式规则列表;
+3. 如果在模式规则列表中有匹配所有文件的模式,如"%",那么从列表中移除其它的模式;
+4. 移除列表中没有命令的规则;
+5. 对于第一个在列表中的模式规则:
+	1. 推导其"茎"S,S应该是T或是N匹配于模式中"%"非空的部分;
+	2. 计算依赖文件;把依赖文件中的"%"都替换成"茎"S;如果目标模式中没有包含斜杠字符,而把D加在第一个依赖文件的开头;
+	3. 测试是否所有的依赖文件都存在或是理当存在;(如果有一个文件被定义成另外一个规则的目标文件,或者是一个显式规则的依赖文件,那么这个文件就叫"理当存在")
+	4. 如果所有的依赖文件存在或是理当存在,或是就没有依赖文件;那么这条规则将被采用,退出该算法;
+6. 如果经过第5步,没有模式规则被找到,那么就做更进一步的搜索;对于存在于列表中的第一个模式规则:
+	1. 如果规则是终止规则,那就忽略它,继续下一条模式规则;
+	2. 计算依赖文件;(同第5步)
+	3. 测试所有的依赖文件是否存在或是理当存在;
+	4. 对于不存在的依赖文件,递归调用这个算法查找他是否可以被隐含规则找到;
+	5. 如果所有的依赖文件存在或是理当存在,或是就根本没有依赖文件;那么这条规则被采用,退出该算法;
+7. 如果没有隐含规则可以使用,查看".DEFAULT"规则;如果有则采用,把".DEFAULT"的命令给T使用;
+
+一旦规则被找到,就会执行其相当的命令,而此时,我们的自动化变量的值才会生成;
 
 
 # 10. 使用make更新函数库文件
-
-	函数库文件也就是对Object文件(程序编译的中间文件)的打包文件;
-	在Unix下,一般是由命令"ar"来完成打包工作;
+函数库文件也就是对Object文件(程序编译的中间文件)的打包文件;
+在Unix下,一般是由命令"ar"来完成打包工作;
 
 ## 10.1 函数库文件的成员
-	一个函数库文件由多个文件组成;你可以以如下格式指定函数库文件及其组成:
-		archive(member)
-	这不是一个命令,而是一个目标和依赖的定义;一般来说,这种用法基本上就是为了"ar"命令来服务的;如:
+一个函数库文件由多个文件组成;
+可以以如下格式指定函数库文件及其组成:
+```
+archive(member)
+```
+这不是一个命令,而是一个目标和依赖的定义;一般来说,这种用法基本上就是为了"ar"命令来服务的;
+如:
+```
 foolib(hack.o) : hack.o
 	ar cr foolib hack.o
-	如果要指定多个member,那就以空格分开,如:
-		foolib(hack.o kludge.o)
-	其等价于:
-		foolib(hack.o) foolib(kludge.o)
-	你还可以使用Shell的文件通配符来定义,如:
-		foolib(*.o)
+```
+
+如果要指定多个member,那就以空格分开,如:
+`foolib(hack.o kludge.o)`其等价于`foolib(hack.o) foolib(kludge.o)`
+还可以使用Shell的文件通配符来定义,如:
+`foolib(*.o)`
 
 ## 10.2 函数库成员的隐含规则
-	当make搜索一个目标的隐含规则时,一个特殊的特性是,如果这个目标是"a(m)"形式的,其会把目标变成"(m)";
-	于是,如果我们的成员是"%.o"的模式定义,并且如果我们使用"make foo.a(bar.o)"的形式调用Makefile时,隐含规则会去找"bar.o"的规则,如果没有定义bar.o的规则,那么内建隐含规则生效,make会去找bar.c文件来生成bar.o,如果找得到的话,make执行的命令大致如下:
-	cc -c bar.c -o bar.o
-	ar r foo.a bar.o
-	rm -f bar.o
-	还有一个变量要注意的是"$%",这是专属函数库文件的自动化变量;
+当make搜索一个目标的隐含规则时,一个特殊的特性是,如果这个目标是"a(m)"形式的,其会把目标变成"(m)";
+于是,如果我们的成员是"%.o"的模式定义,并且如果我们使用"make foo.a(bar.o)"的形式调用Makefile时,隐含规则会去找"bar.o"的规则,如果没有定义bar.o的规则,那么内建隐含规则生效,make会去找bar.c文件来生成bar.o,如果找得到的话,make执行的命令大致如下:
+```
+cc -c bar.c -o bar.o
+ar r foo.a bar.o
+rm -f bar.o
+```
+还有一个变量要注意的是"$%",这是专属函数库文件的自动化变量;
 
 ## 10.3 函数库文件的后缀规则
-	可以使用"后缀规则"和"隐含规则"来生成函数库打包文件,如:
+可以使用"后缀规则"和"隐含规则"来生成函数库打包文件,如:
+```
 .c.a:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $*.o
 	$(AR) r $@ $*.o
 	$(RM) $*.o
-	等效于:
+```
+等效于:
+```
 (%.o) : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $*.o
 	$(AR) r $@ $*.o
 	$(RM) $*.o
+```
 
 ## 10.4 注意事项
-	在进行函数库打包文件生成时,请小心使用make的并行机制("-j"参数);
-	如果多个ar命令在同一时间运行在同一个函数库打包文件上,就很有可以损坏这个函数库文件;所以在make未来的版本中,应该提供一种机制来避免并行操作发生在函数打包文件上;
-	但就目前而言,还是尽量不要使用"-j"参数;
+在进行函数库打包文件生成时,请小心使用make的并行机制("-j"参数);
+
+如果多个ar命令在同一时间运行在同一个函数库打包文件上,就很有可以损坏这个函数库文件;所以在make未来的版本中,应该提供一种机制来避免并行操作发生在函数打包文件上;
+但就目前而言,还是小心使用"-j"参数;
 
 
 # 后序
-	以上基本上就是GNU make的Makefile的所有细节了;
-	其它的厂商的make基本上也是这样的,无论什么样的make,都是以文件的依赖性为基础的;
-	不但可以利用make这个工具来编译程序,还可以利用make来完成其它的工作,因为规则中的命令可以是任何Shell之下的命令;
+以上基本上就是GNU make的Makefile的所有细节了;
+其它厂商的make基本上也是这样的,无论什么样的make,都是以文件的依赖性为基础的;
+
+不但可以利用make工具来编译程序,还可以利用make来完成其它的工作,因为规则中的命令可以是任何Shell命令;
 
