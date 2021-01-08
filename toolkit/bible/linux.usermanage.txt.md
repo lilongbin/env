@@ -218,5 +218,5 @@ lastb #view users who login failed;
 ### list all users
 ```
 cut -d : -f 1 /etc/passwd
-cat /etc/passwd | awk -F \: ‘{print $1}’
+cat /etc/passwd | awk -F \: '{print $1}'
 ```

@@ -1,6 +1,6 @@
 makefile
 
-# 0. 前言
+# 前言
 
 ## 什么是makefile?
 makefile描述了make命令编译整个工程所需要的编译链接等规则;
