@@ -1,21 +1,19 @@
 
 # change list
-* created by Longbin Li <beangr@163.com>
-* 2014-12-05
-* 2015-03-09
-* 2018-08-24
+* 2014-12-05 created by Longbin Li
+* 2021-01-12 update to markdown format
 
-# config vim scripts
+# 1. config vim scripts
 we can use these scripts to explorer souce code.
 Before doing this, we may need to do following steps:
 
-## 1. change directory to our home dir.
+## change directory to our home dir.
 for instance, /home/mike; and then
 ```
 tar -zxvf vim_cfg_bk.tgz -C ~/
 ```
 
-## 2. then change current directory to the source code location.
+## then change current directory to the source code location.
 for instance, kernel source locates /opt/kernel/
 ```
 cd /opt/kernel
@@ -31,7 +29,7 @@ bash ~/toolkit/shell/gen_android_SrcExpl.sh     #for android
 ```
 after this, we could see cscope.out and tags files under the source code directory;
 
-## 3. use vim to open the file which you want to explorer.
+# 2. use vim to open the file which you want to explorer.
 for instance,
 ```
 vim /opt/kernel/driver/input/touchscreen/atmel_mxt_ts.c
@@ -85,7 +83,7 @@ we could also use bellow commands by the underline mode of vim.
 +   `:cs find t ME`    find ME; ME is a text string
 +   `:cs find e ME`    find ME; ME is an egrep pattern
 
-## 4. auto completion system in vim.
+# 3. auto completion system in vim.
 write following into ~/.vimrc file
 ```
 let g:neocomplcache_enable_at_startup=1
@@ -95,7 +93,7 @@ let g:neocomplcache_disable_auto_complete=1
 ```
 when need auto completion just press `<C-n>` to select which you like;
 
-## 5. comment or uncomment to the source code.
+# 4. comment or uncomment to the source code.
 +    `\cc`         comment
 +    `\cu`         uncomment
 +    `\cm`         comment minimal
@@ -104,22 +102,22 @@ when need auto completion just press `<C-n>` to select which you like;
 +    `\cA`         comment to the end and go to insert mode
 +    `\ca`         alternate the delimiters will be used
 
-## 6. Other operations in vim.
+# 5. regular operations in vim.
 
-### 6.1 We can use following keys to fold and/or unfold the source code session.
+## 5.1 We can use following keys to fold and/or unfold the source code session.
 foldenable
 +    `zi`         open/close all fold
 +    `zo`         open the fold under current cursor
 +    `zc`         close the fold under current cursor
 +    `<Space>`    open/close the fold under current sursor
 
-### 6.2 hilight the word by txtbrowser script.
+## 5.2 hilight the word by txtbrowser script.
 txtbrowser
 +    `\h`         hilight the word under cursor in current file
 +    `*`          search forward for the word under cursor
 +    `#`          search backword for the word under cursor
 
-### 6.3 Digraphs
+## 5.3 Digraphs
 Some characters are not on the keyboard.  For example, the copyright character (©).
 To type these characters in Vim, you use digraphs, where two characters represent one.
 To enter a ©, for example, you press three keys: `CTRL-K Co`
@@ -134,7 +132,7 @@ Vim will display the digraph table.  Here are three lines of it:
 This shows, for example, that the digraph you get by typing CTRL-K Pd is the
 character (£).  This is character number 163 (decimal).
 
-### 6.4 Hexedit
+## 5.4 Hexedit
 To view binary file could use the command
 ```
 vim -b test.bin
@@ -148,15 +146,15 @@ back to text mode use:
 :%!xxd -r
 ```
 
-### 6.5 set spell
+## 5.5 set spell
 To set spell, use
 ```
 :set spell
 ```
 then use `z=` to correct words
 
-# 7. quick option
-## 7.1 line option
+# 6. quick options
+## 6.1 line option
 copy lines(n1~n2) to the position below line n3:
 ```
 :n1,n2 co n3
@@ -174,7 +172,7 @@ delete lines(n1~n2):
 :n1,n2 d 
 ```
 
-## 7.2 vim diff
+## 6.2 vim diff
 open vim diff:
 ```
 vim -d file1 file2
@@ -182,16 +180,16 @@ vim -d file1 file2
 put diff patch to the other file: `dp`
 get diff patch from the other file: `do`
 
-## 7.3 man linux api
+## 6.3 man linux api
 press `<Shift-k>` to view man info of linux api
 
-## 7.4 record vim macro
+## 6.4 record vim macro
 enter normal mode, press `qa`(or qb/qc, etc.);
 start to record your operation and save to a/b/c register;
 press `Esc` back to normal mode, press `q` to stop record;
 press `@a` or `N@a` (N is a number)to play your record;
 
-## 7.5 write file as root
+## 6.5 write file as root
 `:w !{cmd}` will excute cmd and regard current file buffer as standard input;
 ```
 :w !sudo tee %
@@ -199,7 +197,7 @@ press `@a` or `N@a` (N is a number)to play your record;
 > and % is a read-only register indicate current file name;
 >> sudo tee % will capture stdin to % file;
 
-## 7.6 replace
+## 6.6 replace
 ```
 :%s/\t/    /gc
 ```
@@ -212,7 +210,7 @@ vim can support regular expression, when need reference re match result should u
 :%s/^\(.*\).vmdk$/\1.vmdk \1.vdi/gc
 ```
 
-## 7.7 remove consecutive blank lines
+## 6.7 remove consecutive blank lines
 ```
 :%s/\n\{3,\}/\r\r/
 ```

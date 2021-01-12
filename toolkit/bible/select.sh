@@ -3,7 +3,7 @@
 PS3="please select your dir: "
 select option in $(ls)
 do
-	if [[ -n "$option" ]] ;then
+	if [ -n "$option" ] ;then
 		ls -l $option
 		break
 	fi
@@ -33,7 +33,7 @@ do
 
 done
 echo "reply is: ${REPLY}"
-if [[ "${REPLY}" == "" ]] ;then
+if [ "${REPLY}" = "" ] ;then
 	echo "use default option: $option"
 fi
 
