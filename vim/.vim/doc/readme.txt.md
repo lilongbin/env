@@ -108,16 +108,16 @@ when need auto completion just press `<C-n>` to select which you like;
 
 ### 6.1 We can use following keys to fold and/or unfold the source code session.
 foldenable
-+     `zi`         open/close all fold
-+     `zo`         open the fold under current cursor
-+     `zc`         close the fold under current cursor
-+     `<Space>`    open/close the fold under current sursor
++    `zi`         open/close all fold
++    `zo`         open the fold under current cursor
++    `zc`         close the fold under current cursor
++    `<Space>`    open/close the fold under current sursor
 
 ### 6.2 hilight the word by txtbrowser script.
 txtbrowser
-+     `\h`         hilight the word under cursor in current file
-+     `*`          search forward for the word under cursor
-+     `#`          search backword for the word under cursor
++    `\h`         hilight the word under cursor in current file
++    `*`          search forward for the word under cursor
++    `#`          search backword for the word under cursor
 
 ### 6.3 Digraphs
 Some characters are not on the keyboard.  For example, the copyright character (©).
@@ -136,6 +136,8 @@ character (£).  This is character number 163 (decimal).
 
 ### 6.4 Hexedit
 To view binary file could use the command
+```
+vim -b test.bin
 ```
 then use below command to change to hex mode
 ```
