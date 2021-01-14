@@ -1389,13 +1389,14 @@ git reset [--hard|soft|mixed|merge|keep] [<commit>|HEAD]
     --hard  重设(reset)index和工作区,从<commit>以来在工作区中的改变都被丢弃,并把HEAD指向<commit>;
     --soft  index和工作区中的内容不作任何改变,仅仅把HEAD指向<commit>;这个模式的效果是,执行完毕后,从<commit>以来的所有改变都会显示在git status的"Changes to be committed"中;可以把<commit>以来的内容重新add并提交;
     --mixed 仅重设index,但是不reset工作区;这个是默认模式,即当不显式告知git reset模式时,会使用mixed模式;这个模式的效果是,工作区的修改不会丢弃,也不会被标记成"Changes to be committed",但是会打出还未被更新的报告;报告如下:
+```
     #Unstaged changes after reset:
     #M Test.Scala
     #M test.txt
-
+```
     --merge和--keep用的不多,在下面的例子中说明;
 
-    git reset的典型的应用场景
+### git reset的典型的应用场景
 31.7.1 回滚add并更新仓库但保留工作区更改
 ```
     $ edit                               (1)
@@ -1437,8 +1438,10 @@ $ git commit -a -c ORIG_HEAD  (3)
     (3) 将工作区切换到topic/wip分支,由于该分支是基于reset前创建的,保留了master上删除的内容;
 
 31.7.4 永久删除最后几个commit
-    $ git commit ...
-    $ git reset --hard HEAD~3   (1)
+```
+$ git commit ...
+$ git reset --hard HEAD~3   (1)
+```
     (1) 最后3个commit(即HEAD, HEAD^和HEAD~2)提交有问题,想永久删除这三个commit;
 
 31.7.5 回滚merge和pull操作
