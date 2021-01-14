@@ -893,8 +893,10 @@ J是F的第二父提交
     然后会打开一个编辑器,就可以修改以前的提交日志信息了;
     如果完成提交后又想修改被提交的快照,增加或者修改其中的文件,可能因为最初提交时忘了添加一个新建的文件,这个过程基本上一样;通过修改文件然后对其运行git add或对一个已被记录的文件运行git rm,随后的git commit --amend会获取当前的暂存区并将它作为新提交对应的快照;
     但这个只以修改最后一个提交的信息,如何修以前的信息,比如最近3次;
-    git rebase -i HEAD~3
-    将会打开一个编辑器,把将要修��日志前面标记改成edit然后退出;
+```
+git rebase -i HEAD~3
+```
+    将会打开一个编辑器,把将要修改的日志前面标记改成edit然后退出;
     再交替执行3遍以下2条命令;
     git commit --amend
     git rebase --continue
@@ -904,14 +906,15 @@ J是F的第二父提交
 27.7.2.1 从所有提交中删除一个文件
     也许不小心提交了一个包含密码的文件;要从整个历史中删除一个名叫password.txt的文件,可以在filter-branch上使用--tree-filter选项;
     git filter-branch --tree-filter 'rm -f password.txt' HEAD
-    --tree-filter选项会在每次检出项目时先执行指定的命令然后重新提交结果;在这个例子中,会在所有快照中删除一个名叫password.txt的文件,无论它是否存在;如果想删除所有不小心提交上去的编辑器备份文件,可以运行类似git filter-branch --tree-filter 'rm -f *~' HEAD的命令;
+    --tree-filter选项会在每次检出项目时先执行指定的命令然后重新提交结果;在这个例子中,会在所有快照中删除一个名叫password.txt的文件,无论它是否存在;如果想删除所有不小心提交上去的编辑器备份文件,可以运行类似`git filter-branch --tree-filter 'rm -f *~' HEAD`的命令;
     一个比较好的办法是在一个测试分支上做这些然后在确定产物真的是所要的之后,再hard-reset主分支;要在所有的分支上运行filter-branch的话,可以传递一个--all选项;
 27.7.2.2 将一个子目录设置为新的根目录
     假设完成了从另外一个代码控制系统的导入工作,得到了一些没有意义的子目录(trunk, tags等等);如果想让trunk子目录成为每一次提交的新的项目根目录;
     git filter-branch --subdirectory-filter trunk HEAD
     git会自动地删除不对这个子目录产生影响的提交;
 27.7.2.3 全局性地更换电子邮件地址
-    git filter-branch --commit-filter '
+```
+git filter-branch --commit-filter '
         if [ "$GIT_AUTHOR_EMAIL" == "centos@localhost" ];
         then
             GIT_AUTHOR_NAME="user";
@@ -920,6 +923,7 @@ J是F的第二父提交
         else
             git commit-tree "$@";
         fi' HEAD
+```
     这个会遍历并重写所有提交使之拥有新地址;因为提交里包含了它们的父提交的SHA-1值,这个命令会修改历史中的所有提交,而不仅仅是包含了匹配的电子邮件地址的那些;
 ## 27.8 文件标注
     如果追踪代码中的缺陷想知道这是什么时候为什么被引进来的,文件标注会是最佳工具;它会显示文件中对每一行进行修改的最近一次提交;如果发现自己代码中的一段代码存在缺陷,可以用git blame来标注那段代码,查看那段代码的每一行分别是由谁在哪一天修改的;
@@ -1423,11 +1427,13 @@ $ git commit -a -c ORIG_HEAD  (3)
 
 31.7.3 回滚最近几次commit
     回滚最近几次commit,并把这几次commit放到叫做topic的branch上去;
+```
     $ git branch topic/wip     (1)
     $ git reset --hard HEAD~3  (2)
     $ git checkout topic/wip   (3)
+```
     (1) 已经提交了一些commit,但是此时发现这些commit还不够成熟,不能进入master分支,但你希望在新的branch上润色这些commit改动;因此执行了git branch命令在当前的HEAD上建立了新的叫做topic/wip的分支;
-    (2) 然后回滚master branch上的最近三次提交;HEAD~3指向当前HEAD-3个commit的commit;git reset --hard HEAD~3即删除最近的3个commit(删除HEAD, HEAD^, HEAD~2),将HEAD指向HEAD~3;
+    (2) 然后回滚master branch上的最近三次提交;HEAD~3指向当前HEAD-3个commit的commit;`git reset --hard HEAD~3`即删除最近的3个commit(删除HEAD, `HEAD^`, `HEAD~2`),将HEAD指向HEAD~3;
     (3) 将工作区切换到topic/wip分支,由于该分支是基于reset前创建的,保留了master上删除的内容;
 
 31.7.4 永久删除最后几个commit
@@ -1436,15 +1442,17 @@ $ git commit -a -c ORIG_HEAD  (3)
     (1) 最后3个commit(即HEAD, HEAD^和HEAD~2)提交有问题,想永久删除这三个commit;
 
 31.7.5 回滚merge和pull操作
-    $ git pull                         (1)
-    Auto-merging nitfol
-    CONFLICT (content): Merge conflict in nitfol
-    Automatic merge failed; fix conflicts and then commit the result.
-    $ git reset --hard                 (2)
-    $ git pull . topic/branch          (3)
-    Updating from 41223... to 13134...
-    Fast-forward
-    $ git reset --hard ORIG_HEAD       (4)
+```
+$ git pull                         (1)
+Auto-merging nitfol
+CONFLICT (content): Merge conflict in nitfol
+Automatic merge failed; fix conflicts and then commit the result.
+$ git reset --hard                 (2)
+$ git pull . topic/branch          (3)
+Updating from 41223... to 13134...
+Fast-forward
+$ git reset --hard ORIG_HEAD       (4)
+```
     (1) 从origin拉下来一些更新,但是产生了很多冲突,暂时没有这么多时间去解决这些冲突,因此决定稍候有空的时候再重新pull;
     (2) 由于pull操作产生了冲突,因此所有pull下来的改变尚未提交,仍然在stage area中,这种情况下git reset --hard与git reset --hard HEAD意思相同,即都是清除暂存区和工作区中被搞乱的东西;
     (3) 将topic/branch合并到当前的branch,这次没有产生冲突,并且合并后的更改自动提交;
@@ -1453,12 +1461,14 @@ $ git commit -a -c ORIG_HEAD  (3)
     同样的,执行pull和merge操作时,git都会把执行操作前的HEAD放入ORIG_HEAD中,以防回滚操作;
 
 31.7.6 在被污染的工作区中回滚merge或者pull
-    $ git pull                         (1)
-    Auto-merging nitfol
-    Merge made by recursive.
-    nitfol                |   20 +++++----
-    ...
-    $ git reset --merge ORIG_HEAD      (2)
+```
+$ git pull                         (1)
+Auto-merging nitfol
+Merge made by recursive.
+nitfol                |   20 +++++----
+...
+$ git reset --merge ORIG_HEAD      (2)
+```
     (1) 即便已经在本地更改了一些工作区,也可安全的git pull,前提是知道将要pull的内容不会覆盖工作区中的内容;
     (2) git pull完后,发现这次pull下来的修改不满意,想要回滚到pull之前的状态;
     我们可以执行git reset --hard ORIG_HEAD,但是这个命令有个副作用就是清空工作区,即丢弃本地未add的那些改变;
@@ -1484,15 +1494,18 @@ $ git reset                                  �
 31.7.8 回滚git add的一个单独文件
     假设已经add一个文件进入index,但是又不打算把这个文件提交;
     此时可以使用`git reset -- <file>`把这个文件从index中移除但保留工作区文件的更改;
+```
     $ git reset -- test.c                      (1)
     $ git commit -m "Commit files in index"    (2)
     $ git add test.c                           (3)
+```
     (1) 把文件test.c从index中去除;
     (2) 把index中的文件提交;
     (3) 再次把test.c加入index;
 
 31.7.9 保留工作区并丢弃一些之前的commit
     假设正在编辑一些文件,并且已经提交,接着继续工作,但是现在发现当前在工作区中的内容应该属于另一个branch,与这之前的commit没有什么关系;此时,可以开启一个新的branch,并且保留工作区中的内容;
+```
     $ git tag start
     $ git checkout -b branch1
     $ edit
@@ -1500,6 +1513,7 @@ $ git reset                                  �
     $ edit
     $ git checkout -b branch2                   (2)
     $ git reset --keep start                    (3)
+```
     (1) 把在branch1中的改变提交了;
     (2) 此时发现,之前的提交不属于branch1,新建branch2,并切换到了branch2上;
     (3) 此时可以用git reset --keep start把在start之后的commit清除掉,但是保持工作区不变;
@@ -1544,7 +1558,7 @@ refs/heads/cpp-1.1
 
 如何clone(克隆)远程仓库中的指定分支,而非默认的master分支
     在git clone 命令中使用-b参数指定分支名字即可,比如将远端trade.git上的level-1.1分支克隆下来:
-    git clone -b level-1.1 username@192.168.4.40:trade.git
+    `git clone -b level-1.1 username@192.168.4.40:trade.git`
 
 ## 31.11 删除ref之前的历史记录
     删除ref之前的历史记录,把ref到HEAD的历史记录保留下来;
