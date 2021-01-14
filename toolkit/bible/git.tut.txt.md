@@ -1572,14 +1572,14 @@ refs/heads/cpp-1.1
     最后删除辅助的临时分支tmp即可;
     以上操作可以把某段历史记录分离出来,不可见的那部分用git reflog仍然可见;换言之还有恢复的可能;如果真要彻底丢掉这段历史,执行git gc --prune那就再也找不回来了;
 
-31.12
+## 31.12 your branch is ahead of ...
 31.12.1 Your branch is ahead of 'xxx' by 2 commits.
-[git] your branch is ahead of ... 解决办法
+`[git] your branch is ahead of ...` 解决办法
 出现该问题表示在次之前已经有X个commite了，执行命令
-git reset --hard HEAD~X
+`git reset --hard HEAD~X`
 解决其中X表示有多少次提交，此命令的意思是回退到x个commit之前。
-git reset --hard HEAD~X
-git pull --rebase
+`git reset --hard HEAD~X`
+`git pull --rebase`
 
 # 32 repo
     repo只是google用python脚本编写的调用git的一个脚本,主要是用来下载,管理Android项目的几百个软件仓库;
