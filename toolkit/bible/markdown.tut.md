@@ -315,11 +315,11 @@ title:sequence
 时序图示例
 ```sequence
 title: Alice Bob sequence
-Alice -> Bob: Authentication Request
-Bob --> Alice: Authentication Response
+Alice->Bob: Authentication call
+Bob->Alice: Authentication return
 
-Alice -> Bob: Another authentication Request
-Alice <-- Bob: another authentication Response
+Alice-->Bob: Another authentication Request
+Bob-->Alice: another authentication Response
 ```
 
 # End

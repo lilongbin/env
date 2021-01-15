@@ -1,12 +1,12 @@
 Git version control
 
 * Author: longbin
-* Released Date: 2015-08-08
+* Created Date: 2015-08-08
 * Last Modified: 2021-01-15
 
 # 常用git命令
 + `git init`           #创建一个数据库;  
-+ `git clone`          #复制一个数据到指定文件夹  
++ `git clone`          #复制一个数据库到指定文件夹  
 + `git add`            #把想提交的文件add上
 + `git commit`         #commit这些文件到本地数据库;  
 + `git pull`           #从服务器下载数据库,并跟自己的数据库合并;
@@ -21,7 +21,7 @@ Git version control
 + `git tag`            #标定/删除标签/版本号;  
 + `git reset`          #恢复到之前的版本 
 > + ----mixed是git-reset的默认选项,它的作用是重置索引内容,将其定位到指定的项目版本,而不改变工作树中的所有内容,只是提示有哪些文件还未更新; 
-> + --soft选项既不触动索引的位置,也不改变工作树中的任何内容;该选项会保留在工作树中的所有更新并使之处于待提交状态;相当于再--mixed基础上加上git add .;
+> + --soft选项既不触动索引的位置,也不改变工作树中的任何内容;该选项会保留在工作树中的所有更新并使之处于待提交状态;相当于在--mixed基础上加上git add .;
 > + --hard把整个目录还原到一个版本,包括所有文件;  
 + `git clean`          #删除所有没有tracked过的文件
 + `git push`           #向其他数据库推送自己的数据库;  
@@ -30,75 +30,181 @@ Git version control
 + `git rm`             #删除文件或者文件夹;  
 + `git help`           #查看帮助,还有几个无关紧要的命令,请自己查看帮助
 
-为方便使用git命令,增加git命令的自动补全功能,可以将git source tree目录的 `/contrib/completion/git-completion.bash` 放于`$HOME`目录在`.bashrc`中加载;
+为方便使用git命令,增加git命令的自动补全功能,可以将git source tree目录的 `/contrib/completion/git-completion.bash` 放于`${HOME}`目录在`.bashrc`中加载;
 
-# 1 Install git and gitk
-    sudo apt-get install git-core gitk ##ubuntu
-    sudo yum install git-core gitk ##CentOS/fedora
-    其中gitk可以方便的查看提交的历史;
+# 1 git Constructure
+## git系统3个对象
++ 提交(commit), 
++ 树(tree),
++ 原文(blob);
+> 每一个对象都是以文件的方式保存,文件的名称为该对象的sha-1标识;
+> + 每一个commit中包含了所修改的文件列表,用树(tree)表示,同时包含了作者(author),提交者(committer),备注(comment)等信息;
+> + tree是一个对象地址引用,指向了包含该tree信息的对象;tree中列出本次提交具体包含的文件列表,包括源文件名称,以及该文件的对象地址引用;每个文件类标对应一个blob对象;
+> + blob是具体的原文,比如对C程序文件而言就是源码本身;
+> + 每次用户提交时,git系统就生成一个快照(snapshot);
 
-# 2 Repository Construction
-    git系统包含3个对象:提交(commit), 树(tree), 原文(blob);
-    每一个对象都是以文件的方式保存,文件的名称为该对象的sha-1标识;
-    每一个commit中包含了所修改的文件列表,用树(tree)表示,同时包含了作者(author),提交者(committer),备注(comment)等信息;
-    tree是一个对象地址引用,指向了包含该tree信息的对象;tree中列出本次提交具体包含的文件列表,包括源文件名称,以及该文件的对象地址引用;每个文件类标对应一个blob对象;
-    blob是具体的原文,比如对C程序文件而言就是源码本身;
-    每次用户提交时,git系统就生成一个快照(snapshot);
-git仓库存放在当前工作目录的.git文件夹下,主要子目录包括以下几项
-    .git/objects 所有的对象,包括commit,tree,blob;
-    .git/refs/heads 所有的分支,分支仅仅是一个地址引用,指向最后一次提交记录;
-    .git/refs/tags 所有的标签(tag)可以为某题提交打上标签,方便以后查看;
-    .git/logs/HEAD HEAD的变化历史
-    .git/logs/refs/heads 除master分支以外其他分支的HEAD变化历史;
-    每次clone仓库的时候实际拷贝的就是这个目录里面的数据;
-git内部系统中一共有3个区域
-+ repository历史区      记录commit后的归档;
-+ stage area暂存区      准备下次commit到repository的内容;
-+ working area工作区    用户看到的文件夹下的内容;
-1. 历史区(git directory);
-    项目的所有历史提交都被保存在了git仓库中,只要不作回滚操作,就不会丢失;
-2. 暂存区(stage area/git index);
-    是工作区和git仓库之间的暂存区,和staging area是相同的意思;
-    git index和git staging area是同一个意思,都指已经被add但尚未commit的那些内容所在的区域;
-    查看目前暂存区中内容的方法是使用git status命令;
-    命令中"Changes to be committed"所列内容在暂存区,commit后进入git仓库;
-    命令中"Changed but not updated"所列内容在工作区,add之后将进入暂存区;
-    命令中"Untracked files"所列内容是尚未被git跟踪的内容,add之后进入暂存区;
-    哪些操作会改变暂存区中的内容?
-    + `git add <path>...`        会将工作区中`<path>`的内容加入暂存区;
-    + `git reset HEAD <path>...` 会将暂存区中path内容删除,重新放回工作区;
-    stage area的内容由git add添加,每次git commit后又会清空;
-3. 工作区(working area/working tree);
-    git的工作目录保存当前正在工作的文件,和working tree是相同的意思;
-    在这个目录中的文件可能会在切换branch时被git删除或者替换;
-    这个目录是临时目录,临时存储你从git库中取出的文件,这些文件一直会被保存,直到下次提交;
+git仓库存放在当前工作目录的`.git`文件夹下,主要子目录包括以下几项
++ `.git/objects` 所有的对象,包括commit,tree,blob;
++ `.git/refs/heads` 所有的分支,分支仅仅是一个地址引用,指向最后一次提交记录;
++ `.git/refs/tags` 所有的标签(tag)可以为某次提交打上标签,方便以后查看;
++ `.git/logs/HEAD` HEAD的变化历史
++ `.git/logs/refs/heads` 除master分支以外其他分支的HEAD变化历史;
+> 每次clone仓库的时候实际拷贝的就是这个目录里面的数据;
 
-    git add 命令会把工作区的更新内容推送到stage area;
-    git commit 命令会把stage area的内容推送到本地仓库,并清空stage area;
-    git commit -a 可以提交所有修改及删除的文件,但不包含新增文件;
-    git checkout branch_name 可以从仓库中检出对应分支的内容到工作区;
+## git系统中的4个区域
++ workspace工作区     用户看到的文件夹下的内容;
++ index/stage暂存区   保存即将提交到repository的内容;
++ repository版本库    安全存放数据的位置,其中HEAD指向最新放入仓库的版本;
++ remote远程仓库      托管代码的服务器;
 
-    工作目录下面的所有文件都不外乎这两种状态:已跟踪或未跟踪;
-    已跟踪的文件是指本来就被纳入版本控制管理的文件,在上次快照中有它们的记录,工作一段时间后,它们的状态可能是未更新,已修改或者已放入暂存区;
-    在编辑过某些文件之后,git将这些文件标为已修改;逐步把这些修改过的文件放到暂存区,直到提交所有这些暂存起来的文件,如此重复;
+```
++-------------------------------------+          pull
+|              workspace              |<=======================+
++-------------------------------------+                        |
+        |                    ^                                 |
+        |add                 |check out                        |
+        V                    |                                 |
++-------------+        +--------------+   clone/fetch  +==============+
+|             |        |              |<===============|              |
+| index/stage |        |  repository  |                |   remote     |
+|             |------->|              |===============>|              |
++-------------+ commit +--------------+     push       +==============+
+```
 
-    HEAD是当前活跃分支的游标,通俗的讲就是你现在在哪,HEAD就指向哪;
-    HEAD并不是只指向分支的顶端,实际上它可以指向任何一个节点,它就是git内部用来追踪当前位置的指针;
-    ORIG_HEAD指向HEAD的上一个位置;
+open below sequence with [plantuml](http://www.plantuml.com/plantuml)
+```
+@startuml
+title: git transfer sequence
+box workspace area.
+boundary untracked
+boundary unmodified
+boundary modified
+end box
 
-    git本地文件的状态
-        untracked   unmodified  modified    staged
+box index/stage
+boundary staged
+end box
 
-# 3 git init
-    创建的仓库分两种方式,一种是对本地的某个文件夹进行git管理;另一种是从某个远程仓库中clone;
+box repository
+boundary committed
+end box
 
-    第1种方式
-    cd mydir
-    git init #初始化git仓库
-    git add * ##添加跟踪的文件,并把目标文件快照放入暂存区域;
-    git status
-    git commit -a -m "first created"
+box remote server
+boundary remote
+endbox
 
+untracked->untracked:new <file>
+untracked->staged:git add <file>
+staged->untracked:git rm -- cached <file>
+untracked->untracked:new <file>
+untracked->staged:git add <file>
+staged->committed:git commit
+committed->modified:edit <file>
+
+remote->unmodified:git clone
+unmodified->modified:edit <file>
+modified->unmodified:git checkout -- <file>
+unmodified->modified:edit <file>
+
+modified->staged:git add <file>
+staged->modified:git reset HEAD <file>
+
+modified->staged:git add <file>
+staged->committed:git commit
+committed->remote:git push
+@enduml
+```
+
+### 1. 工作区(working area/working tree);
+git的工作目录保存当前正在工作的文件,和working tree是相同的意思;
+在这个目录中的文件可能会在切换branch时被git删除或替换;
+这个目录是临时目录,临时存储从git库中取出的文件,这些文件一直会被保存,直到下次提交;
+
+工作目录下面的所有文件都不外乎这两种状态:已跟踪或未跟踪;
+已跟踪的文件是指本来就被纳入版本控制管理的文件,在上次快照中有它们的记录,工作一段时间后,它们的状态可能是未更新,已修改或者已放入暂存区;
+在编辑过某些文件之后,git将这些文件标为已修改;逐步把这些修改过的文件放到暂存区,直到提交所有这些暂存起来的文件,如此重复;
+
+HEAD是当前活跃分支的游标,通俗的讲就是你现在在哪,HEAD就指向哪;
+HEAD并不是只指向分支的顶端,实际上它可以指向任何一个节点,它就是git内部用来追踪当前位置的指针;
+ORIG_HEAD指向HEAD的上一个位置;
+
+git本地文件的状态
++ untracked
++ unmodified
++ modified
++ staged
+
+哪些操作会改变工作区中的内容?
++ `git add` 命令会把工作区更新的内容放到stage area;
++ `git checkout -- <file>` 可以恢复已修改的文件,用库中的版本替换;
++ `git checkout branch_name` 可以从仓库中检出对应分支的内容到工作区;
++ `git rm --cached <file>` 可以将新add到暂存区的文件从暂存区移除并恢复为未追踪状态;
+
+### 2. 暂存区(stage area/git index);
+暂存区是工作区和git仓库之间的区域,和staging area是相同的意思;
+git index和git staging area是同一个意思,都指已经被add但尚未commit的那些内容所在的区域;
+
+查看目前暂存区中内容的方法是使用git status命令;
++ "Changes not staged for commit"或"Changed but not updated"所列内容在工作区,add之后将进入暂存区;
++ "Changes to be committed"所列内容在暂存区,commit后进入git仓库;
++ "Untracked files"所列内容是尚未被git跟踪的内容,add之后进入暂存区;
+
+哪些操作会改变暂存区中的内容?
++ `git add <path>...`        会将工作区中`<path>`的内容加入暂存区;
++ `git reset HEAD <path>...` 会将暂存区中path内容删除,重新放回工作区;
++ `git commit` 命令会把stage area的内容推送到本地仓库,并清空stage area;
++ `git commit -a` 可以提交所有修改及删除的文件,但不包含新增文件;
++ `git rm --cached <file>` 可以将新add到暂存区的文件从暂存区移除并恢复为未追踪状态;
+> stage area的内容由git add添加,每次git commit后又会清空;
+
+### 3. 版本库(git directory);
+项目的所有历史提交都被保存在了git仓库中,只要不做回滚操作,就不会丢失;
+
+### 4. 远程仓库
+托管代码的服务器,可以简单的认为是项目组的一台用于远程数据交换电脑;
+
+## GIT与SVN的几个区别
+1. GIT是分布式的，SVN不是，这是最核心的区别。
+GIT跟SVN一样有自己的集中式版本库或服务器。但GIT更常用于分布式模式，也就是每个开发人员从中心版本库/服务器上chect out代码时都会在自己的机器上克隆一个自己的版本库。
+可以这样说，即使在一个不能连接网络的地方，仍然能够提交文件（只提交到本地不能推送到服务器），查看历史版本记录，创建项目分支等，而SVN则需要连接中心服务器才可做这些事情。
+
+2. GIT把内容按元数据方式存储，而SVN是按文件。
+所有的资源控制系统都是把文件的元信息隐藏在一个类似.svn,.cvs等的文件夹里。.git目录保存了一个克隆版的版本库，它拥有中心版本库上所有的东西，例如标签，分支，版本记录等。
+
+3. GIT分支和SVN的分支不同。
+分支在SVN中一点不特别，就是版本库中的另外的一个目录。如果想知道是否合并了一个分支，需要手动运行像`svn propget svn:mergeinfo`这样的命令来确认代码是否被合并。所以，经常会发生有些分支被遗漏的情况。
+然而，处理GIT的分支却是相当的简单和有趣。可以从同一个工作目录下快速的在几个分支间切换。很容易发现未被合并的分支，能简单而快捷的合并这些文件。
+
+4. GIT没有一个全局的版本号，而SVN有。
+目前为止这是GIT比SVN相比缺少的最大的一个特征。SVN的版本号实际是每个源代码提交相应时间的快照。
+我们可以使用GIT的SHA-1来唯一的标识一个代码快照。这个并不能完全代替SVN里容易阅读的全局数字版本号。
+
+5. GIT的内容完整性要优于SVN。
+GIT的内容存储使用的是SHA-1哈希算法，能确保代码内容的完整性，确保在遇到磁盘故障或网络问题时降低对版本库的破坏。
+
+# 2 Install git and gitk
+ubuntu
+```
+sudo apt-get install git-core gitk
+```
+
+CentOS/fedora
+```
+sudo yum install git-core gitk
+```
+> 其中gitk可以方便的查看提交的历史;
+
+# 3 git init 创建仓库
+创建仓库分两种方式,一种是对本地的某个文件夹进行git管理;另一种是从某个远程仓库中clone;
+
+## 第1种方式
+```
+cd mydir
+git init #初始化git仓库
+git add * ##添加跟踪的文件,并把目标文件快照放入暂存区域;
+git status
+git commit -a -m "first created"
+```
     git init初始化后,在当前目录下会出现一个名为.git的目录,所有git需要的数据和资源都存放在这个目录中;
     git add把目标文件快照放入暂存区,也就是add file into stage area,同时未曾跟踪过的文件标记为需要跟踪; 运行了git add之后又作了修订的文件,需要重新运行git add把最新版本重新暂存起来;
     要确定哪些文件当前处于什么状态,可以用git status命令列出修改过的文件,如果要查看具体修改了什么地方,可以用git diff命令;
@@ -111,10 +217,12 @@ git内部系统中一共有3个区域
     git commit --amend #修改最后一次提交记录
     上面的三条命令最终只产生一个提交,第二个提交命令修正了第一个的提交内容;
 
-    第2种方式clone远程仓库
-    git clone remote-address [local_dir]
-    该命令从remote-address地址中clone一份远程仓库到本地local_dir目录下,同时把仓库中的当前分支对应的内容checkout出来放到工作区;
-    git支持许多数据传输协议;除了git:// 协议,也可以用http(s):// 或user@server:/path.git表示的SSH传输协议;
+## 第2种方式clone远程仓库
+```
+git clone remote-address [local_dir]
+```
+该命令从`remote-address`地址中clone一份远程仓库到本地local_dir目录下,同时把仓库中的当前分支对应的内容checkout出来放到工作区;
+git支持许多数据传输协议;除了`git://` 协议,也可以用`http(s)://` 或`user@server:/path.git`表示的SSH传输协议;
 
 # 4 git diff
     git diff可以比较:
@@ -1434,7 +1542,7 @@ $ git commit -a -c ORIG_HEAD  (3)
     $ git checkout topic/wip   (3)
 ```
     (1) 已经提交了一些commit,但是此时发现这些commit还不够成熟,不能进入master分支,但你希望在新的branch上润色这些commit改动;因此执行了git branch命令在当前的HEAD上建立了新的叫做topic/wip的分支;
-    (2) 然后回滚master branch上的最近三次提交;HEAD~3指向当前HEAD-3个commit的commit;`git reset --hard HEAD~3`即删除最近的3个commit(删除HEAD, `HEAD^`, `HEAD~2`),将HEAD指向HEAD~3;
+    (2) 然后回滚master branch上的最近三次提交;`HEAD~3`指向当前HEAD-3个commit的commit;`git reset --hard HEAD~3`即删除最近的3个commit(删除HEAD, `HEAD^`, `HEAD~2`),将HEAD指向HEAD~3;
     (3) 将工作区切换到topic/wip分支,由于该分支是基于reset前创建的,保留了master上删除的内容;
 
 31.7.4 永久删除最后几个commit
