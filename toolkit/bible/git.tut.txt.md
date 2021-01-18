@@ -5,37 +5,37 @@ Git version control
 * Last Modified: 2021-01-18
 
 # 常用git命令
-+ `git init`           #创建一个数据库;  
-+ `git clone`          #复制一个数据库到指定文件夹  
-+ `git add`            #把想提交的文件add上
-+ `git commit`         #commit这些文件到本地数据库;  
++ `git init`           #创建一个数据库;
++ `git clone`          #复制一个数据库到指定文件夹;
++ `git add`            #把想提交的文件add上;
++ `git commit`         #commit这些文件到本地数据库;
 + `git pull`           #从服务器下载数据库,并跟自己的数据库合并;
-+ `git fetch`          #从服务器下载数据库,并放到新分支,不跟自己的数据库合并;  
-+ `git whatchanged`    #查看两个分支的变化;  
-+ `git branch`         #创建分支,查看分支,删除分支  
-+ `git checkout`       #切换分支  
-+ `git merge`          #合并分支,把目标分支合并到当前分支  
-+ `git config`         #配置相关信息,例如`user.email`和`user.name`  
-+ `git log`            #查看版本历史  
-+ `git show`           #查看版本号对应版本的历史;如果参数是HEAD查看最新版本;  
-+ `git tag`            #标定/删除标签/版本号;  
-+ `git reset`          #恢复到之前的版本 
-> + `--mixed`是`git-reset`的默认选项,它的作用是重置索引内容,将其定位到指定的项目版本,而不改变工作树中的所有内容,只是提示有哪些文件还未更新; 
++ `git fetch`          #从服务器下载数据库,并放到新分支,不跟自己的数据库合并;
++ `git whatchanged`    #查看两个分支的变化;
++ `git branch`         #创建分支,查看分支,删除分支;
++ `git checkout`       #切换分支;
++ `git merge`          #合并分支,把目标分支合并到当前分支;
++ `git config`         #配置相关信息,例如`user.email`和`user.name`;
++ `git log`            #查看版本历史;
++ `git show`           #查看版本号对应版本的历史;如果参数是HEAD查看最新版本;
++ `git tag`            #标定/删除标签/版本号;
++ `git reset`          #恢复到之前的版本;
+> + `--mixed`是`git-reset`的默认选项,它的作用是重置索引内容,将其定位到指定的项目版本,而不改变工作树中的所有内容,只是提示有哪些文件还未更新;
 > + `--soft`选项既不触动索引的位置,也不改变工作树中的任何内容;该选项会保留在工作树中的所有更新并使之处于待提交状态;相当于在`--mixed`基础上加上`git add .`;
-> + `--hard`把整个目录还原到一个版本,包括所有文件;  
-+ `git clean`          #删除所有没有tracked过的文件
-+ `git push`           #向其他数据库推送自己的数据库;  
-+ `git status`         #显示当前的状态;  
-+ `git mv`             #重命名文件或者文件夹;  
-+ `git rm`             #删除文件或者文件夹; 
-+ `git stash`          #将修改临时保存至堆栈或从堆栈恢复,可跨分支;
-+ `git help`           #查看帮助,还有几个无关紧要的命令,请自己查看帮助
+> + `--hard`把整个目录还原到一个版本,包括所有文件;
++ `git clean`          #删除所有没有tracked过的文件;
++ `git push`           #向其他数据库推送自己的数据库;
++ `git status`         #显示当前的状态;
++ `git mv`             #重命名文件或者文件夹;
++ `git rm`             #删除文件或者文件夹;
++ `git stash`          #将当前工作状态保存至git栈或需要时恢复,可跨分支;
++ `git help`           #查看帮助,还有几个无关紧要的命令,请自己查看帮助;
 
 为方便使用git命令,增加git命令的自动补全功能,可以将git source tree目录的 `/contrib/completion/git-completion.bash` 放于`${HOME}`目录在`.bashrc`中加载;
 
 # 1 git Constructure
 ## git系统3个对象
-+ 提交(commit), 
++ 提交(commit),
 + 树(tree),
 + 原文(blob);
 > 每一个对象都是以文件的方式保存,文件的名称为该对象的sha-1标识;
@@ -448,12 +448,12 @@ git remote set-url origin <remote-git-address>
 在git push之前首先要`git pull --rebase`改变基点;相当于`git fetch`然后`git rebase`;
 
 推送本地分支 `local_branch` 到远程分支 `remote_branch` 并建立关联关系
-1. 远程已有`remote_branch`分支并且已经关联本地分支`local_branch`且本地已经切换到 `local_branch` 分支；
+1. 远程已有`remote_branch`分支并且已经关联本地分支`local_branch`且本地已经切换到 `local_branch` 分支;
 ```
 git push
 ```
 
-2. 远程已有`remote_branch`分支但未关联本地分支`local_branch`且本地已经切换到 `local_branch`分支；
+2. 远程已有`remote_branch`分支但未关联本地分支`local_branch`且本地已经切换到 `local_branch`分支;
 ```
 git push -u origin/remote_branch
 ```
@@ -580,7 +580,7 @@ git配置文件包括三个,三者只是作用范围不同,其中包含的配置
 
 ## 15.1 基本信息配置
 包括用户名和邮箱，每次 Git 提交时都会引用这两条信息，说明是谁提交了更新，会被记录在历史记录中：
-如果用了 --global 选项，会被保存在~/.gitconfig；以后所有的项目都会默认加载这里配置的用户信息。
+如果用了 --global 选项，会被保存在~/.gitconfig;以后所有的项目都会默认加载这里配置的用户信息。
 
 如果要在某个特定的项目中使用其他名字或者邮箱，只要去掉 --global 选项重新配置即可将新的配置保存在当前项目的 .git/config 文件;
 ```
